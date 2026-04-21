@@ -1,0 +1,278 @@
+// ======================================================
+// LambdaIDX - Professional Database Schema
+// Stack: PostgreSQL + Prisma ORM
+// Purpose:
+// - Thousands of hierarchical pages
+// - Rich content CRUD admin panel
+// - SEO slugs
+// - Fast search support
+// - Future users system
+// - Scalable relations
+// ======================================================
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ======================================================
+// ENUMS
+// ======================================================
+
+enum PageStatus {
+  DRAFT
+  REVIEW
+  PUBLISHED
+  ARCHIVED
+}
+
+enum UserRole {
+  USER
+  EDITOR
+  ADMIN
+  SUPERADMIN
+}
+
+enum RelationType {
+  RELATED
+  PREREQUISITE
+  NEXT_STEP
+  REFERENCE
+  CHILD_TOPIC
+}
+
+enum ResourceType {
+  WEBSITE
+  PDF
+  VIDEO
+  BOOK
+  TOOL
+  ARTICLE
+}
+
+// ======================================================
+// USERS (future ready)
+// ======================================================
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  username      String?  @unique
+  passwordHash  String?
+  fullName      String?
+  avatarUrl     String?
+  role          UserRole @default(USER)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  pagesCreated  Page[]   @relation("CreatedPages")
+  pagesUpdated  Page[]   @relation("UpdatedPages")
+
+  favorites     Favorite[]
+  history       UserHistory[]
+}
+
+// ======================================================
+// CORE PAGE SYSTEM
+// ======================================================
+
+model Page {
+  id               String      @id @default(cuid())
+
+  // SEO
+  title            String
+  slug             String      @unique
+  metaTitle        String?
+  metaDescription  String?
+  canonicalUrl     String?
+
+  // Hierarchy
+  parentId         String?
+  parent           Page?       @relation("PageHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
+  children         Page[]      @relation("PageHierarchy")
+
+  // Materialized Path for fast tree queries
+  path             String      @db.Text
+  depth            Int         @default(0)
+  sortOrder        Int         @default(0)
+
+  // Content
+  excerpt          String?
+  contentJson      Json?
+  coverImage       String?
+
+  // Status
+  status           PageStatus  @default(DRAFT)
+  isFeatured       Boolean     @default(false)
+
+  // Search
+  searchVector     String?     @db.Text
+
+  // Analytics
+  views            Int         @default(0)
+
+  // Authors
+  createdById      String?
+  updatedById      String?
+
+  createdBy        User?       @relation("CreatedPages", fields: [createdById], references: [id])
+  updatedBy        User?       @relation("UpdatedPages", fields: [updatedById], references: [id])
+
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  publishedAt      DateTime?
+
+  // Relations
+  outgoingRelations PageRelation[] @relation("SourcePage")
+  incomingRelations PageRelation[] @relation("TargetPage")
+
+  // Resources
+  resources        PageResource[]
+
+  // Tags
+  pageTags         PageTag[]
+
+  // History
+  revisions        PageRevision[]
+
+  // User Features
+  favorites        Favorite[]
+  history          UserHistory[]
+
+  @@index([parentId])
+  @@index([path])
+  @@index([status])
+  @@index([slug])
+  @@index([depth])
+  @@index([views])
+}
+
+// ======================================================
+// PAGE RELATIONS (graph knowledge)
+// ======================================================
+
+model PageRelation {
+  id          String       @id @default(cuid())
+
+  sourceId    String
+  targetId    String
+
+  type        RelationType @default(RELATED)
+  weight      Int          @default(1)
+
+  source      Page @relation("SourcePage", fields: [sourceId], references: [id], onDelete: Cascade)
+  target      Page @relation("TargetPage", fields: [targetId], references: [id], onDelete: Cascade)
+
+  @@unique([sourceId, targetId, type])
+  @@index([sourceId])
+  @@index([targetId])
+}
+
+// ======================================================
+// EXTERNAL RESOURCES
+// ======================================================
+
+model PageResource {
+  id          String       @id @default(cuid())
+
+  pageId       String
+  page         Page         @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  type         ResourceType
+  title        String
+  url          String
+  description  String?
+
+  createdAt    DateTime @default(now())
+
+  @@index([pageId])
+}
+
+// ======================================================
+// TAGS SYSTEM
+// ======================================================
+
+model Tag {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+
+  pages       PageTag[]
+}
+
+model PageTag {
+  pageId      String
+  tagId       String
+
+  page        Page @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  tag         Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([pageId, tagId])
+}
+
+// ======================================================
+// PAGE VERSIONING / REVISIONS
+// ======================================================
+
+model PageRevision {
+  id          String   @id @default(cuid())
+
+  pageId       String
+  page         Page     @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  title        String
+  contentJson  Json?
+
+  createdById  String?
+  createdAt    DateTime @default(now())
+
+  @@index([pageId])
+}
+
+// ======================================================
+// FUTURE USERS MODULE
+// ======================================================
+
+model Favorite {
+  userId      String
+  pageId      String
+
+  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  page        Page @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+
+  @@id([userId, pageId])
+}
+
+model UserHistory {
+  id          String   @id @default(cuid())
+
+  userId      String
+  pageId      String
+
+  user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  page        Page @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  visitedAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([pageId])
+}
+
+// ======================================================
+// OPTIONAL SEARCH CACHE TABLE
+// ======================================================
+
+model SearchLog {
+  id          String   @id @default(cuid())
+  query       String
+  results     Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@index([query])
+}
