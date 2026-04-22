@@ -5,6 +5,7 @@ import { Menu, X, Layers, Search } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { NavTree } from "./nav-tree";
 import { NavPage } from "@/types";
+import { useNavigation } from "@/hooks/use-navigation";
 
 interface MobileNavProps {
   tree: NavPage[];
@@ -12,6 +13,7 @@ interface MobileNavProps {
 
 export function MobileNav({ tree }: MobileNavProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const { toggleCommandPalette } = useNavigation();
 
   return (
     <div className="md:hidden">
@@ -61,7 +63,13 @@ export function MobileNav({ tree }: MobileNavProps) {
               </div>
 
               <div className="mb-6">
-                <div className="flex items-center gap-2 px-3 py-2 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg">
+                <div 
+                  onClick={() => {
+                    setIsOpen(false);
+                    toggleCommandPalette();
+                  }}
+                  className="flex items-center gap-2 px-3 py-2 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg"
+                >
                   <Search className="w-4 h-4 text-zinc-400" />
                   <span className="text-sm text-zinc-400">Search...</span>
                 </div>

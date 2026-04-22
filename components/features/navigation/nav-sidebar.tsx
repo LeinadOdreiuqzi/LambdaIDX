@@ -13,19 +13,18 @@ interface NavSidebarProps {
 }
 
 export function NavSidebar({ tree }: NavSidebarProps) {
-  const { isSidebarOpen, toggleSidebar } = useNavigation();
+  const { isSidebarOpen, toggleSidebar, toggleCommandPalette } = useNavigation();
 
   return (
     <motion.aside
       initial={false}
       animate={{ 
         width: isSidebarOpen ? 280 : 0, 
-        opacity: isSidebarOpen ? 1 : 0,
-        marginRight: isSidebarOpen ? 0 : -280 
+        opacity: isSidebarOpen ? 1 : 0
       }}
       transition={{ duration: 0.3, ease: "easeInOut" }}
       className={cn(
-        "hidden md:flex flex-col h-full bg-white border-r border-zinc-200 dark:bg-black dark:border-zinc-800 overflow-hidden"
+        "hidden md:flex flex-col sticky top-0 h-screen bg-white border-r border-zinc-200 dark:bg-black dark:border-zinc-800 overflow-hidden"
       )}
     >
       <div className="flex flex-col h-full w-[280px]">
@@ -47,7 +46,10 @@ export function NavSidebar({ tree }: NavSidebarProps) {
 
         {/* Search Bar Placeholder */}
         <div className="px-4 py-4">
-          <div className="flex items-center gap-2 px-3 py-2 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg group cursor-pointer hover:border-zinc-400 dark:hover:border-zinc-600 transition-colors">
+          <div 
+            onClick={toggleCommandPalette}
+            className="flex items-center gap-2 px-3 py-2 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg group cursor-pointer hover:border-zinc-400 dark:hover:border-zinc-600 transition-colors"
+          >
             <Search className="w-4 h-4 text-zinc-400" />
             <span className="text-sm text-zinc-400 group-hover:text-zinc-600 dark:group-hover:text-zinc-300 transition-colors">Search knowledge...</span>
             <span className="ml-auto text-[10px] text-zinc-400 border border-zinc-200 dark:border-zinc-800 px-1 rounded font-mono">⌘K</span>

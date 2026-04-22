@@ -9,6 +9,11 @@ interface NavigationContextType {
   isRightSidebarOpen: boolean;
   setIsRightSidebarOpen: (open: boolean) => void;
   toggleRightSidebar: () => void;
+  isCommandPaletteOpen: boolean;
+  setIsCommandPaletteOpen: (open: boolean) => void;
+  toggleCommandPalette: () => void;
+  expandedNodes: Set<string>;
+  toggleNode: (id: string) => void;
 }
 
 const NavigationContext = createContext<NavigationContextType | undefined>(undefined);
@@ -16,6 +21,8 @@ const NavigationContext = createContext<NavigationContextType | undefined>(undef
 export function NavigationProvider({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(true);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
 
   // Persistence for Left Sidebar
   useEffect(() => {
@@ -27,6 +34,15 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
     const savedRight = localStorage.getItem("lambdaidx-right-sidebar");
     if (savedRight !== null) {
       setIsRightSidebarOpen(savedRight === "true");
+    }
+
+    const savedNodes = localStorage.getItem("lambdaidx-expanded-nodes");
+    if (savedNodes) {
+      try {
+        setExpandedNodes(new Set(JSON.parse(savedNodes)));
+      } catch (e) {
+        console.error("Failed to parse expanded nodes", e);
+      }
     }
   }, []);
 
@@ -42,6 +58,23 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
     localStorage.setItem("lambdaidx-right-sidebar", String(newState));
   };
 
+  const toggleCommandPalette = () => {
+    setIsCommandPaletteOpen(!isCommandPaletteOpen);
+  };
+
+  const toggleNode = (id: string) => {
+    setExpandedNodes((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      localStorage.setItem("lambdaidx-expanded-nodes", JSON.stringify(Array.from(next)));
+      return next;
+    });
+  };
+
   return (
     <NavigationContext.Provider value={{ 
       isSidebarOpen, 
@@ -49,7 +82,12 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
       toggleSidebar,
       isRightSidebarOpen,
       setIsRightSidebarOpen,
-      toggleRightSidebar
+      toggleRightSidebar,
+      isCommandPaletteOpen,
+      setIsCommandPaletteOpen,
+      toggleCommandPalette,
+      expandedNodes,
+      toggleNode
     }}>
       {children}
     </NavigationContext.Provider>

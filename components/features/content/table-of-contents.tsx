@@ -14,34 +14,68 @@ export function TableOfContents() {
   const [activeId, setActiveId] = useState<string>("");
 
   useEffect(() => {
-    // Basic scanner for headings in the article
-    const elements = Array.from(document.querySelectorAll("h2, h3"))
-      .map((element) => {
-        const id = element.id || element.textContent?.toLowerCase().replace(/\s+/g, "-") || "";
-        if (!element.id) element.id = id;
-        return {
-          id,
-          title: element.textContent || "",
-          level: Number(element.tagName.replace("H", "")),
-        };
-      });
-    setHeadings(elements);
-
-    // Intersection Observer for highlighting active section
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActiveId(entry.target.id);
+    const scanHeaders = () => {
+      const usedIds = new Set<string>();
+      const elements = Array.from(document.querySelectorAll("h2, h3"))
+        .map((element) => {
+          let id = element.id || element.textContent?.toLowerCase()
+            .trim()
+            .replace(/\s+/g, "-")
+            .replace(/[^\w-]/g, "") || "section";
+          
+          // Ensure uniqueness
+          let uniqueId = id;
+          let counter = 1;
+          while (usedIds.has(uniqueId)) {
+            uniqueId = `${id}-${counter}`;
+            counter++;
           }
+          
+          usedIds.add(uniqueId);
+          if (element.id !== uniqueId) element.id = uniqueId;
+
+          return {
+            id: uniqueId,
+            title: element.textContent?.trim() || "Section",
+            level: Number(element.tagName.replace("H", "")),
+          };
         });
-      },
-      { rootMargin: "-20% 0% -70% 0%" }
-    );
+      setHeadings(elements);
 
-    document.querySelectorAll("h2, h3").forEach((h) => observer.observe(h));
+      // Intersection Observer logic
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              setActiveId(entry.target.id);
+            }
+          });
+        },
+        { rootMargin: "-20% 0% -70% 0%" }
+      );
 
-    return () => observer.disconnect();
+      document.querySelectorAll("h2, h3").forEach((h) => observer.observe(h));
+      return observer;
+    };
+
+    // Initial scan
+    let intersectionObserver = scanHeaders();
+
+    // Watch for DOM changes (since content is injected via dangerouslySetInnerHTML)
+    const mutationObserver = new MutationObserver(() => {
+      intersectionObserver.disconnect();
+      intersectionObserver = scanHeaders();
+    });
+
+    const articleBody = document.querySelector(".prose-custom");
+    if (articleBody) {
+      mutationObserver.observe(articleBody, { childList: true, subtree: true });
+    }
+
+    return () => {
+      intersectionObserver.disconnect();
+      mutationObserver.disconnect();
+    };
   }, []);
 
   if (headings.length === 0) return null;
@@ -50,9 +84,9 @@ export function TableOfContents() {
     <div className="py-2">
       <h4 className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-4 px-2">Table of Contents</h4>
       <ul className="space-y-1">
-        {headings.map((item) => (
+        {headings.map((item, index) => (
           <li 
-            key={item.id}
+            key={`${item.id}-${index}`}
             className={cn(
               "transition-all duration-200",
               item.level === 3 ? "ml-4" : "ml-0"

@@ -1,11 +1,14 @@
 "use client";
 
 import React from "react";
+import { usePathname } from "next/navigation";
 import { useNavigation } from "@/hooks/use-navigation";
 import { NavSidebar } from "@/components/features/navigation/nav-sidebar";
 import { MobileNav } from "@/components/features/navigation/mobile-nav";
+import { CommandPalette } from "@/components/shared/command-palette";
+import { IndustrialOverlay } from "@/components/shared/industrial-overlay";
 import { NavPage } from "@/types";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { PanelLeftOpen } from "lucide-react";
 
 interface PublicClientLayoutProps {
@@ -15,9 +18,12 @@ interface PublicClientLayoutProps {
 
 export function PublicClientLayout({ children, tree }: PublicClientLayoutProps) {
   const { isSidebarOpen, toggleSidebar } = useNavigation();
+  const pathname = usePathname();
 
   return (
     <div className="relative flex min-h-screen bg-white dark:bg-black">
+      <IndustrialOverlay />
+      
       {/* Sidebar - Desktop */}
       <NavSidebar tree={tree} />
 
@@ -45,9 +51,22 @@ export function PublicClientLayout({ children, tree }: PublicClientLayoutProps) 
         )}
 
         <div className="flex-1 pt-16 md:pt-0">
-           {children}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={pathname}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15, ease: "linear" }}
+              className="w-full"
+            >
+              {children}
+            </motion.div>
+          </AnimatePresence>
         </div>
       </main>
+
+      <CommandPalette tree={tree} />
     </div>
   );
 }

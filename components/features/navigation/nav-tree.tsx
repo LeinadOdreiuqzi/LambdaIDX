@@ -7,6 +7,7 @@ import { ChevronRight, FileText, Folder } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { NavPage } from "@/types";
+import { useNavigation } from "@/hooks/use-navigation";
 
 interface NavTreeProps {
   items: NavPage[];
@@ -27,11 +28,18 @@ export function NavTree({ items, depth = 0 }: NavTreeProps) {
 
 function NavTreeItem({ item, depth }: { item: NavPage; depth: number }) {
   const pathname = usePathname();
+  const { expandedNodes, toggleNode } = useNavigation();
   const hasChildren = item.children && item.children.length > 0;
   const isActive = pathname === `/p/${item.slug}`;
-  const isChildActive = pathname.startsWith(`/p/${item.slug}/`) || item.children.some(child => pathname === `/p/${child.slug}`);
-  
-  const [isOpen, setIsOpen] = useState(isActive || isChildActive);
+  const isOpen = expandedNodes.has(item.id);
+
+  // Auto-expand if active page is a child (only on mount if not already expanded)
+  React.useEffect(() => {
+    const isChildActive = pathname.startsWith(`/p/${item.slug}/`) || item.children.some(child => pathname === `/p/${child.slug}`);
+    if ((isActive || isChildActive) && !isOpen) {
+      toggleNode(item.id);
+    }
+  }, [isActive, item.id, item.slug, item.children, pathname]); // We only want this once for the active route
 
   return (
     <li>
@@ -42,7 +50,7 @@ function NavTreeItem({ item, depth }: { item: NavPage; depth: number }) {
             ? "bg-zinc-100 text-black dark:bg-zinc-800 dark:text-white" 
             : "text-zinc-600 hover:text-black hover:bg-zinc-50 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-zinc-900"
         )}
-        onClick={() => hasChildren && setIsOpen(!isOpen)}
+        onClick={() => hasChildren && toggleNode(item.id)}
       >
         <span className="flex items-center justify-center w-5 h-5 mr-1">
           {hasChildren ? (
