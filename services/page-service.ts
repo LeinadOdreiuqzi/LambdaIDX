@@ -106,8 +106,8 @@ export class PageService {
 
   private static getMockPage(slug: string) {
     const mockData: Record<string, any> = {
-      "introduction": { 
-        title: "Introduction", 
+      "introduction": {
+        title: "Introduction",
         content: `
           <p>Welcome to <strong>LambdaIDX</strong>. This is a next-generation knowledge platform designed for high-performance navigation and deep hierarchies.</p>
           <h2 id="the-mission">The Mission</h2>
@@ -120,46 +120,46 @@ export class PageService {
             <li><strong>SEO Optimized</strong>: Every page is indexable.</li>
             <li><strong>Premium Reading</strong>: Focused, distraction-free UI.</li>
           </ul>
-        `, 
-        path: "mock-1" 
+        `,
+        path: "mock-1"
       },
-      "what-is-lambdaidx": { 
-        title: "What is LambdaIDX?", 
+      "what-is-lambdaidx": {
+        title: "What is LambdaIDX?",
         content: `
           <p>LambdaIDX is more than a wiki; it is a specialized engine for structured data relationships.</p>
           <h2 id="architectural-depth">Architectural Depth</h2>
           <p>Unlike flat wikis, we treat knowledge as a recursive tree. This allows for unparalleled organization.</p>
           <h2 id="technology-stack">Technology Stack</h2>
           <p>Built with Next.js, TypeScript, and Prisma 7 for long-term scalability.</p>
-        `, 
-        path: "mock-1/mock-1-1" 
+        `,
+        path: "mock-1/mock-1-1"
       },
-      "setup-guide": { 
-        title: "Setup Guide", 
+      "setup-guide": {
+        title: "Setup Guide",
         content: `
           <p>Follow these steps to initialize your LambdaIDX environment.</p>
           <h2 id="environment">Environment</h2>
           <p>Ensure you have Node.js 18+ and a PostgreSQL instance ready.</p>
           <h2 id="initialization">Initialization</h2>
           <p>Run <code>npm install</code> followed by <code>npx prisma generate</code>.</p>
-        `, 
-        path: "mock-2" 
+        `,
+        path: "mock-2"
       },
-      "environment-variables": { 
-        title: "Environment Variables", 
+      "environment-variables": {
+        title: "Environment Variables",
         content: `
           <p>Required secrets for your .env file.</p>
           <h2 id="database">Database</h2>
           <pre>DATABASE_URL="postgresql://..."</pre>
-        `, 
-        path: "mock-2/mock-2-1" 
+        `,
+        path: "mock-2/mock-2-1"
       },
-      "database-config": { 
-        title: "Database Configuration", 
+      "database-config": {
+        title: "Database Configuration",
         content: `
           <p>Advanced mapping and schemas for hierarchical nodes.</p>
-        `, 
-        path: "mock-2/mock-2-2" 
+        `,
+        path: "mock-2/mock-2-2"
       },
     };
     return mockData[slug] || null;

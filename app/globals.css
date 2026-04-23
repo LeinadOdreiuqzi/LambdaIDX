@@ -1,8 +1,23 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0a0a0a;
+  --foreground: #ededed;
+}
+
+html {
+  font-size: 16px;
+}
+
+html[data-theme="light"] {
+  --background: #f8fafc;
+  --foreground: rgb(51, 65, 85);
+}
+
+html[data-theme="dark"] {
+  --background: #0a0a0a;
+  --foreground: #ededed;
 }
 
 /* Tailwind CSS v4 Theme Rules (Safe to ignore IDE "Unknown at rule" warnings) */
@@ -13,11 +28,16 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html[data-font-size="sm"] {
+  font-size: 15px;
+}
+
+html[data-font-size="md"] {
+  font-size: 16px;
+}
+
+html[data-font-size="lg"] {
+  font-size: 18px;
 }
 
 body {

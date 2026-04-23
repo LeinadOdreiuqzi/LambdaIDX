@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -11,6 +12,26 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
+
+const ACCESSIBILITY_INIT_SCRIPT = `
+(() => {
+  try {
+    const html = document.documentElement;
+    const savedTheme = localStorage.getItem("lambdaidx-theme");
+    const savedFontSize = localStorage.getItem("lambdaidx-font-size");
+    const theme = savedTheme === "light" ? "light" : "dark";
+    const fontSize = savedFontSize === "sm" || savedFontSize === "lg" ? savedFontSize : "md";
+
+    html.dataset.theme = theme;
+    html.dataset.fontSize = fontSize;
+    html.classList.toggle("dark", theme === "dark");
+  } catch {
+    document.documentElement.dataset.theme = "dark";
+    document.documentElement.dataset.fontSize = "md";
+    document.documentElement.classList.add("dark");
+  }
+})();
+`;
 
 export const metadata: Metadata = {
   title: {
@@ -48,10 +69,15 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased dark`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <Script id="lambdaidx-accessibility-init" strategy="beforeInteractive">
+          {ACCESSIBILITY_INIT_SCRIPT}
+        </Script>
+        {children}
+      </body>
     </html>
   );
 }
