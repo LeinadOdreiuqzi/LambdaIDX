@@ -170,8 +170,8 @@ export default function Home() {
             </div>
          </div>
          <div className="max-w-7xl mx-auto mt-20 pt-8 border-t border-zinc-900 flex justify-between items-center text-[10px] uppercase font-mono text-zinc-600 tracking-widest">
-            <span>© 2024 Lambda Engineering System</span>
-            <span>Est. San Francisco_v7</span>
+            <span>© 2026 Lambda IDX</span>
+            <span>v1.0.0-alpha</span>
          </div>
       </footer>
 
