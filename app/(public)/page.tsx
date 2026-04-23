@@ -177,8 +177,15 @@ export default function Home() {
 
       <style jsx global>{`
         .outline-text {
+          -webkit-text-stroke: 1px rgba(51, 65, 85, 0.5);
+          color: transparent;
+          text-shadow: 0 0 0 rgba(51, 65, 85, 0.08);
+        }
+
+        html[data-theme="dark"] .outline-text {
           -webkit-text-stroke: 1px rgba(255, 255, 255, 0.2);
           color: transparent;
+          text-shadow: none;
         }
       `}</style>
     </div>
