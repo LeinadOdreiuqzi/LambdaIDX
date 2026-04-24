@@ -8,6 +8,7 @@ import { NavPage } from "@/types";
 import { useNavigation } from "@/hooks/use-navigation";
 import { cn } from "@/lib/utils";
 import { useFocusTrap } from "@/hooks/use-focus-trap";
+import { Logo } from "@/components/shared/logo";
 
 interface MobileNavProps {
   tree: NavPage[];
@@ -67,10 +68,7 @@ export function MobileNav({ tree }: MobileNavProps) {
     <div className="md:hidden">
       {/* Basic Mobile Header */}
       <header className="h-16 flex items-center justify-between px-6 bg-white dark:bg-black border-b border-zinc-200 dark:border-zinc-800">
-        <div className="flex items-center gap-2">
-          <Layers className="w-5 h-5" />
-          <span className="font-bold">LambdaIDX</span>
-        </div>
+        <Logo size={24} />
         <button
           onClick={() => setIsOpen(true)}
           className="p-2 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
@@ -99,10 +97,7 @@ export function MobileNav({ tree }: MobileNavProps) {
               className="fixed inset-y-0 left-0 w-80 bg-white dark:bg-black z-[100] p-6 shadow-2xl flex flex-col"
             >
               <div className="flex items-center justify-between mb-8">
-                <div className="flex items-center gap-2">
-                  <Layers className="w-6 h-6" />
-                  <span className="font-bold text-xl">LambdaIDX</span>
-                </div>
+                <Logo size={28} />
                 <button
                   onClick={() => setIsOpen(false)}
                   className="p-1.5 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800"

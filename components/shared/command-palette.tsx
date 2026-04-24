@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Search, FileText, CornerDownLeft, Command, X } from "lucide-react";
 import { useNavigation } from "@/hooks/use-navigation";
 import { useFocusTrap } from "@/hooks/use-focus-trap";
+import { StatusPage } from "@/components/shared/status-page";
 import { NavPage } from "@/types";
 import { cn } from "@/lib/utils";
 
@@ -223,19 +224,14 @@ export function CommandPalette({ tree }: CommandPaletteProps) {
                   ))}
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <div
-                    className={cn(
-                      "w-12 h-12 border rounded-xl flex items-center justify-center mb-4",
-                      theme === "light" ? "bg-slate-100 border-slate-200" : "bg-zinc-900 border-zinc-800"
-                    )}
-                  >
-                    <X className={cn("w-6 h-6", theme === "light" ? "text-slate-400" : "text-zinc-700")} />
-                  </div>
-                  <p className={cn("text-sm", theme === "light" ? "text-slate-500" : "text-zinc-500")}>
-                    No nodes found matching "{query}"
-                  </p>
-                </div>
+                <StatusPage
+                  variant="empty"
+                  compact
+                  icon={<X className={cn("w-6 h-6", theme === "light" ? "text-slate-400" : "text-zinc-700")} />}
+                  badge="EMPTY"
+                  heading={null}
+                  description={`No nodes found matching "${query}"`}
+                />
               )}
             </div>
 

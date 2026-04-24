@@ -3,8 +3,16 @@ import React from "react";
 export default function Loading() {
   return (
     <article className="min-h-screen">
+      {/* Status Badge */}
+      <div className="content-grid pt-8 md:pt-12">
+        <div className="px-3 py-1 rounded-full border border-amber-300/70 dark:border-amber-900/50 bg-amber-100/60 dark:bg-amber-950/20 text-[10px] font-mono text-amber-600 dark:text-amber-500 tracking-tight uppercase inline-flex items-center gap-2 mb-8">
+          <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+          [LOADING::RETRIEVING_NODE]
+        </div>
+      </div>
+
       {/* Skeleton Header Zone */}
-      <header className="content-grid pt-8 pb-16 md:pt-12 md:pb-20">
+      <header className="content-grid pb-16 md:pb-20">
         <div className="animate-pulse">
           {/* Breadcrumb skeleton */}
           <div className="h-4 w-48 bg-zinc-100 dark:bg-zinc-900 rounded-md" />

@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { useNavigation } from "@/hooks/use-navigation";
 import { NavTree } from "./nav-tree";
 import { NavPage } from "@/types";
+import { Logo } from "@/components/shared/logo";
 
 interface NavSidebarProps {
   tree: NavPage[];
@@ -75,12 +76,7 @@ export function NavSidebar({ tree }: NavSidebarProps) {
       <div className="flex flex-col h-full w-[280px]">
         {/* Header */}
         <div className="h-16 flex items-center justify-between px-6 border-b border-transparent">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-black dark:bg-white rounded-lg flex items-center justify-center">
-              <Layers className="text-white dark:text-black w-5 h-5" />
-            </div>
-            <span className="font-bold text-lg tracking-tight">LambdaIDX</span>
-          </div>
+          <Logo size={28} />
           <button
             onClick={toggleSidebar}
             className="p-1.5 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
