@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowRight, Layers, Cpu, Globe, Database, Activity, Code, Target } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { Logo } from "@/components/shared/logo";
 
 export default function Home() {
   return (
@@ -150,10 +151,7 @@ export default function Home() {
       <footer className="relative z-10 px-6 py-20 border-t border-zinc-900">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start gap-12">
           <div>
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 bg-white text-black flex items-center justify-center font-black rounded-sm">L</div>
-              <span className="text-2xl font-black uppercase tracking-tighter">LambdaIDX</span>
-            </div>
+            <Logo size={40} className="mb-6" />
             <p className="text-zinc-500 max-w-xs text-sm leading-relaxed italic">
               "Because information without structure is just static noise."
             </p>
