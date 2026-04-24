@@ -41,7 +41,7 @@ export const metadata: Metadata = {
   description: "High-performance knowledge engine for deep hierarchies and premium reading experiences.",
   metadataBase: new URL("https://lambdaidx.com"),
   icons: {
-    icon: "/favicon.ico",
+    icon: "/icon.svg",
     apple: "/apple-touch-icon.png",
   },
   openGraph: {

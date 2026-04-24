@@ -1,0 +1,47 @@
+<svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .glyph { fill: #ffffff; }
+    .bracket { stroke: #ffffff; }
+    @media (prefers-color-scheme: light) {
+      .glyph { fill: #000000; }
+      .bracket { stroke: #000000; }
+    }
+  </style>
+  
+  <!-- Outer Tech Brackets -->
+  <path
+    d="M 20 10 L 10 10 L 10 90 L 20 90"
+    class="bracket"
+    stroke-width="2"
+    opacity="0.4"
+  />
+  <path
+    d="M 80 10 L 90 10 L 90 90 L 80 90"
+    class="bracket"
+    stroke-width="2"
+    opacity="0.4"
+  />
+
+  <!-- Central Geometric Core -->
+  <!-- Top Triangle -->
+  <path
+    d="M 50 15 L 80 45 L 20 45 Z"
+    class="glyph"
+    opacity="0.9"
+  />
+  
+  <!-- Bottom Left Fragment (Suggesting Lambda leg) -->
+  <path
+    d="M 18 50 L 48 50 L 18 80 Z"
+    class="glyph"
+    opacity="1"
+  />
+  
+  <!-- Bottom Right Fragment -->
+  <path
+    d="M 52 50 L 82 50 L 82 80 Z"
+    class="glyph"
+    opacity="0.7"
+  />
+
+</svg>
