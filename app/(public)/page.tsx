@@ -43,9 +43,9 @@ export default function Home() {
                 <ArrowRight className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 opacity-0 group-hover:opacity-100 transition-all" />
               </Link>
               
-              <Link
-                href="/admin/dashboard"
-                className="px-10 py-5 border border-zinc-800 bg-black dark:bg-zinc-950 hover:bg-[rgb(205,127,50)] dark:hover:bg-zinc-800 transition-colors font-bold uppercase tracking-widest text-xs text-zinc-400 dark:text-zinc-500 hover:text-white"
+              <Link 
+                href="/admin/dashboard" 
+                className="px-10 py-5 border border-zinc-800 bg-black hover:bg-zinc-900 transition-colors font-bold uppercase tracking-widest text-xs text-zinc-400"
               >
                 Core Management
               </Link>
@@ -214,7 +214,7 @@ function FooterLinkGroup({ title, links }: { title: string, links: string[] }) {
       <ul className="flex flex-col gap-2">
         {links.map(link => (
           <li key={link}>
-            <a href="#" className="text-sm text-zinc-600 dark:text-zinc-400 hover:text-[rgb(51,65,85)] transition-colors uppercase tracking-tighter">{link}</a>
+            <a href="#" className="text-sm text-zinc-600 hover:text-white transition-colors uppercase tracking-tighter">{link}</a>
           </li>
         ))}
       </ul>
