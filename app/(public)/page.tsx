@@ -194,15 +194,15 @@ export default function Home() {
 
 function FeatureBlock({ id, icon, title, description }: { id: string, icon: React.ReactNode; title: string, description: string }) {
   return (
-    <div className="p-10 border border-zinc-900 hover:bg-zinc-900/40 transition-all group relative overflow-hidden">
-      <div className="absolute top-4 right-4 text-[10px] font-mono text-zinc-800 tracking-tighter">
+    <div className="p-10 border border-zinc-900 hover:bg-zinc-900/40 dark:hover:bg-zinc-800/40 transition-all group relative overflow-hidden">
+      <div className="absolute top-4 right-4 text-[10px] font-mono text-zinc-800 dark:text-zinc-600 tracking-tighter group-hover:text-white dark:group-hover:text-zinc-300 transition-colors">
         INDEX__{id}
       </div>
-      <div className="w-10 h-10 mb-8 border border-zinc-800 bg-zinc-950 flex items-center justify-center rounded-lg group-hover:scale-110 group-hover:border-white transition-all">
+      <div className="w-10 h-10 mb-8 border border-zinc-800 bg-zinc-950 flex items-center justify-center rounded-lg group-hover:scale-110 group-hover:border-white dark:group-hover:border-zinc-400 transition-all">
         {icon}
       </div>
-      <h3 className="text-lg font-bold uppercase tracking-tight mb-3 group-hover:text-white transition-colors">{title}</h3>
-      <p className="text-zinc-500 text-sm leading-relaxed lowercase tracking-tight">
+      <h3 className="text-lg font-bold uppercase tracking-tight mb-3 group-hover:text-white dark:group-hover:text-zinc-200 transition-colors">{title}</h3>
+      <p className="text-zinc-500 dark:text-zinc-400 text-sm leading-relaxed lowercase tracking-tight group-hover:text-zinc-300 dark:group-hover:text-zinc-500 transition-colors">
         {description}
       </p>
     </div>
