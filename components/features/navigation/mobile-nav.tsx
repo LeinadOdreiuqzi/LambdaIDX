@@ -7,6 +7,7 @@ import { NavTree } from "./nav-tree";
 import { NavPage } from "@/types";
 import { useNavigation } from "@/hooks/use-navigation";
 import { cn } from "@/lib/utils";
+import { useFocusTrap } from "@/hooks/use-focus-trap";
 
 interface MobileNavProps {
   tree: NavPage[];
@@ -34,6 +35,7 @@ export function MobileNav({ tree }: MobileNavProps) {
   const [fontSize, setFontSize] = useState<FontSizeMode>("md");
   const [isAccessibilityOpen, setIsAccessibilityOpen] = useState(false);
   const { toggleCommandPalette } = useNavigation();
+  const focusTrapRef = useFocusTrap<HTMLDivElement>(isOpen);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
@@ -93,6 +95,7 @@ export function MobileNav({ tree }: MobileNavProps) {
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              ref={focusTrapRef}
               className="fixed inset-y-0 left-0 w-80 bg-white dark:bg-black z-[100] p-6 shadow-2xl flex flex-col"
             >
               <div className="flex items-center justify-between mb-8">
@@ -109,16 +112,18 @@ export function MobileNav({ tree }: MobileNavProps) {
               </div>
 
               <div className="mb-6">
-                <div 
+                <button
+                  type="button"
                   onClick={() => {
                     setIsOpen(false);
                     toggleCommandPalette();
                   }}
-                  className="flex items-center gap-2 px-3 py-2 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg"
+                  aria-label="Search knowledge"
+                  className="flex items-center gap-2 px-3 py-2 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg w-full"
                 >
                   <Search className="w-4 h-4 text-zinc-400" />
                   <span className="text-sm text-zinc-400">Search...</span>
-                </div>
+                </button>
               </div>
 
               <div className="flex-1 overflow-y-auto no-scrollbar">

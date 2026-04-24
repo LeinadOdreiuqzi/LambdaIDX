@@ -91,10 +91,12 @@ export function NavSidebar({ tree }: NavSidebarProps) {
 
         {/* Search Bar Placeholder */}
         <div className="px-4 py-4">
-          <div 
+          <button
+            type="button"
             onClick={toggleCommandPalette}
+            aria-label="Search knowledge"
             className={cn(
-              "flex items-center gap-2 px-3 py-2 border rounded-lg group cursor-pointer transition-colors",
+              "flex items-center gap-2 px-3 py-2 border rounded-lg group cursor-pointer transition-colors w-full",
               theme === "light"
                 ? "bg-[#eef2f7] border-slate-200 hover:border-slate-300"
                 : "bg-zinc-900 border-zinc-800 hover:border-zinc-600"
@@ -121,7 +123,7 @@ export function NavSidebar({ tree }: NavSidebarProps) {
             >
               ⌘K
             </span>
-          </div>
+          </button>
         </div>
 
         {/* Navigation Tree */}

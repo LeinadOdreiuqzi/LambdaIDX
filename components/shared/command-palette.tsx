@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, FileText, CornerDownLeft, Command, X } from "lucide-react";
 import { useNavigation } from "@/hooks/use-navigation";
+import { useFocusTrap } from "@/hooks/use-focus-trap";
 import { NavPage } from "@/types";
 import { cn } from "@/lib/utils";
 
@@ -19,6 +20,7 @@ export function CommandPalette({ tree }: CommandPaletteProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [theme, setTheme] = useState<"light" | "dark">("dark");
   const inputRef = useRef<HTMLInputElement>(null);
+  const focusTrapRef = useFocusTrap<HTMLDivElement>(isCommandPaletteOpen);
 
   // Flatten the tree for searching
   const flatPages = useMemo(() => {
@@ -92,9 +94,11 @@ export function CommandPalette({ tree }: CommandPaletteProps) {
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "ArrowDown") {
       e.preventDefault();
+      if (filteredPages.length === 0) return;
       setSelectedIndex((prev) => (prev + 1) % filteredPages.length);
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
+      if (filteredPages.length === 0) return;
       setSelectedIndex((prev) => (prev - 1 + filteredPages.length) % filteredPages.length);
     } else if (e.key === "Enter") {
       if (filteredPages[selectedIndex]) {
@@ -106,7 +110,7 @@ export function CommandPalette({ tree }: CommandPaletteProps) {
   return (
     <AnimatePresence>
       {isCommandPaletteOpen && (
-        <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh] px-4">
+        <div ref={focusTrapRef} className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh] px-4">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
