@@ -5,7 +5,6 @@ import Link from "next/link";
 import { ArrowRight, Layers, Cpu, Globe, Database, Activity, Code, Target } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { Logo } from "@/components/shared/logo";
 
 export default function Home() {
   return (
@@ -45,7 +44,7 @@ export default function Home() {
 
               <Link
                 href="/admin/dashboard"
-                className="px-10 py-5 border border-zinc-800 bg-black hover:bg-zinc-900 transition-colors font-bold uppercase tracking-widest text-xs text-zinc-400"
+                className="px-10 py-5 border border-zinc-800 bg-black dark:bg-zinc-950 hover:bg-[rgb(205,127,50)] dark:hover:bg-zinc-800 transition-colors font-bold uppercase tracking-widest text-xs text-zinc-400 dark:text-zinc-500 hover:text-white"
               >
                 Core Management
               </Link>
@@ -151,7 +150,10 @@ export default function Home() {
       <footer className="relative z-10 px-6 py-20 border-t border-zinc-900">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start gap-12">
           <div>
-            <Logo size={40} className="mb-6" />
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 bg-white text-black flex items-center justify-center font-black rounded-sm">L</div>
+              <span className="text-2xl font-black uppercase tracking-tighter">LambdaIDX</span>
+            </div>
             <p className="text-zinc-500 max-w-xs text-sm leading-relaxed italic">
               "Because information without structure is just static noise."
             </p>
@@ -214,7 +216,7 @@ function FooterLinkGroup({ title, links }: { title: string, links: string[] }) {
       <ul className="flex flex-col gap-2">
         {links.map(link => (
           <li key={link}>
-            <a href="#" className="text-sm text-zinc-600 hover:text-white transition-colors uppercase tracking-tighter">{link}</a>
+            <a href="#" className="text-sm text-zinc-600 dark:text-zinc-400 hover:text-[rgb(51,65,85)] transition-colors uppercase tracking-tighter">{link}</a>
           </li>
         ))}
       </ul>
