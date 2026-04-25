@@ -19,10 +19,6 @@ export default function Home() {
             transition={{ duration: 0.8 }}
             className="flex flex-col items-center text-center"
           >
-            <div className="px-3 py-1 rounded-full border border-zinc-800 bg-zinc-950/50 text-[10px] font-mono text-zinc-400 mb-10 tracking-[0.2em] uppercase">
-              [PROTOCOLO_CARTOGRAFIA_VIVA_KNOWLEDGE_TREE]
-            </div>
-
             <h1 className="text-6xl md:text-9xl font-black uppercase tracking-tighter leading-[0.85] mb-12">
               Knowledge <br />
               <span className="text-zinc-600 outline-text">Archive.</span>

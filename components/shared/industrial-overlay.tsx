@@ -19,14 +19,6 @@ export function IndustrialOverlay() {
         style={{ opacity: isContentPage ? 0 : 1 }}
       />
 
-      {/* Decorative Technical Overlays — hidden on content pages */}
-      {!isContentPage && (
-        <div className="fixed top-8 left-8 hidden lg:flex flex-col gap-1 text-[10px] font-mono text-zinc-500 uppercase tracking-widest opacity-30 pointer-events-none z-50">
-          <span>sys.v_0.1.0_alpha</span>
-          <span>branch: master_main</span>
-          <div className="mt-2 w-12 h-0.5 bg-zinc-200 dark:bg-zinc-800" />
-        </div>
-      )}
 
       {!isContentPage && (
         <div className="fixed top-8 right-8 hidden lg:flex items-center gap-4 text-[10px] font-mono text-zinc-500 uppercase tracking-widest opacity-30 pointer-events-none z-50">
