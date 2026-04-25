@@ -19,16 +19,27 @@ const ACCESSIBILITY_INIT_SCRIPT = `
     const html = document.documentElement;
     const savedTheme = localStorage.getItem("lambdaidx-theme");
     const savedFontSize = localStorage.getItem("lambdaidx-font-size");
-    const theme = savedTheme === "light" ? "light" : "dark";
+
+    let theme;
+    if (savedTheme === "light" || savedTheme === "dark") {
+      theme = savedTheme;
+    } else {
+      // Detect system theme preference
+      const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      theme = systemDark ? "dark" : "light";
+    }
+
     const fontSize = savedFontSize === "sm" || savedFontSize === "lg" ? savedFontSize : "md";
 
     html.dataset.theme = theme;
     html.dataset.fontSize = fontSize;
     html.classList.toggle("dark", theme === "dark");
   } catch {
-    document.documentElement.dataset.theme = "dark";
+    const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const theme = systemDark ? "dark" : "light";
+    document.documentElement.dataset.theme = theme;
     document.documentElement.dataset.fontSize = "md";
-    document.documentElement.classList.add("dark");
+    document.documentElement.classList.toggle("dark", theme === "dark");
   }
 })();
 `;

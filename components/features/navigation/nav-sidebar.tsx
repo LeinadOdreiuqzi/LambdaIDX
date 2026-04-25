@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Search, PanelLeftClose, Layers, Moon, Sun, Type, ChevronUp, ChevronDown } from "lucide-react";
+import { Search, PanelLeftClose, Layers, Moon, Sun, Monitor, Type, ChevronUp, ChevronDown } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useNavigation } from "@/hooks/use-navigation";
@@ -13,16 +13,21 @@ interface NavSidebarProps {
   tree: NavPage[];
 }
 
-type ThemeMode = "light" | "dark";
+type ThemeMode = "light" | "dark" | "system";
 type FontSizeMode = "sm" | "md" | "lg";
 
 const THEME_STORAGE_KEY = "lambdaidx-theme";
 const FONT_SIZE_STORAGE_KEY = "lambdaidx-font-size";
 
+function getSystemTheme(): "light" | "dark" {
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+
 function applyThemeToDocument(mode: ThemeMode) {
   const html = document.documentElement;
-  html.dataset.theme = mode;
-  html.classList.toggle("dark", mode === "dark");
+  const actualTheme = mode === "system" ? getSystemTheme() : mode;
+  html.dataset.theme = actualTheme;
+  html.classList.toggle("dark", actualTheme === "dark");
 }
 
 function applyFontSizeToDocument(mode: FontSizeMode) {
@@ -39,7 +44,10 @@ export function NavSidebar({ tree }: NavSidebarProps) {
     const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
     const savedFontSize = localStorage.getItem(FONT_SIZE_STORAGE_KEY);
 
-    const initialTheme: ThemeMode = savedTheme === "light" ? "light" : "dark";
+    const initialTheme: ThemeMode =
+      savedTheme === "light" || savedTheme === "dark" || savedTheme === "system"
+        ? savedTheme
+        : "system";
     const initialFontSize: FontSizeMode =
       savedFontSize === "sm" || savedFontSize === "lg" ? savedFontSize : "md";
 
@@ -47,7 +55,18 @@ export function NavSidebar({ tree }: NavSidebarProps) {
     setFontSize(initialFontSize);
     applyThemeToDocument(initialTheme);
     applyFontSizeToDocument(initialFontSize);
-  }, []);
+
+    // Listen for system theme changes when in system mode
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const handleChange = () => {
+      if (theme === "system") {
+        applyThemeToDocument("system");
+      }
+    };
+
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
+  }, [theme]);
 
   const handleThemeChange = (mode: ThemeMode) => {
     setTheme(mode);
@@ -151,30 +170,42 @@ export function NavSidebar({ tree }: NavSidebarProps) {
             <>
               <div className="space-y-2">
                 <p className="px-2 text-[10px] font-medium uppercase tracking-wider text-zinc-500">Theme</p>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-3 gap-2">
                   <button
                     onClick={() => handleThemeChange("light")}
                     className={cn(
-                      "flex items-center justify-center gap-1.5 rounded-md border px-2 py-1.5 text-xs font-medium transition-colors",
+                      "flex flex-col items-center justify-center gap-1 rounded-md border px-2 py-2 text-xs font-medium transition-colors",
                       theme === "light"
                         ? "border-zinc-400 bg-zinc-100 text-zinc-700 dark:border-zinc-500 dark:bg-zinc-800 dark:text-zinc-200"
                         : "border-zinc-200 bg-white text-zinc-500 hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400 dark:hover:border-zinc-700"
                     )}
                   >
                     <Sun className="h-3.5 w-3.5" />
-                    White
+                    <span>White</span>
                   </button>
                   <button
                     onClick={() => handleThemeChange("dark")}
                     className={cn(
-                      "flex items-center justify-center gap-1.5 rounded-md border px-2 py-1.5 text-xs font-medium transition-colors",
+                      "flex flex-col items-center justify-center gap-1 rounded-md border px-2 py-2 text-xs font-medium transition-colors",
                       theme === "dark"
                         ? "border-zinc-400 bg-zinc-100 text-zinc-700 dark:border-zinc-500 dark:bg-zinc-800 dark:text-zinc-200"
                         : "border-zinc-200 bg-white text-zinc-500 hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400 dark:hover:border-zinc-700"
                     )}
                   >
                     <Moon className="h-3.5 w-3.5" />
-                    Dark
+                    <span>Dark</span>
+                  </button>
+                  <button
+                    onClick={() => handleThemeChange("system")}
+                    className={cn(
+                      "flex flex-col items-center justify-center gap-1 rounded-md border px-2 py-2 text-xs font-medium transition-colors",
+                      theme === "system"
+                        ? "border-zinc-400 bg-zinc-100 text-zinc-700 dark:border-zinc-500 dark:bg-zinc-800 dark:text-zinc-200"
+                        : "border-zinc-200 bg-white text-zinc-500 hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400 dark:hover:border-zinc-700"
+                    )}
+                  >
+                    <Monitor className="h-3.5 w-3.5" />
+                    <span>System</span>
                   </button>
                 </div>
               </div>
