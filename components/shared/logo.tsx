@@ -102,7 +102,7 @@ export function Logo({ className, size = 32, showText = true }: LogoProps) {
             Lambda<span className="opacity-50">IDX</span>
           </span>
           <span className="text-[7px] font-mono tracking-[0.4em] uppercase opacity-40 mt-0.5">
-            Strategic Intelligence
+            Knowledge Archive.
           </span>
         </div>
       )}
