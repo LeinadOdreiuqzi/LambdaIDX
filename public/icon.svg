@@ -1,47 +1,57 @@
-<svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="32" height="32" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
   <style>
-    .glyph { fill: #ffffff; }
-    .bracket { stroke: #ffffff; }
-    @media (prefers-color-scheme: light) {
-      .glyph { fill: #000000; }
-      .bracket { stroke: #000000; }
+    .logo-stroke { stroke: #000; }
+    .logo-fill { fill: #000; }
+    @media (prefers-color-scheme: dark) {
+      .logo-stroke { stroke: #fff; }
+      .logo-fill { fill: #fff; }
     }
   </style>
   
-  <!-- Outer Tech Brackets -->
+  {/* Outer Tech Brackets */}
+  <g opacity="0.5">
+    <path
+      d="M 28 12 L 12 12 L 12 88 L 28 88"
+      class="logo-stroke"
+      stroke-width="4"
+    />
+    <line x1="12" y1="50" x2="18" y2="50" class="logo-stroke" stroke-width="2" />
+  </g>
+  <g opacity="0.5">
+    <path
+      d="M 72 12 L 88 12 L 88 88 L 72 88"
+      class="logo-stroke"
+      stroke-width="4"
+    />
+    <line x1="88" y1="50" x2="82" y2="50" class="logo-stroke" stroke-width="2" />
+  </g>
+
+  {/* Central Geometric Diamond Frame */}
   <path
-    d="M 20 10 L 10 10 L 10 90 L 20 90"
-    class="bracket"
-    stroke-width="2"
-    opacity="0.4"
-  />
-  <path
-    d="M 80 10 L 90 10 L 90 90 L 80 90"
-    class="bracket"
-    stroke-width="2"
+    d="M 50 8 L 92 50 L 50 92 L 8 50 Z"
+    class="logo-stroke"
+    stroke-width="3"
     opacity="0.4"
   />
 
-  <!-- Central Geometric Core -->
-  <!-- Top Triangle -->
+  {/* The Lambda 'λ' Core */}
   <path
-    d="M 50 15 L 80 45 L 20 45 Z"
-    class="glyph"
-    opacity="0.9"
+    d="M 50 20 V 55 L 25 80"
+    class="logo-stroke"
+    stroke-width="10"
+    stroke-linecap="square"
   />
-  
-  <!-- Bottom Left Fragment (Suggesting Lambda leg) -->
   <path
-    d="M 18 50 L 48 50 L 18 80 Z"
-    class="glyph"
-    opacity="1"
-  />
-  
-  <!-- Bottom Right Fragment -->
-  <path
-    d="M 52 50 L 82 50 L 82 80 Z"
-    class="glyph"
-    opacity="0.7"
+    d="M 50 55 L 75 80"
+    class="logo-stroke"
+    stroke-width="10"
+    stroke-linecap="square"
   />
 
+  {/* Knowledge Nodes */}
+  <circle cx="50" cy="20" r="5" class="logo-fill" />
+  <circle cx="50" cy="55" r="5" class="logo-fill" />
+  <circle cx="25" cy="80" r="5" class="logo-fill" opacity="0.8" />
+  <circle cx="75" cy="80" r="5" class="logo-fill" opacity="0.8" />
+  <circle cx="50" cy="10" r="3" class="logo-fill" opacity="0.4" />
 </svg>
