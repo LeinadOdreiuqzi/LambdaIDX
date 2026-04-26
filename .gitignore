@@ -42,6 +42,6 @@ next-env.d.ts
 
 # lambdaidx specific
 /skills/
-/prisma/generated/
+/prisma/
 *.db
 *.sqlite

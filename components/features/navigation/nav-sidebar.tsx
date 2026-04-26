@@ -141,119 +141,119 @@ export function NavSidebar({ tree }: NavSidebarProps) {
           </button>
         </div>
 
-        {/* Navigation Tree */}
-        <div className="flex-1 overflow-y-auto px-4 py-2 custom-scrollbar">
+        {/* Navigation Tree + Accessibility Settings - Scrollable */}
+        <div className="flex-1 overflow-y-auto px-4 py-2 custom-scrollbar flex flex-col">
           <div className="mb-4">
             <h3 className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-2 px-2">Knowledge Tree</h3>
             <NavTree items={tree} />
           </div>
-        </div>
 
-        {/* Accessibility Settings */}
-        <div className="p-4 border-t border-zinc-100 dark:border-zinc-900 space-y-4">
-          <div className="px-2">
-            <button
-              onClick={() => setIsAccessibilityOpen((prev) => !prev)}
-              className="w-full flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-zinc-400 hover:text-zinc-500 dark:hover:text-zinc-300 transition-colors"
-              aria-expanded={isAccessibilityOpen}
-            >
-              <span>Accessibility</span>
-              {isAccessibilityOpen ? (
-                <ChevronDown className="h-3.5 w-3.5" />
-              ) : (
-                <ChevronUp className="h-3.5 w-3.5" />
-              )}
-            </button>
+          {/* Accessibility Settings */}
+          <div className="p-4 border-t border-zinc-100 dark:border-zinc-900 space-y-4 mt-auto">
+            <div className="px-2">
+              <button
+                onClick={() => setIsAccessibilityOpen((prev) => !prev)}
+                className="w-full flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-zinc-400 hover:text-zinc-500 dark:hover:text-zinc-300 transition-colors"
+                aria-expanded={isAccessibilityOpen}
+              >
+                <span>Accessibility</span>
+                {isAccessibilityOpen ? (
+                  <ChevronDown className="h-3.5 w-3.5" />
+                ) : (
+                  <ChevronUp className="h-3.5 w-3.5" />
+                )}
+              </button>
+            </div>
+
+            {isAccessibilityOpen && (
+              <>
+                <div className="space-y-2">
+                  <p className="px-2 text-[10px] font-medium uppercase tracking-wider text-zinc-500">Theme</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    <button
+                      onClick={() => handleThemeChange("light")}
+                      className={cn(
+                        "flex flex-col items-center justify-center gap-1 rounded-md border px-2 py-2 text-xs font-medium transition-colors",
+                        theme === "light"
+                          ? "border-zinc-400 bg-zinc-100 text-zinc-700 dark:border-zinc-500 dark:bg-zinc-800 dark:text-zinc-200"
+                          : "border-zinc-200 bg-white text-zinc-500 hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400 dark:hover:border-zinc-700"
+                      )}
+                    >
+                      <Sun className="h-3.5 w-3.5" />
+                      <span>White</span>
+                    </button>
+                    <button
+                      onClick={() => handleThemeChange("dark")}
+                      className={cn(
+                        "flex flex-col items-center justify-center gap-1 rounded-md border px-2 py-2 text-xs font-medium transition-colors",
+                        theme === "dark"
+                          ? "border-zinc-400 bg-zinc-100 text-zinc-700 dark:border-zinc-500 dark:bg-zinc-800 dark:text-zinc-200"
+                          : "border-zinc-200 bg-white text-zinc-500 hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400 dark:hover:border-zinc-700"
+                      )}
+                    >
+                      <Moon className="h-3.5 w-3.5" />
+                      <span>Dark</span>
+                    </button>
+                    <button
+                      onClick={() => handleThemeChange("system")}
+                      className={cn(
+                        "flex flex-col items-center justify-center gap-1 rounded-md border px-2 py-2 text-xs font-medium transition-colors",
+                        theme === "system"
+                          ? "border-zinc-400 bg-zinc-100 text-zinc-700 dark:border-zinc-500 dark:bg-zinc-800 dark:text-zinc-200"
+                          : "border-zinc-200 bg-white text-zinc-500 hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400 dark:hover:border-zinc-700"
+                      )}
+                    >
+                      <Monitor className="h-3.5 w-3.5" />
+                      <span>System</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <p className="px-2 text-[10px] font-medium uppercase tracking-wider text-zinc-500">Font Size</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    <button
+                      onClick={() => handleFontSizeChange("sm")}
+                      className={cn(
+                        "rounded-md border px-2 py-1.5 text-xs font-semibold transition-colors",
+                        fontSize === "sm"
+                          ? "border-zinc-400 bg-zinc-100 text-zinc-700 dark:border-zinc-500 dark:bg-zinc-800 dark:text-zinc-200"
+                          : "border-zinc-200 bg-white text-zinc-500 hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400 dark:hover:border-zinc-700"
+                      )}
+                    >
+                      A-
+                    </button>
+                    <button
+                      onClick={() => handleFontSizeChange("md")}
+                      className={cn(
+                        "rounded-md border px-2 py-1.5 text-xs font-semibold transition-colors",
+                        fontSize === "md"
+                          ? "border-zinc-400 bg-zinc-100 text-zinc-700 dark:border-zinc-500 dark:bg-zinc-800 dark:text-zinc-200"
+                          : "border-zinc-200 bg-white text-zinc-500 hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400 dark:hover:border-zinc-700"
+                      )}
+                    >
+                      A
+                    </button>
+                    <button
+                      onClick={() => handleFontSizeChange("lg")}
+                      className={cn(
+                        "rounded-md border px-2 py-1.5 text-xs font-semibold transition-colors",
+                        fontSize === "lg"
+                          ? "border-zinc-400 bg-zinc-100 text-zinc-700 dark:border-zinc-500 dark:bg-zinc-800 dark:text-zinc-200"
+                          : "border-zinc-200 bg-white text-zinc-500 hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400 dark:hover:border-zinc-700"
+                      )}
+                    >
+                      A+
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-1.5 px-2 text-[10px] text-zinc-400">
+                    <Type className="h-3.5 w-3.5" />
+                    Global text scaling
+                  </div>
+                </div>
+              </>
+            )}
           </div>
-
-          {isAccessibilityOpen && (
-            <>
-              <div className="space-y-2">
-                <p className="px-2 text-[10px] font-medium uppercase tracking-wider text-zinc-500">Theme</p>
-                <div className="grid grid-cols-3 gap-2">
-                  <button
-                    onClick={() => handleThemeChange("light")}
-                    className={cn(
-                      "flex flex-col items-center justify-center gap-1 rounded-md border px-2 py-2 text-xs font-medium transition-colors",
-                      theme === "light"
-                        ? "border-zinc-400 bg-zinc-100 text-zinc-700 dark:border-zinc-500 dark:bg-zinc-800 dark:text-zinc-200"
-                        : "border-zinc-200 bg-white text-zinc-500 hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400 dark:hover:border-zinc-700"
-                    )}
-                  >
-                    <Sun className="h-3.5 w-3.5" />
-                    <span>White</span>
-                  </button>
-                  <button
-                    onClick={() => handleThemeChange("dark")}
-                    className={cn(
-                      "flex flex-col items-center justify-center gap-1 rounded-md border px-2 py-2 text-xs font-medium transition-colors",
-                      theme === "dark"
-                        ? "border-zinc-400 bg-zinc-100 text-zinc-700 dark:border-zinc-500 dark:bg-zinc-800 dark:text-zinc-200"
-                        : "border-zinc-200 bg-white text-zinc-500 hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400 dark:hover:border-zinc-700"
-                    )}
-                  >
-                    <Moon className="h-3.5 w-3.5" />
-                    <span>Dark</span>
-                  </button>
-                  <button
-                    onClick={() => handleThemeChange("system")}
-                    className={cn(
-                      "flex flex-col items-center justify-center gap-1 rounded-md border px-2 py-2 text-xs font-medium transition-colors",
-                      theme === "system"
-                        ? "border-zinc-400 bg-zinc-100 text-zinc-700 dark:border-zinc-500 dark:bg-zinc-800 dark:text-zinc-200"
-                        : "border-zinc-200 bg-white text-zinc-500 hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400 dark:hover:border-zinc-700"
-                    )}
-                  >
-                    <Monitor className="h-3.5 w-3.5" />
-                    <span>System</span>
-                  </button>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <p className="px-2 text-[10px] font-medium uppercase tracking-wider text-zinc-500">Font Size</p>
-                <div className="grid grid-cols-3 gap-2">
-                  <button
-                    onClick={() => handleFontSizeChange("sm")}
-                    className={cn(
-                      "rounded-md border px-2 py-1.5 text-xs font-semibold transition-colors",
-                      fontSize === "sm"
-                        ? "border-zinc-400 bg-zinc-100 text-zinc-700 dark:border-zinc-500 dark:bg-zinc-800 dark:text-zinc-200"
-                        : "border-zinc-200 bg-white text-zinc-500 hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400 dark:hover:border-zinc-700"
-                    )}
-                  >
-                    A-
-                  </button>
-                  <button
-                    onClick={() => handleFontSizeChange("md")}
-                    className={cn(
-                      "rounded-md border px-2 py-1.5 text-xs font-semibold transition-colors",
-                      fontSize === "md"
-                        ? "border-zinc-400 bg-zinc-100 text-zinc-700 dark:border-zinc-500 dark:bg-zinc-800 dark:text-zinc-200"
-                        : "border-zinc-200 bg-white text-zinc-500 hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400 dark:hover:border-zinc-700"
-                    )}
-                  >
-                    A
-                  </button>
-                  <button
-                    onClick={() => handleFontSizeChange("lg")}
-                    className={cn(
-                      "rounded-md border px-2 py-1.5 text-xs font-semibold transition-colors",
-                      fontSize === "lg"
-                        ? "border-zinc-400 bg-zinc-100 text-zinc-700 dark:border-zinc-500 dark:bg-zinc-800 dark:text-zinc-200"
-                        : "border-zinc-200 bg-white text-zinc-500 hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400 dark:hover:border-zinc-700"
-                    )}
-                  >
-                    A+
-                  </button>
-                </div>
-                <div className="flex items-center gap-1.5 px-2 text-[10px] text-zinc-400">
-                  <Type className="h-3.5 w-3.5" />
-                  Global text scaling
-                </div>
-              </div>
-            </>
-          )}
         </div>
       </div>
     </motion.aside>
