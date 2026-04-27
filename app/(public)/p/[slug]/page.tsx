@@ -1,6 +1,6 @@
 import React from "react";
 import { notFound } from "next/navigation";
-import { PageService } from "@/services/page-service";
+import { PageService, renderTipTapToHtml } from "@/services/page-service";
 import { ArticleView } from "@/components/features/content/article-view";
 import { Metadata } from "next";
 
@@ -45,12 +45,14 @@ export default async function KnowledgePage({ params }: PageProps) {
   // Fetch breadcrumbs based on the page path
   const breadcrumbs = await PageService.getBreadcrumbs(page);
 
+  const contentHtml = renderTipTapToHtml(page.contentJson);
+
   return (
     <div className="animate-in fade-in duration-700">
       <ArticleView 
         title={page.title}
-        content={(page as any).content}
-        breadcrumbs={breadcrumbs as any}
+        content={contentHtml}
+        breadcrumbs={breadcrumbs}
       />
     </div>
   );
