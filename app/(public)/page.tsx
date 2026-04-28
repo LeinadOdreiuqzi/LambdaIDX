@@ -147,7 +147,9 @@ export default function Home() {
       <footer className="relative z-10 px-6 py-20 border-t border-zinc-900">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start gap-12">
           <div>
-            <Logo size={40} className="mb-6" />
+            <Link href="/" className="hover:opacity-80 transition-opacity">
+              <Logo size={40} className="mb-6" />
+            </Link>
             <p className="text-zinc-500 max-w-xs text-sm leading-relaxed italic">
               "Because information without structure is just static noise."
             </p>

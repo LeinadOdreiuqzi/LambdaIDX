@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Link from "next/link";
 import { Search, PanelLeftClose, Layers, Moon, Sun, Monitor, Type, ChevronUp, ChevronDown } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -95,7 +96,9 @@ export function NavSidebar({ tree }: NavSidebarProps) {
       <div className="flex flex-col h-full w-[280px]">
         {/* Header */}
         <div className="h-16 flex items-center justify-between px-6 border-b border-transparent">
-          <Logo size={28} />
+          <Link href="/" className="hover:opacity-80 transition-opacity">
+            <Logo size={28} />
+          </Link>
           <button
             onClick={toggleSidebar}
             className="p-1.5 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
