@@ -110,5 +110,3 @@ export function Logo({ className, size = 32, showText = true }: LogoProps) {
   );
 }
 
-// Add CSS for the slow spin in your global CSS or here if using a style tag
-// .animate-spin-slow { animation: spin 20s linear infinite; }

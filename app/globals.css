@@ -199,3 +199,15 @@ body {
 .animate-spin-slow {
   animation: spin-slow 60s linear infinite;
 }
+
+.outline-text {
+  -webkit-text-stroke: 1px rgba(51, 65, 85, 0.5);
+  color: transparent;
+  text-shadow: 0 0 0 rgba(51, 65, 85, 0.08);
+}
+
+.dark .outline-text {
+  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.2);
+  color: transparent;
+  text-shadow: none;
+}
