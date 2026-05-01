@@ -73,10 +73,10 @@ body {
 
 /* ============================================================
    CONTENT GRID SYSTEM — Breakout Layout
-   Text stays at 70ch, breakout elements go full width.
+   Text stays at 65ch, breakout elements go full width.
    ============================================================ */
 .content-grid {
-  --content-max: 70ch;
+  --content-max: 65ch;
   --content-padding: 1.5rem;
   display: grid;
   grid-template-columns:
@@ -107,16 +107,16 @@ body {
    content zone itself rule-free.
    ============================================================ */
 .prose-custom h2 {
-  @apply text-2xl font-bold mt-14 mb-6 text-black dark:text-white first:mt-0 tracking-tight;
+  @apply text-2xl font-bold mt-14 mb-6 text-black dark:text-white first:mt-0 tracking-tight leading-tight;
 }
 .prose-custom h3 {
-  @apply text-xl font-semibold mt-10 mb-4 text-black dark:text-white;
+  @apply text-xl font-semibold mt-10 mb-4 text-black dark:text-white leading-tight;
 }
 .prose-custom h4 {
   @apply text-lg font-semibold mt-8 mb-3 text-black dark:text-white;
 }
 .prose-custom p {
-  @apply mb-6 leading-[1.8];
+  @apply mb-6 leading-[1.8] tracking-[-0.01em];
 }
 .prose-custom ul {
   @apply list-disc list-outside ml-6 mb-8 space-y-2 text-zinc-600 dark:text-zinc-400;
@@ -147,7 +147,7 @@ body {
   grid-column: full;
 }
 .prose-custom img {
-  @apply rounded-xl my-10 w-full;
+  @apply rounded-xl my-10 w-full cursor-zoom-in hover:opacity-90 transition-opacity;
   grid-column: full;
 }
 .prose-custom figure {

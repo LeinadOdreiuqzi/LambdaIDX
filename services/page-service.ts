@@ -37,10 +37,10 @@ interface TipTapDoc {
  */
 export function renderTipTapToHtml(contentJson: unknown | null): string {
   if (!contentJson) return "";
-  
+
   const doc = contentJson as TipTapDoc;
   if (!doc.content || !Array.isArray(doc.content)) return "";
-  
+
   return doc.content.map(renderNode).join("");
 }
 
@@ -57,6 +57,10 @@ function renderNode(node: TipTapNode): string {
       return `<li>${renderContent(node.content)}</li>`;
     case "codeBlock":
       return `<pre><code>${escapeHtml(renderPlainText(node.content))}</code></pre>`;
+    case "image":
+      const src = (node.attrs?.src as string) || "";
+      const alt = (node.attrs?.alt as string) || "";
+      return `<figure><img src="${escapeHtml(src)}" alt="${escapeHtml(alt)}" /><figcaption>${escapeHtml(alt)}</figcaption></figure>`;
     default:
       return renderContent(node.content);
   }
@@ -75,7 +79,7 @@ function renderContent(content: TipTapNode[] | undefined): string {
 function renderText(node: TipTapNode): string {
   let text = escapeHtml(node.text || "");
   const marks = node.marks || [];
-  
+
   // Apply marks in reverse order to maintain proper nesting
   [...marks].reverse().forEach(mark => {
     switch (mark.type) {
@@ -94,7 +98,7 @@ function renderText(node: TipTapNode): string {
         break;
     }
   });
-  
+
   return text;
 }
 
@@ -250,30 +254,47 @@ export class PageService {
         contentJson: {
           type: "doc",
           content: [
-            { type: "paragraph", content: [
-              { type: "text", text: "Welcome to " },
-              { type: "text", marks: [{ type: "bold" }], text: "LambdaIDX" },
-              { type: "text", text: ". This is a next-generation knowledge platform designed for high-performance navigation and deep hierarchies." }
-            ]},
+            {
+              type: "paragraph", content: [
+                { type: "text", text: "Welcome to " },
+                { type: "text", marks: [{ type: "bold" }], text: "LambdaIDX" },
+                { type: "text", text: ". This is a next-generation knowledge platform designed for high-performance navigation and deep hierarchies." }
+              ]
+            },
             { type: "heading", attrs: { level: 2 }, content: [{ type: "text", text: "The Mission" }] },
             { type: "paragraph", content: [{ type: "text", text: "Our goal is to transform chaotic information into a structured, industrial-grade knowledge base that remains lightning-fast regardless of size." }] },
             { type: "heading", attrs: { level: 3 }, content: [{ type: "text", text: "Speed First" }] },
             { type: "paragraph", content: [{ type: "text", text: "Every interaction is optimized for zero latency. Hierarchical exploration should feel like an extension of your thought process." }] },
+            { type: "image", attrs: { src: "https://www.nasa.gov/wp-content/uploads/2026/04/art002e000192.jpg", alt: "Hello, World - Artemis II " } },
             { type: "heading", attrs: { level: 2 }, content: [{ type: "text", text: "Core Pillars" }] },
-            { type: "bulletList", content: [
-              { type: "listItem", content: [{ type: "paragraph", content: [
-                { type: "text", marks: [{ type: "bold" }], text: "Hierarchical Clarity" },
-                { type: "text", text: ": Deep nesting support." }
-              ]}]},
-              { type: "listItem", content: [{ type: "paragraph", content: [
-                { type: "text", marks: [{ type: "bold" }], text: "SEO Optimized" },
-                { type: "text", text: ": Every page is indexable." }
-              ]}]},
-              { type: "listItem", content: [{ type: "paragraph", content: [
-                { type: "text", marks: [{ type: "bold" }], text: "Premium Reading" },
-                { type: "text", text: ": Focused, distraction-free UI." }
-              ]}]}
-            ]}
+            {
+              type: "bulletList", content: [
+                {
+                  type: "listItem", content: [{
+                    type: "paragraph", content: [
+                      { type: "text", marks: [{ type: "bold" }], text: "Hierarchical Clarity" },
+                      { type: "text", text: ": Deep nesting support." }
+                    ]
+                  }]
+                },
+                {
+                  type: "listItem", content: [{
+                    type: "paragraph", content: [
+                      { type: "text", marks: [{ type: "bold" }], text: "SEO Optimized" },
+                      { type: "text", text: ": Every page is indexable." }
+                    ]
+                  }]
+                },
+                {
+                  type: "listItem", content: [{
+                    type: "paragraph", content: [
+                      { type: "text", marks: [{ type: "bold" }], text: "Premium Reading" },
+                      { type: "text", text: ": Focused, distraction-free UI." }
+                    ]
+                  }]
+                }
+              ]
+            }
           ]
         },
         path: "mock-1",
@@ -309,13 +330,15 @@ export class PageService {
             { type: "heading", attrs: { level: 2 }, content: [{ type: "text", text: "Environment" }] },
             { type: "paragraph", content: [{ type: "text", text: "Ensure you have Node.js 18+ and a PostgreSQL instance ready." }] },
             { type: "heading", attrs: { level: 2 }, content: [{ type: "text", text: "Initialization" }] },
-            { type: "paragraph", content: [
-              { type: "text", text: "Run " },
-              { type: "text", marks: [{ type: "code" }], text: "npm install" },
-              { type: "text", text: " followed by " },
-              { type: "text", marks: [{ type: "code" }], text: "npx prisma generate" },
-              { type: "text", text: "." }
-            ] }
+            {
+              type: "paragraph", content: [
+                { type: "text", text: "Run " },
+                { type: "text", marks: [{ type: "code" }], text: "npm install" },
+                { type: "text", text: " followed by " },
+                { type: "text", marks: [{ type: "code" }], text: "npx prisma generate" },
+                { type: "text", text: "." }
+              ]
+            }
           ]
         },
         path: "mock-2",

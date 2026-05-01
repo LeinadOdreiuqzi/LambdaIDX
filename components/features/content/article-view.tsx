@@ -5,6 +5,7 @@ import { Breadcrumbs } from "@/components/shared/breadcrumbs";
 import { TableOfContents } from "./table-of-contents";
 import { RelationalPanel } from "./relational-panel";
 import { MobileTOC } from "./mobile-toc";
+import { ImageLightbox } from "./image-lightbox";
 import { useNavigation } from "@/hooks/use-navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { PanelRightClose, PanelRightOpen } from "lucide-react";
@@ -18,9 +19,17 @@ interface ArticleViewProps {
 
 export function ArticleView({ title, content, breadcrumbs }: ArticleViewProps) {
   const { isRightSidebarOpen, toggleRightSidebar } = useNavigation();
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
 
   // TOC remains visible whenever the sidebar is open, regardless of scroll direction
   const isTocVisible = isRightSidebarOpen;
+
+  const handleContentClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement;
+    if (target.tagName === 'IMG') {
+      setLightboxSrc((target as HTMLImageElement).src);
+    }
+  }, []);
 
   return (
     <article className="relative min-h-screen">
@@ -54,6 +63,7 @@ export function ArticleView({ title, content, breadcrumbs }: ArticleViewProps) {
         <div
           className="text-lg leading-[1.8] text-zinc-700 dark:text-zinc-300 pb-24"
           dangerouslySetInnerHTML={{ __html: content }}
+          onClick={handleContentClick}
         />
       </div>
 
@@ -91,6 +101,12 @@ export function ArticleView({ title, content, breadcrumbs }: ArticleViewProps) {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <ImageLightbox 
+        src={lightboxSrc} 
+        isOpen={!!lightboxSrc} 
+        onClose={() => setLightboxSrc(null)} 
+      />
     </article>
   );
 }

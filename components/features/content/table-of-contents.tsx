@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 
 interface TOCItem {
   id: string;
@@ -51,7 +52,7 @@ export function TableOfContents() {
             }
           });
         },
-        { rootMargin: "-20% 0% -70% 0%" }
+        { rootMargin: "-10% 0% -60% 0%" }
       );
 
       document.querySelectorAll("h2, h3").forEach((h) => observer.observe(h));
@@ -88,16 +89,23 @@ export function TableOfContents() {
           <li 
             key={`${item.id}-${index}`}
             className={cn(
-              "transition-all duration-200",
+              "relative transition-all duration-200",
               item.level === 3 ? "ml-4" : "ml-0"
             )}
           >
+            {activeId === item.id && (
+              <motion.div
+                layoutId="toc-active-pill"
+                className="absolute inset-0 bg-zinc-100 dark:bg-zinc-800 rounded-md z-0"
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              />
+            )}
             <a
               href={`#${item.id}`}
               className={cn(
-                "block py-1 px-2 rounded-md text-sm transition-colors",
+                "relative z-10 block py-1 px-2 rounded-md text-sm transition-colors",
                 activeId === item.id
-                  ? "text-black dark:text-white font-medium bg-zinc-100 dark:bg-zinc-800"
+                  ? "text-black dark:text-white font-medium"
                   : "text-zinc-500 hover:text-black dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-zinc-900"
               )}
             >
