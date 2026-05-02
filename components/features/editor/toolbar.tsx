@@ -20,6 +20,9 @@ import {
   Trash2,
   Columns2,
   Columns3,
+  Sigma,
+  Info,
+  CheckSquare,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -161,6 +164,30 @@ export function Toolbar({ editor }: ToolbarProps) {
           title="3 Columns"
         >
           <Columns3 className="w-4 h-4" />
+        </ToolbarBtn>
+        <div className="w-px h-4 bg-zinc-200 dark:bg-zinc-800 mx-1" />
+        <ToolbarBtn 
+          onClick={() => editor.chain().focus().insertContent({ type: 'math', attrs: { latex: 'E = mc^2' } }).insertContent(' ').run()} 
+          title="Math Formula (LaTeX)"
+        >
+          <Sigma className="w-4 h-4" />
+        </ToolbarBtn>
+        <ToolbarBtn 
+          onClick={() => editor.chain().focus().insertContent({ 
+            type: 'callout', 
+            attrs: { type: 'info' },
+            content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Información científica...' }] }]
+          }).run()} 
+          title="Callout"
+        >
+          <Info className="w-4 h-4" />
+        </ToolbarBtn>
+        <ToolbarBtn 
+          onClick={() => editor.chain().focus().toggleTaskList().run()} 
+          isActive={editor.isActive('taskList')}
+          title="Task List"
+        >
+          <CheckSquare className="w-4 h-4" />
         </ToolbarBtn>
       </div>
 

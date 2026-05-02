@@ -270,4 +270,47 @@ body {
   @apply my-12;
 }
 
+/* ─── TIPTAP SCIENTIFIC POWER PACK ─── */
+.callout-info {
+  @apply border-blue-500/50 bg-blue-500/5 text-blue-900 dark:text-blue-200;
+}
+.callout-warning {
+  @apply border-amber-500/50 bg-amber-500/5 text-amber-900 dark:text-amber-200;
+}
+
+.prose-custom ul[data-type="taskList"] {
+  @apply list-none ml-0 space-y-3;
+}
+
+.prose-custom ul[data-type="taskList"] li {
+  @apply flex items-start gap-3 leading-relaxed;
+}
+
+.prose-custom ul[data-type="taskList"] input[type="checkbox"] {
+  @apply mt-1 w-4 h-4 appearance-none border border-zinc-300 dark:border-zinc-700 rounded-sm bg-white dark:bg-zinc-950 checked:bg-black dark:checked:bg-white checked:border-black dark:checked:border-white transition-all cursor-pointer relative shrink-0;
+}
+
+.prose-custom ul[data-type="taskList"] input[type="checkbox"]:checked::after {
+  content: "";
+  @apply absolute inset-0 flex items-center justify-center;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
+  background-size: 80%;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.dark .prose-custom ul[data-type="taskList"] input[type="checkbox"]:checked::after {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
+}
+
+/* Math styling */
+.prose-custom .Tiptap-mathematics-editor {
+  @apply font-mono bg-zinc-100 dark:bg-zinc-900 px-2 py-1 rounded text-sm text-blue-600 dark:text-blue-400;
+}
+
+.prose-custom .Tiptap-mathematics-render {
+  @apply cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded px-1 transition-colors;
+}
+
+
 

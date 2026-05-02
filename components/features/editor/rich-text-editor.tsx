@@ -14,6 +14,11 @@ import { TableRow } from '@tiptap/extension-table-row';
 import { TableHeader } from '@tiptap/extension-table-header';
 import { TableCell } from '@tiptap/extension-table-cell';
 import { ColumnGroup, Column } from './extensions/column-extension';
+import { Callout } from './extensions/callout-extension';
+import { MathNode } from './extensions/math-node';
+import TaskList from '@tiptap/extension-task-list';
+import TaskItem from '@tiptap/extension-task-item';
+import 'katex/dist/katex.min.css';
 import { Toolbar } from './toolbar';
 import { BubbleMenu } from './bubble-menu';
 import { FloatingMenu } from './floating-menu';
@@ -77,6 +82,12 @@ export function RichTextEditor({ content, onChange, className }: RichTextEditorP
       }),
       ColumnGroup,
       Column,
+      Callout,
+      MathNode,
+      TaskList,
+      TaskItem.configure({
+        nested: true,
+      }),
     ],
     content: content,
     editorProps: {

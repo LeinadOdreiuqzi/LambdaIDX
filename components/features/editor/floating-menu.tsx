@@ -10,6 +10,9 @@ import {
   Table as TableIcon,
   Columns2,
   Columns3,
+  Sigma,
+  Info,
+  CheckSquare,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -75,6 +78,26 @@ export function FloatingMenu({ editor }: FloatingMenuProps) {
         }).run()} 
         title="3 Columns" 
         icon={Columns3} 
+      />
+      <div className="h-px bg-zinc-200 dark:bg-zinc-800 my-1" />
+      <Btn 
+        onClick={() => editor.chain().focus().insertContent({ type: 'math', attrs: { latex: 'E = mc^2' } }).insertContent(' ').run()} 
+        title="Math Formula" 
+        icon={Sigma} 
+      />
+      <Btn 
+        onClick={() => editor.chain().focus().insertContent({ 
+          type: 'callout', 
+          attrs: { type: 'info' },
+          content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Información científica relevante...' }] }]
+        }).run()} 
+        title="Callout" 
+        icon={Info} 
+      />
+      <Btn 
+        onClick={() => editor.chain().focus().toggleTaskList().run()} 
+        title="Task List" 
+        icon={CheckSquare} 
       />
     </TiptapFloatingMenu>
   );
