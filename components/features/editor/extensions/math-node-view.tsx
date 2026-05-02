@@ -5,7 +5,7 @@ import { NodeViewWrapper, type NodeViewProps } from '@tiptap/react';
 import katex from 'katex';
 import { cn } from '@/lib/utils';
 
-export function MathNodeView({ node, updateAttributes, selected }: NodeViewProps) {
+export function MathNodeView({ node, updateAttributes, selected, editor }: NodeViewProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [latex, setLatex] = useState(node.attrs.latex);
   const containerRef = useRef<HTMLSpanElement>(null);

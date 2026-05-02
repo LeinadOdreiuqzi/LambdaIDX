@@ -43,6 +43,7 @@ export function RichTextEditor({ content, onChange, className }: RichTextEditorP
             class: 'bg-zinc-950 border border-zinc-800 rounded-xl p-6 font-mono text-sm overflow-x-auto text-zinc-100 my-10',
           },
         },
+        dropcursor: false,
       }),
       Image.configure({
         HTMLAttributes: {

@@ -28,12 +28,12 @@ export const MathNode = Node.create({
     return ['span', mergeAttributes(HTMLAttributes, { 'data-type': 'math' })];
   },
 
-  stopEvent(event) {
-    return (event.target as HTMLElement).closest('input') !== null;
-  },
-
   addNodeView() {
-    return ReactNodeViewRenderer(MathNodeView);
+    return ReactNodeViewRenderer(MathNodeView, {
+      stopEvent: ({ event }) => {
+        return (event.target as HTMLElement).closest('input') !== null;
+      },
+    });
   },
 
   addInputRules() {
