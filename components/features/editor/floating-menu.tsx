@@ -13,6 +13,9 @@ import {
   Sigma,
   Info,
   CheckSquare,
+  BookOpen,
+  Scale,
+  Hash
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -89,10 +92,33 @@ export function FloatingMenu({ editor }: FloatingMenuProps) {
         onClick={() => editor.chain().focus().insertContent({ 
           type: 'callout', 
           attrs: { type: 'info' },
-          content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Información científica relevante...' }] }]
+          content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Nota científica...' }] }]
         }).run()} 
-        title="Callout" 
+        title="Info" 
         icon={Info} 
+      />
+      <Btn 
+        onClick={() => editor.chain().focus().insertContent({ 
+          type: 'callout', 
+          attrs: { type: 'theorem' },
+          content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Teorema...' }] }]
+        }).run()} 
+        title="Theorem" 
+        icon={BookOpen} 
+      />
+      <Btn 
+        onClick={() => editor.chain().focus().insertContent({ 
+          type: 'callout', 
+          attrs: { type: 'law' },
+          content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Scientific Law...' }] }]
+        }).run()} 
+        title="Law" 
+        icon={Scale} 
+      />
+      <Btn 
+        onClick={() => (editor as any).commands.addFootnote()} 
+        title="Footnote" 
+        icon={Hash} 
       />
       <Btn 
         onClick={() => editor.chain().focus().toggleTaskList().run()} 

@@ -23,6 +23,11 @@ import {
   Sigma,
   Info,
   CheckSquare,
+  BookOpen,
+  Scale,
+  ShieldCheck,
+  AlertOctagon,
+  Hash
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -176,12 +181,39 @@ export function Toolbar({ editor }: ToolbarProps) {
           onClick={() => editor.chain().focus().insertContent({ 
             type: 'callout', 
             attrs: { type: 'info' },
-            content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Información científica...' }] }]
+            content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Nota científica...' }] }]
           }).run()} 
-          title="Callout"
+          title="Info Callout"
         >
           <Info className="w-4 h-4" />
         </ToolbarBtn>
+        <ToolbarBtn 
+          onClick={() => editor.chain().focus().insertContent({ 
+            type: 'callout', 
+            attrs: { type: 'theorem' },
+            content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Teorema...' }] }]
+          }).run()} 
+          title="Theorem"
+        >
+          <BookOpen className="w-4 h-4 text-indigo-500" />
+        </ToolbarBtn>
+        <ToolbarBtn 
+          onClick={() => editor.chain().focus().insertContent({ 
+            type: 'callout', 
+            attrs: { type: 'law' },
+            content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Ley científica...' }] }]
+          }).run()} 
+          title="Scientific Law"
+        >
+          <Scale className="w-4 h-4 text-teal-500" />
+        </ToolbarBtn>
+        <ToolbarBtn 
+          onClick={() => (editor as any).commands.addFootnote()} 
+          title="Insert Footnote / Citation"
+        >
+          <Hash className="w-4 h-4 text-blue-500" />
+        </ToolbarBtn>
+
         <ToolbarBtn 
           onClick={() => editor.chain().focus().toggleTaskList().run()} 
           isActive={editor.isActive('taskList')}

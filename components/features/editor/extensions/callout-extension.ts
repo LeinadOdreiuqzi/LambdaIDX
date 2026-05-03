@@ -12,7 +12,7 @@ export const Callout = Node.create({
         parseHTML: element => element.getAttribute('data-callout-type') || 'info',
         renderHTML: attributes => ({ 
           'data-callout-type': attributes.type,
-          class: `callout callout-${attributes.type} p-6 my-8 border-l-4 rounded-r-lg`
+          class: `callout callout-${attributes.type} p-6 my-10 border-l-4 rounded-r-xl relative overflow-hidden`
         }),
       },
     };

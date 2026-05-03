@@ -18,6 +18,7 @@ import { Callout } from './extensions/callout-extension';
 import { MathNode } from './extensions/math-node';
 import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
+import { Footnotes, Footnote, FootnoteReference } from 'tiptap-footnotes';
 import 'katex/dist/katex.min.css';
 import { Toolbar } from './toolbar';
 import { BubbleMenu } from './bubble-menu';
@@ -89,6 +90,9 @@ export function RichTextEditor({ content, onChange, className }: RichTextEditorP
       TaskItem.configure({
         nested: true,
       }),
+      Footnotes,
+      Footnote,
+      FootnoteReference,
     ],
     content: content,
     editorProps: {
