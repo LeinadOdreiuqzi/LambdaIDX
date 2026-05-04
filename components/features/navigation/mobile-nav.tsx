@@ -12,6 +12,8 @@ import { Logo } from "@/components/shared/logo";
 
 interface MobileNavProps {
   tree: NavPage[];
+  linkPrefix?: string;
+  isAdmin?: boolean;
 }
 
 type ThemeMode = "light" | "dark" | "system";
@@ -35,7 +37,7 @@ function applyFontSizeToDocument(mode: FontSizeMode) {
   document.documentElement.dataset.fontSize = mode;
 }
 
-export function MobileNav({ tree }: MobileNavProps) {
+export function MobileNav({ tree, linkPrefix = "/p", isAdmin = false }: MobileNavProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [theme, setTheme] = useState<ThemeMode>("dark");
   const [fontSize, setFontSize] = useState<FontSizeMode>("md");
@@ -142,7 +144,7 @@ export function MobileNav({ tree }: MobileNavProps) {
 
               <div className="flex-1 overflow-y-auto no-scrollbar">
                  <h3 className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-4">Knowledge Tree</h3>
-                 <NavTree items={tree} />
+                 <NavTree items={tree} linkPrefix={linkPrefix} isAdmin={isAdmin} />
               </div>
 
               <div className="pt-4 mt-4 border-t border-zinc-200 dark:border-zinc-800 space-y-4">

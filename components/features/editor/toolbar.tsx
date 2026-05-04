@@ -27,15 +27,19 @@ import {
   Scale,
   ShieldCheck,
   AlertOctagon,
-  Hash
+  Hash,
+  Maximize,
+  Minimize
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface ToolbarProps {
   editor: Editor | null;
+  isFullscreen?: boolean;
+  onToggleFullscreen?: () => void;
 }
 
-export function Toolbar({ editor }: ToolbarProps) {
+export function Toolbar({ editor, isFullscreen, onToggleFullscreen }: ToolbarProps) {
   if (!editor) return null;
 
   const ToolbarBtn = ({
@@ -223,12 +227,22 @@ export function Toolbar({ editor }: ToolbarProps) {
         </ToolbarBtn>
       </div>
 
-      <div className="flex items-center gap-1 pl-2 ml-auto">
+      <div className="flex items-center gap-1 pl-2">
         <ToolbarBtn onClick={() => editor.chain().focus().undo().run()} disabled={!editor.can().chain().focus().undo().run()} title="Undo">
           <Undo className="w-4 h-4" />
         </ToolbarBtn>
         <ToolbarBtn onClick={() => editor.chain().focus().redo().run()} disabled={!editor.can().chain().focus().redo().run()} title="Redo">
           <Redo className="w-4 h-4" />
+        </ToolbarBtn>
+      </div>
+
+      <div className="flex items-center gap-1 pl-2 ml-auto">
+        <ToolbarBtn 
+          onClick={() => onToggleFullscreen?.()} 
+          isActive={isFullscreen}
+          title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+        >
+          {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
         </ToolbarBtn>
       </div>
 

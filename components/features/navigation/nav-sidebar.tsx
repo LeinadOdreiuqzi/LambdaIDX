@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { Search, PanelLeftClose, Layers, Moon, Sun, Monitor, Type, ChevronUp, ChevronDown } from "lucide-react";
+import { Search, PanelLeftClose, Layers, Moon, Sun, Monitor, Type, ChevronUp, ChevronDown, Plus } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useNavigation } from "@/hooks/use-navigation";
@@ -12,6 +12,8 @@ import { Logo } from "@/components/shared/logo";
 
 interface NavSidebarProps {
   tree: NavPage[];
+  linkPrefix?: string;
+  isAdmin?: boolean;
 }
 
 type ThemeMode = "light" | "dark" | "system";
@@ -35,7 +37,7 @@ function applyFontSizeToDocument(mode: FontSizeMode) {
   document.documentElement.dataset.fontSize = mode;
 }
 
-export function NavSidebar({ tree }: NavSidebarProps) {
+export function NavSidebar({ tree, linkPrefix = "/p", isAdmin = false }: NavSidebarProps) {
   const { isSidebarOpen, toggleSidebar, toggleCommandPalette } = useNavigation();
   const [theme, setTheme] = useState<ThemeMode>("dark");
   const [fontSize, setFontSize] = useState<FontSizeMode>("md");
@@ -147,8 +149,19 @@ export function NavSidebar({ tree }: NavSidebarProps) {
         {/* Navigation Tree + Accessibility Settings - Scrollable */}
         <div className="flex-1 overflow-y-auto px-4 py-2 custom-scrollbar flex flex-col">
           <div className="mb-4">
-            <h3 className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-2 px-2">Knowledge Tree</h3>
-            <NavTree items={tree} />
+            <div className="flex items-center justify-between mb-2 px-2">
+              <h3 className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Knowledge Tree</h3>
+              {isAdmin && (
+                <button 
+                  onClick={() => console.log('Create new root science')}
+                  className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-md text-zinc-400 hover:text-black dark:hover:text-white transition-colors"
+                  title="Create new root science"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+            <NavTree items={tree} linkPrefix={linkPrefix} isAdmin={isAdmin} />
           </div>
 
           {/* Accessibility Settings */}

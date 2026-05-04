@@ -129,20 +129,20 @@ function escapeHtml(text: string): string {
 
 export class PageService {
   /**
-   * Fetches the entire page hierarchy and returns it as a tree.
-   * Fallback to mock data if the database is not configured.
+   * Fetches the page hierarchy.
+   * @param includeAll If true, fetches all pages regardless of status (for admin)
    */
-  static async getHierarchyTree(): Promise<NavPage[]> {
+  static async getHierarchyTree(includeAll = false): Promise<NavPage[]> {
     try {
       // Check if DB is configured (basic check)
       if (!process.env.DATABASE_URL) {
         return this.getMockHierarchy();
       }
 
+      const whereClause = includeAll ? {} : { status: "PUBLISHED" as const };
+
       const pages = await prisma.page.findMany({
-        where: {
-          status: "PUBLISHED",
-        },
+        where: whereClause,
         select: {
           id: true,
           title: true,
@@ -151,6 +151,7 @@ export class PageService {
           path: true,
           depth: true,
           sortOrder: true,
+          status: true,
         },
         orderBy: [
           { depth: 'asc' },
@@ -397,6 +398,7 @@ export class PageService {
         path: "mock-1",
         depth: 0,
         sortOrder: 0,
+        status: 'PUBLISHED',
         children: [
           {
             id: "mock-1-1",
@@ -406,6 +408,7 @@ export class PageService {
             path: "mock-1/mock-1-1",
             depth: 1,
             sortOrder: 0,
+            status: 'PUBLISHED',
             children: [],
           },
         ],
@@ -418,6 +421,7 @@ export class PageService {
         path: "mock-2",
         depth: 0,
         sortOrder: 1,
+        status: 'PUBLISHED',
         children: [
           {
             id: "mock-2-1",
@@ -427,6 +431,7 @@ export class PageService {
             path: "mock-2/mock-2-1",
             depth: 1,
             sortOrder: 0,
+            status: 'PUBLISHED',
             children: [],
           },
           {
@@ -437,6 +442,7 @@ export class PageService {
             path: "mock-2/mock-2-2",
             depth: 1,
             sortOrder: 1,
+            status: 'PUBLISHED',
             children: [],
           },
         ],

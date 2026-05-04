@@ -32,6 +32,8 @@ interface RichTextEditorProps {
 }
 
 export function RichTextEditor({ content, onChange, className }: RichTextEditorProps) {
+  const [isFullscreen, setIsFullscreen] = React.useState(false);
+
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
@@ -99,8 +101,9 @@ export function RichTextEditor({ content, onChange, className }: RichTextEditorP
       attributes: {
         // We inject .content-grid and .prose-custom so it matches the frontend view perfectly
         class: cn(
-          "content-grid prose-custom min-h-[500px] w-full focus:outline-none py-20 pb-40",
-          "text-lg leading-[1.8] text-zinc-700 dark:text-zinc-300"
+          "content-grid prose-custom w-full focus:outline-none py-20 pb-40",
+          "text-lg leading-[1.8] text-zinc-700 dark:text-zinc-300",
+          isFullscreen ? "min-h-screen" : "min-h-[500px]"
         ),
       },
       handleDrop: (view, event, slice, moved) => {
@@ -137,10 +140,21 @@ export function RichTextEditor({ content, onChange, className }: RichTextEditorP
   }, [editor]);
 
   return (
-    <div className={cn("border border-zinc-300 dark:border-zinc-800 bg-white dark:bg-[#0a0a0a] flex flex-col relative", className)}>
-      <Toolbar editor={editor} />
+    <div className={cn(
+      "border border-zinc-300 dark:border-zinc-800 bg-white dark:bg-[#0a0a0a] flex flex-col relative transition-all duration-300",
+      isFullscreen ? "fixed inset-0 z-[100] h-screen w-screen max-h-none" : "max-h-none",
+      className
+    )}>
+      <Toolbar 
+        editor={editor} 
+        isFullscreen={isFullscreen} 
+        onToggleFullscreen={() => setIsFullscreen(!isFullscreen)} 
+      />
       
-      <div className="flex-1 overflow-y-auto max-h-[80vh] custom-scrollbar relative px-12">
+      <div className={cn(
+        "flex-1 overflow-y-auto custom-scrollbar relative px-12",
+        isFullscreen ? "h-full" : "max-h-[80vh]"
+      )}>
         <BubbleMenu editor={editor} />
         <FloatingMenu editor={editor} />
         <EditorContent editor={editor} />
