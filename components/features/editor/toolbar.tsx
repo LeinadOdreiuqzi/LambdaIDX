@@ -97,7 +97,7 @@ export function Toolbar({ editor, isFullscreen, onToggleFullscreen }: ToolbarPro
   };
 
   return (
-    <div className="flex flex-wrap items-center gap-1 p-2 bg-zinc-50 dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-900 sticky top-0 z-10">
+    <div className="flex flex-wrap items-center gap-1 p-2 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-900 sticky top-0 z-10">
       <div className="flex items-center gap-1 pr-2 border-r border-zinc-200 dark:border-zinc-800">
         <ToolbarBtn onClick={() => editor.chain().focus().toggleBold().run()} isActive={editor.isActive('bold')} title="Bold">
           <Bold className="w-4 h-4" />

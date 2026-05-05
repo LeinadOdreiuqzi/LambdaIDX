@@ -22,10 +22,13 @@ export function AdminClientLayout({ children, tree }: AdminClientLayoutProps) {
   const pathname = usePathname();
 
   return (
-    <div className="relative flex min-h-screen bg-zinc-50 dark:bg-[#050505]">
+    <div className="relative flex min-h-screen bg-zinc-100 dark:bg-[#050505] selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black">
       <IndustrialOverlay />
       
-      {/* Sidebar - Desktop */}
+      {/* Background Pattern - Dot Matrix */}
+      <div className="fixed inset-0 pointer-events-none opacity-[0.08] dark:opacity-[0.05]" 
+           style={{ backgroundImage: 'radial-gradient(circle, #71717a 1px, transparent 1px)', backgroundSize: '32px 32px' }} 
+      />
       <NavSidebar tree={tree} linkPrefix="/admin/dashboard" isAdmin={true} />
 
       {/* Navigation - Mobile */}

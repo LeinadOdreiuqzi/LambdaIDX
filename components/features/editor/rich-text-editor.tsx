@@ -141,8 +141,10 @@ export function RichTextEditor({ content, onChange, className }: RichTextEditorP
 
   return (
     <div className={cn(
-      "border border-zinc-300 dark:border-zinc-800 bg-white dark:bg-[#0a0a0a] flex flex-col relative transition-all duration-300",
-      isFullscreen ? "fixed inset-0 z-[100] h-screen w-screen max-h-none" : "max-h-none",
+      "flex flex-col relative transition-all duration-500 ease-in-out",
+      isFullscreen 
+        ? "fixed inset-0 z-[100] bg-white dark:bg-[#050505]" 
+        : "max-w-5xl mx-auto w-full my-12 bg-white dark:bg-[#0a0a0a] rounded-xl border border-zinc-300/50 dark:border-zinc-800 shadow-[0_20px_70px_rgba(0,0,0,0.08)] dark:shadow-[0_20px_70px_rgba(0,0,0,0.4)]",
       className
     )}>
       <Toolbar 
@@ -152,12 +154,14 @@ export function RichTextEditor({ content, onChange, className }: RichTextEditorP
       />
       
       <div className={cn(
-        "flex-1 overflow-y-auto custom-scrollbar relative px-12",
-        isFullscreen ? "h-full" : "max-h-[80vh]"
+        "flex-1 overflow-y-auto custom-scrollbar relative",
+        isFullscreen ? "h-full px-12 md:px-24" : "max-h-[80vh] px-8 md:px-16"
       )}>
-        <BubbleMenu editor={editor} />
-        <FloatingMenu editor={editor} />
-        <EditorContent editor={editor} />
+        <div className="max-w-3xl mx-auto w-full">
+          <BubbleMenu editor={editor} />
+          <FloatingMenu editor={editor} />
+          <EditorContent editor={editor} />
+        </div>
       </div>
     </div>
   );
