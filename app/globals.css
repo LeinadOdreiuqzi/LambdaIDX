@@ -271,23 +271,72 @@ body {
 }
 
 /* ─── TIPTAP SCIENTIFIC POWER PACK ─── */
+.callout {
+  @apply relative my-12 p-8 border-l-[6px] rounded-r-xl overflow-hidden transition-all duration-300;
+  border-left-color: var(--callout-accent, inherit);
+}
+
+/* Common industrial background pattern */
+.callout::after {
+  content: "";
+  @apply absolute inset-0 pointer-events-none opacity-[0.03] dark:opacity-[0.05];
+  background-image: radial-gradient(circle, currentColor 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
 .callout-info {
-  @apply border-blue-500/50 bg-blue-500/5 text-blue-900 dark:text-blue-200;
+  --callout-accent: #2563eb; /* blue-600 */
+  @apply border-l-[var(--callout-accent)] bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800/30 text-zinc-800 dark:text-zinc-200;
 }
+.callout-info::before {
+  content: "TECHNICAL REFERENCE";
+  @apply absolute top-2 right-4 text-[9px] font-mono font-bold tracking-[0.2em];
+  color: var(--callout-accent);
+  opacity: 0.6;
+}
+
 .callout-warning {
-  @apply border-amber-500/50 bg-amber-500/5 text-amber-900 dark:text-amber-200;
+  --callout-accent: #f59e0b; /* amber-500 */
+  @apply border-l-[var(--callout-accent)] bg-amber-50/50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-800/30 text-zinc-800 dark:text-zinc-200;
 }
-.callout-success {
-  @apply border-emerald-500/50 bg-emerald-500/5 text-emerald-900 dark:text-emerald-200;
+.callout-warning::before {
+  content: "ATTENTION / CAUTION";
+  @apply absolute top-2 right-4 text-[9px] font-mono font-bold tracking-[0.2em];
+  color: var(--callout-accent);
+  opacity: 0.6;
 }
-.callout-error {
-  @apply border-red-500/50 bg-red-500/5 text-red-900 dark:text-red-200;
-}
+
 .callout-theorem {
-  @apply border-indigo-500/50 bg-indigo-500/5 text-indigo-900 dark:text-indigo-200;
+  --callout-accent: #4f46e5; /* indigo-600 */
+  @apply border-l-[var(--callout-accent)] bg-indigo-50/50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-800/30 shadow-[0_10px_30px_-15px_rgba(79,70,229,0.1)];
 }
+.callout-theorem::before {
+  content: "SCIENTIFIC THEOREM";
+  @apply absolute top-2 right-4 text-[9px] font-mono font-bold tracking-[0.2em];
+  color: var(--callout-accent);
+  opacity: 0.6;
+}
+
 .callout-law {
-  @apply border-teal-500/50 bg-teal-500/5 text-teal-900 dark:text-teal-200;
+  --callout-accent: #059669; /* emerald-600 */
+  @apply border-l-[var(--callout-accent)] bg-emerald-50/50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-800/30;
+}
+.callout-law::before {
+  content: "UNIVERSAL SCIENTIFIC LAW";
+  @apply absolute top-2 right-4 text-[9px] font-mono font-bold tracking-[0.2em];
+  color: var(--callout-accent);
+  opacity: 0.6;
+}
+
+.callout-error {
+  --callout-accent: #dc2626; /* red-600 */
+  @apply border-l-[var(--callout-accent)] bg-red-50/50 dark:bg-red-900/10 border border-red-100 dark:border-red-800/30;
+}
+.callout-error::before {
+  content: "ERROR / DEVIATION";
+  @apply absolute top-2 right-4 text-[9px] font-mono font-bold tracking-[0.2em];
+  color: var(--callout-accent);
+  opacity: 0.6;
 }
 
 /* Footnotes Styling */

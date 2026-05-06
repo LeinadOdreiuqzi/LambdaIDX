@@ -29,7 +29,8 @@ import {
   AlertOctagon,
   Hash,
   Maximize,
-  Minimize
+  Minimize,
+  Palette
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -225,6 +226,29 @@ export function Toolbar({ editor, isFullscreen, onToggleFullscreen }: ToolbarPro
         >
           <CheckSquare className="w-4 h-4" />
         </ToolbarBtn>
+
+        {/* ─── CONTEXTUAL CALLOUT TOOLS ─── */}
+        {editor.isActive('callout') && (
+          <div className="flex items-center gap-2 pl-2 ml-2 border-l border-zinc-200 dark:border-zinc-800 animate-in fade-in slide-in-from-left-2">
+            <div className="flex items-center gap-1.5 px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
+              <Palette className="w-3.5 h-3.5 text-zinc-500" />
+              <input 
+                type="color" 
+                value={editor.getAttributes('callout').color || '#6366f1'} 
+                onChange={(e) => editor.chain().focus().updateAttributes('callout', { color: e.target.value }).run()}
+                className="w-4 h-4 p-0 border-none bg-transparent cursor-pointer rounded-sm"
+                title="Custom accent color"
+              />
+              <button
+                onClick={() => editor.chain().focus().updateAttributes('callout', { color: null }).run()}
+                className="text-[10px] font-mono font-bold text-zinc-400 hover:text-red-500 transition-colors ml-1"
+                title="Reset to default science color"
+              >
+                RESET
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="flex items-center gap-1 pl-2">

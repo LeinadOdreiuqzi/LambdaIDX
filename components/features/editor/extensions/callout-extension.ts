@@ -10,10 +10,10 @@ export const Callout = Node.create({
       type: {
         default: 'info',
         parseHTML: element => element.getAttribute('data-callout-type') || 'info',
-        renderHTML: attributes => ({ 
-          'data-callout-type': attributes.type,
-          class: `callout callout-${attributes.type} p-6 my-10 border-l-4 rounded-r-xl relative overflow-hidden`
-        }),
+      },
+      color: {
+        default: null,
+        parseHTML: element => element.getAttribute('data-callout-color'),
       },
     };
   },
@@ -24,7 +24,19 @@ export const Callout = Node.create({
     }];
   },
 
-  renderHTML({ HTMLAttributes }) {
-    return ['div', mergeAttributes(HTMLAttributes), 0];
+  renderHTML({ HTMLAttributes, node }) {
+    const { type, color } = node.attrs;
+    
+    // Create base attributes
+    const attrs = {
+      'data-callout-type': type,
+      'data-callout-color': color,
+      class: `callout callout-${type}`,
+    };
+
+    // Inject styles if color is provided
+    const styles = color ? `border-left-color: ${color}; --callout-accent: ${color}` : '';
+
+    return ['div', mergeAttributes(HTMLAttributes, attrs, { style: styles }), 0];
   },
 });
