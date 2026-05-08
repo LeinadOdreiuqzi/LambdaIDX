@@ -16,6 +16,7 @@ import { TableCell } from '@tiptap/extension-table-cell';
 import { ColumnGroup, Column } from './extensions/column-extension';
 import { Callout } from './extensions/callout-extension';
 import { MathNode } from './extensions/math-node';
+import { Video } from './extensions/video-extension';
 import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
 import { Footnotes, Footnote, FootnoteReference } from 'tiptap-footnotes';
@@ -24,6 +25,8 @@ import { Toolbar } from './toolbar';
 import { BubbleMenu } from './bubble-menu';
 import { FloatingMenu } from './floating-menu';
 import { cn } from '@/lib/utils';
+import { uploadFile } from '@/app/actions/upload';
+import { toast } from 'sonner';
 
 interface RichTextEditorProps {
   content: string;
@@ -88,6 +91,7 @@ export function RichTextEditor({ content, onChange, className }: RichTextEditorP
       Column,
       Callout,
       MathNode,
+      Video,
       TaskList,
       TaskItem.configure({
         nested: true,
@@ -106,23 +110,36 @@ export function RichTextEditor({ content, onChange, className }: RichTextEditorP
           isFullscreen ? "min-h-screen" : "min-h-[500px]"
         ),
       },
-      handleDrop: (view, event, slice, moved) => {
+      handleDrop: (view, event, _slice, moved) => {
         if (!moved && event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0]) {
           const file = event.dataTransfer.files[0];
-          const type = file.type;
+          const formData = new FormData();
+          formData.append('file', file);
 
-          if (type.startsWith('image/')) {
-            const reader = new FileReader();
-            reader.onload = (readerEvent) => {
-              const node = view.state.schema.nodes.image.create({
-                src: readerEvent.target?.result,
-              });
-              const transaction = view.state.tr.replaceSelectionWith(node);
-              view.dispatch(transaction);
-            };
-            reader.readAsDataURL(file);
-            return true;
-          }
+          const loadingToast = toast.loading(`Uploading ${file.name}...`);
+
+          uploadFile(formData)
+            .then((res) => {
+              toast.dismiss(loadingToast);
+              toast.success('File uploaded successfully');
+              
+              if (file.type.startsWith('image/')) {
+                const node = view.state.schema.nodes.image.create({ src: res.url });
+                const transaction = view.state.tr.replaceSelectionWith(node);
+                view.dispatch(transaction);
+              } else if (file.type.startsWith('video/')) {
+                const node = view.state.schema.nodes.video.create({ src: res.url });
+                const transaction = view.state.tr.replaceSelectionWith(node);
+                view.dispatch(transaction);
+              }
+            })
+            .catch((err) => {
+              toast.dismiss(loadingToast);
+              toast.error('Failed to upload file');
+              console.error(err);
+            });
+          
+          return true;
         }
         return false;
       },

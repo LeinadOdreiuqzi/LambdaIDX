@@ -30,9 +30,14 @@ import {
   Hash,
   Maximize,
   Minimize,
-  Palette
+  Palette,
+  Video,
+  FileVideo,
+  FileImage
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { uploadFile } from '@/app/actions/upload';
+import { toast } from 'sonner';
 
 interface ToolbarProps {
   editor: Editor | null;
@@ -41,6 +46,9 @@ interface ToolbarProps {
 }
 
 export function Toolbar({ editor, isFullscreen, onToggleFullscreen }: ToolbarProps) {
+  const imageInputRef = React.useRef<HTMLInputElement>(null);
+  const videoInputRef = React.useRef<HTMLInputElement>(null);
+
   if (!editor) return null;
 
   const ToolbarBtn = ({
@@ -226,6 +234,61 @@ export function Toolbar({ editor, isFullscreen, onToggleFullscreen }: ToolbarPro
         >
           <CheckSquare className="w-4 h-4" />
         </ToolbarBtn>
+
+        {/* ─── MEDIA UPLOADS (ANTI-VENOM) ─── */}
+        <div className="flex items-center gap-1 pl-2 ml-2 border-l border-zinc-200 dark:border-zinc-800">
+          <input 
+            type="file" 
+            accept="image/*" 
+            className="hidden" 
+            ref={imageInputRef}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              const formData = new FormData();
+              formData.append('file', file);
+              const loadingToast = toast.loading(`Uploading image...`);
+              uploadFile(formData).then(res => {
+                toast.dismiss(loadingToast);
+                editor.chain().focus().setImage({ src: res.url }).run();
+                toast.success('Image uploaded');
+              }).catch(() => {
+                toast.dismiss(loadingToast);
+                toast.error('Upload failed');
+              });
+              e.target.value = '';
+            }}
+          />
+          <ToolbarBtn onClick={() => imageInputRef.current?.click()} title="Upload Image">
+            <FileImage className="w-4 h-4" />
+          </ToolbarBtn>
+
+          <input 
+            type="file" 
+            accept="video/*" 
+            className="hidden" 
+            ref={videoInputRef}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              const formData = new FormData();
+              formData.append('file', file);
+              const loadingToast = toast.loading(`Uploading video...`);
+              uploadFile(formData).then(res => {
+                toast.dismiss(loadingToast);
+                (editor as any).commands.setVideo({ src: res.url });
+                toast.success('Video uploaded');
+              }).catch(() => {
+                toast.dismiss(loadingToast);
+                toast.error('Upload failed');
+              });
+              e.target.value = '';
+            }}
+          />
+          <ToolbarBtn onClick={() => videoInputRef.current?.click()} title="Upload Video">
+            <FileVideo className="w-4 h-4" />
+          </ToolbarBtn>
+        </div>
 
         {/* ─── CONTEXTUAL CALLOUT TOOLS ─── */}
         {editor.isActive('callout') && (
