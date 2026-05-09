@@ -33,7 +33,8 @@ import {
   Palette,
   Video,
   FileVideo,
-  FileImage
+  FileImage,
+  Network
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { uploadFile } from '@/app/actions/upload';
@@ -287,6 +288,15 @@ export function Toolbar({ editor, isFullscreen, onToggleFullscreen }: ToolbarPro
           />
           <ToolbarBtn onClick={() => videoInputRef.current?.click()} title="Upload Video">
             <FileVideo className="w-4 h-4" />
+          </ToolbarBtn>
+
+          <div className="w-px h-4 bg-zinc-200 dark:bg-zinc-800 mx-1" />
+          
+          <ToolbarBtn 
+            onClick={() => (editor as any).commands.setMermaid()} 
+            title="Scientific Diagram (Mermaid)"
+          >
+            <Network className="w-4 h-4 text-emerald-500" />
           </ToolbarBtn>
         </div>
 

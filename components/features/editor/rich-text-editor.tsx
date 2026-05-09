@@ -17,6 +17,7 @@ import { ColumnGroup, Column } from './extensions/column-extension';
 import { Callout } from './extensions/callout-extension';
 import { MathNode } from './extensions/math-node';
 import { Video } from './extensions/video-extension';
+import { MermaidExtension } from './extensions/mermaid-extension';
 import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
 import { Footnotes, Footnote, FootnoteReference } from 'tiptap-footnotes';
@@ -92,6 +93,7 @@ export function RichTextEditor({ content, onChange, className }: RichTextEditorP
       Callout,
       MathNode,
       Video,
+      MermaidExtension,
       TaskList,
       TaskItem.configure({
         nested: true,

@@ -339,6 +339,24 @@ body {
   opacity: 0.6;
 }
 
+/* Mermaid Diagram Styling */
+.prose-custom .mermaid-node-wrapper svg {
+  @apply max-w-full h-auto;
+}
+
+.dark .prose-custom .mermaid-node-wrapper svg {
+  filter: invert(0.9) hue-rotate(180deg);
+}
+
+.prose-custom .mermaid-node-wrapper .edgeLabel {
+  background-color: transparent !important;
+  @apply font-mono text-[10px] text-zinc-900;
+}
+
+.dark .prose-custom .mermaid-node-wrapper .edgeLabel {
+  @apply text-zinc-100;
+}
+
 /* Footnotes Styling */
 .prose-custom .footnotes {
   @apply mt-24 pt-10 border-t border-zinc-200 dark:border-zinc-800 text-sm text-zinc-500 font-mono;
