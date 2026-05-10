@@ -93,10 +93,15 @@ const MermaidComponent = ({ node, updateAttributes, selected }: NodeViewProps) =
 
           {/* Preview Area */}
           {!isEditing && (
-            <div 
-              className="p-8 flex justify-center bg-white dark:bg-transparent min-h-[100px]"
-              dangerouslySetInnerHTML={{ __html: svg }}
-            />
+            <div className="flex flex-col">
+              <div 
+                className="p-8 flex justify-center bg-white dark:bg-transparent min-h-[100px]"
+                dangerouslySetInnerHTML={{ __html: svg }}
+              />
+              <div className="px-4 py-1.5 border-t border-zinc-100 dark:border-zinc-900 bg-zinc-50/30 dark:bg-zinc-950/30 flex justify-end">
+                <span className="text-[8px] font-mono tracking-widest text-zinc-400 uppercase">LambdaIDX Scientific Engine</span>
+              </div>
+            </div>
           )}
         </div>
       </div>
