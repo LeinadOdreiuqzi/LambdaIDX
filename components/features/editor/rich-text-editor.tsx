@@ -34,9 +34,17 @@ interface RichTextEditorProps {
   content: string;
   onChange: (html: string, json: any) => void;
   className?: string;
+  scienceCode?: string;
+  documentId?: string;
 }
 
-export function RichTextEditor({ content, onChange, className }: RichTextEditorProps) {
+export function RichTextEditor({ 
+  content, 
+  onChange, 
+  className,
+  scienceCode = 'DOC',
+  documentId = '0000'
+}: RichTextEditorProps) {
   const [isFullscreen, setIsFullscreen] = React.useState(false);
 
   const editor = useEditor({
@@ -171,7 +179,7 @@ export function RichTextEditor({ content, onChange, className }: RichTextEditorP
       {/* Industrial Meta Badge */}
       {!isFullscreen && (
         <div className="absolute -top-3 -right-3 z-20 px-3 py-1 bg-black dark:bg-white text-white dark:text-black text-[8px] font-mono font-bold tracking-[0.2em] rounded-sm shadow-xl transform rotate-2 group-hover:rotate-0 transition-transform duration-500">
-          L-IDX // REF: {Math.random().toString(36).substr(2, 6).toUpperCase()}
+          L-IDX // {scienceCode.toUpperCase()}-{documentId.toUpperCase()}
         </div>
       )}
 
