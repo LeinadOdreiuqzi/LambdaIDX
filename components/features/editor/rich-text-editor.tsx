@@ -18,6 +18,7 @@ import { Callout } from './extensions/callout-extension';
 import { MathNode } from './extensions/math-node';
 import { Video } from './extensions/video-extension';
 import { MermaidExtension } from './extensions/mermaid-extension';
+import CharacterCount from '@tiptap/extension-character-count';
 import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
 import { Footnotes, Footnote, FootnoteReference } from 'tiptap-footnotes';
@@ -94,6 +95,7 @@ export function RichTextEditor({ content, onChange, className }: RichTextEditorP
       MathNode,
       Video,
       MermaidExtension,
+      CharacterCount,
       TaskList,
       TaskItem.configure({
         nested: true,
@@ -160,12 +162,19 @@ export function RichTextEditor({ content, onChange, className }: RichTextEditorP
 
   return (
     <div className={cn(
-      "flex flex-col relative transition-all duration-500 ease-in-out",
+      "flex flex-col relative transition-all duration-500 ease-in-out group",
       isFullscreen 
         ? "fixed inset-0 z-[100] bg-white dark:bg-[#050505]" 
         : "max-w-5xl mx-auto w-full my-12 bg-white dark:bg-[#0a0a0a] rounded-xl border border-zinc-300/50 dark:border-zinc-800 shadow-[0_20px_70px_rgba(0,0,0,0.08)] dark:shadow-[0_20px_70px_rgba(0,0,0,0.4)]",
       className
     )}>
+      {/* Industrial Meta Badge */}
+      {!isFullscreen && (
+        <div className="absolute -top-3 -right-3 z-20 px-3 py-1 bg-black dark:bg-white text-white dark:text-black text-[8px] font-mono font-bold tracking-[0.2em] rounded-sm shadow-xl transform rotate-2 group-hover:rotate-0 transition-transform duration-500">
+          L-IDX // REF: {Math.random().toString(36).substr(2, 6).toUpperCase()}
+        </div>
+      )}
+
       <Toolbar 
         editor={editor} 
         isFullscreen={isFullscreen} 
@@ -182,6 +191,19 @@ export function RichTextEditor({ content, onChange, className }: RichTextEditorP
           <EditorContent editor={editor} />
         </div>
       </div>
+
+      {/* Editor Footer - Statistics */}
+      {!isFullscreen && (
+        <div className="px-6 py-2 border-t border-zinc-100 dark:border-zinc-900 bg-zinc-50/50 dark:bg-zinc-950/50 flex items-center justify-between">
+          <div className="flex items-center gap-4 text-[10px] font-mono text-zinc-400 uppercase tracking-widest">
+            <span>Words: {editor?.storage.characterCount?.words?.() || 0}</span>
+            <span>Chars: {editor?.storage.characterCount?.characters?.() || 0}</span>
+          </div>
+          <div className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest">
+            LambdaIDX Core v1.0
+          </div>
+        </div>
+      )}
     </div>
   );
 }
