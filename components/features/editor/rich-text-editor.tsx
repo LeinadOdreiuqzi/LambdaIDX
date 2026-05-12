@@ -26,9 +26,11 @@ import 'katex/dist/katex.min.css';
 import { Toolbar } from './toolbar';
 import { BubbleMenu } from './bubble-menu';
 import { FloatingMenu } from './floating-menu';
+import { TableOfContents } from '../content/table-of-contents';
 import { cn } from '@/lib/utils';
 import { uploadFile } from '@/app/actions/upload';
 import { toast } from 'sonner';
+import { ListTree } from 'lucide-react';
 
 interface RichTextEditorProps {
   content: string;
@@ -169,48 +171,70 @@ export function RichTextEditor({
   }, [editor]);
 
   return (
-    <div className={cn(
-      "flex flex-col relative transition-all duration-500 ease-in-out group",
-      isFullscreen 
-        ? "fixed inset-0 z-[100] bg-white dark:bg-[#050505]" 
-        : "max-w-5xl mx-auto w-full my-12 bg-white dark:bg-[#0a0a0a] rounded-xl border border-zinc-300/50 dark:border-zinc-800 shadow-[0_20px_70px_rgba(0,0,0,0.08)] dark:shadow-[0_20px_70px_rgba(0,0,0,0.4)]",
-      className
-    )}>
-      {/* Industrial Meta Badge */}
-      {!isFullscreen && (
-        <div className="absolute -top-3 -right-3 z-20 px-3 py-1 bg-black dark:bg-white text-white dark:text-black text-[8px] font-mono font-bold tracking-[0.2em] rounded-sm shadow-xl transform rotate-2 group-hover:rotate-0 transition-transform duration-500">
-          L-IDX // {scienceCode.toUpperCase()}-{documentId.toUpperCase()}
-        </div>
-      )}
-
-      <Toolbar 
-        editor={editor} 
-        isFullscreen={isFullscreen} 
-        onToggleFullscreen={() => setIsFullscreen(!isFullscreen)} 
-      />
-      
+    <div className="max-w-[1400px] mx-auto w-full px-4 flex gap-8 items-start relative">
+      {/* Main Editor Column */}
       <div className={cn(
-        "flex-1 overflow-y-auto custom-scrollbar relative",
-        isFullscreen ? "h-full px-12 md:px-24" : "max-h-[80vh] px-8 md:px-16"
+        "flex-1 flex flex-col relative transition-all duration-500 ease-in-out group",
+        isFullscreen 
+          ? "fixed inset-0 z-[100] bg-white dark:bg-[#050505]" 
+          : "bg-white dark:bg-[#0a0a0a] rounded-xl border border-zinc-300/50 dark:border-zinc-800 shadow-[0_20px_70px_rgba(0,0,0,0.08)] dark:shadow-[0_20px_70px_rgba(0,0,0,0.4)]",
+        className
       )}>
-        <div className="max-w-3xl mx-auto w-full">
-          <BubbleMenu editor={editor} />
-          <FloatingMenu editor={editor} />
-          <EditorContent editor={editor} />
+        {/* Industrial Meta Badge */}
+        {!isFullscreen && (
+          <div className="absolute -top-3 -right-3 z-20 px-3 py-1 bg-black dark:bg-white text-white dark:text-black text-[8px] font-mono font-bold tracking-[0.2em] rounded-sm shadow-xl transform rotate-2 group-hover:rotate-0 transition-transform duration-500">
+            L-IDX // {scienceCode.toUpperCase()}-{documentId.toUpperCase()}
+          </div>
+        )}
+
+        <Toolbar 
+          editor={editor} 
+          isFullscreen={isFullscreen} 
+          onToggleFullscreen={() => setIsFullscreen(!isFullscreen)} 
+        />
+
+        <div className={cn(
+          "flex-1 overflow-y-auto custom-scrollbar relative",
+          isFullscreen ? "h-[calc(100vh-64px)]" : "max-h-[800px]"
+        )}>
+          <div className="max-w-3xl mx-auto w-full">
+            <BubbleMenu editor={editor} />
+            <FloatingMenu editor={editor} />
+            <EditorContent editor={editor} />
+          </div>
         </div>
+
+        {/* Editor Footer - Statistics */}
+        {!isFullscreen && (
+          <div className="px-6 py-2 border-t border-zinc-100 dark:border-zinc-900 bg-zinc-50/50 dark:bg-zinc-950/50 flex items-center justify-between">
+            <div className="flex items-center gap-4 text-[10px] font-mono text-zinc-400 uppercase tracking-widest">
+              <span>Words: {editor?.storage.characterCount?.words?.() || 0}</span>
+              <span>Chars: {editor?.storage.characterCount?.characters?.() || 0}</span>
+            </div>
+            <div className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest text-right">
+              LambdaIDX Core v1.0
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Editor Footer - Statistics */}
+      {/* Right Sidebar - Navigation (TOC) */}
       {!isFullscreen && (
-        <div className="px-6 py-2 border-t border-zinc-100 dark:border-zinc-900 bg-zinc-50/50 dark:bg-zinc-950/50 flex items-center justify-between">
-          <div className="flex items-center gap-4 text-[10px] font-mono text-zinc-400 uppercase tracking-widest">
-            <span>Words: {editor?.storage.characterCount?.words?.() || 0}</span>
-            <span>Chars: {editor?.storage.characterCount?.characters?.() || 0}</span>
+        <aside className="w-64 sticky top-24 hidden xl:block">
+          <div className="flex items-center gap-2 mb-6 text-zinc-400 dark:text-zinc-600">
+            <ListTree className="w-4 h-4" />
+            <span className="text-[10px] font-mono font-bold uppercase tracking-widest">Navigation Engine</span>
           </div>
-          <div className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest">
-            LambdaIDX Core v1.0
+          <div className="bg-zinc-50/50 dark:bg-zinc-900/30 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800/50 backdrop-blur-sm">
+            <TableOfContents editor={editor} />
           </div>
-        </div>
+          
+          <div className="mt-8 p-4 rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800">
+            <p className="text-[10px] font-mono text-zinc-400 leading-relaxed">
+              HEADINGS ARE AUTOMATICALLY INDEXED FOR THE SCIENTIFIC CARTOGRAPHY SYSTEM.
+            </p>
+          </div>
+        </aside>
       )}
     </div>
   );

@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
+import { Editor } from "@tiptap/react";
 
 interface TOCItem {
   id: string;
@@ -10,21 +11,72 @@ interface TOCItem {
   level: number;
 }
 
-export function TableOfContents() {
+interface TableOfContentsProps {
+  editor?: Editor | null;
+}
+
+export function TableOfContents({ editor }: TableOfContentsProps) {
   const [headings, setHeadings] = useState<TOCItem[]>([]);
   const [activeId, setActiveId] = useState<string>("");
 
   useEffect(() => {
+    // ─── MODE 1: TIPTAP EDITOR SYNC ───
+    if (editor) {
+      const updateTiptapHeadings = () => {
+        const items: TOCItem[] = [];
+        editor.state.doc.descendants((node, pos) => {
+          if (node.type.name === 'heading') {
+            const title = node.textContent;
+            const level = node.attrs.level;
+            const id = title.toLowerCase()
+              .trim()
+              .replace(/\s+/g, "-")
+              .replace(/[^\w-]/g, "") || `section-${pos}`;
+            
+            items.push({ id, title, level });
+            
+            // Inject ID into the node attributes if needed (Tiptap way)
+            // Note: This is better handled via an extension, but for TOC sync it's enough to know the ID
+          }
+        });
+        setHeadings(items);
+      };
+
+      editor.on('update', updateTiptapHeadings);
+      editor.on('selectionUpdate', ({ editor }) => {
+        // Find current heading based on selection
+        let currentId = "";
+        editor.state.doc.descendants((node, pos) => {
+          if (node.type.name === 'heading' && pos <= editor.state.selection.from) {
+            currentId = node.textContent.toLowerCase()
+              .trim()
+              .replace(/\s+/g, "-")
+              .replace(/[^\w-]/g, "") || `section-${pos}`;
+          }
+        });
+        setActiveId(currentId);
+      });
+
+      updateTiptapHeadings();
+      return () => {
+        editor.off('update', updateTiptapHeadings);
+      };
+    }
+
+    // ─── MODE 2: DOM SCAN FALLBACK (Public Pages) ───
     const scanHeaders = () => {
+      const articleBody = document.querySelector(".prose-custom");
+      if (!articleBody) return;
+
       const usedIds = new Set<string>();
-      const elements = Array.from(document.querySelectorAll("h2, h3"))
+      const elements = Array.from(articleBody.querySelectorAll("h2, h3"))
         .map((element) => {
-          let id = element.id || element.textContent?.toLowerCase()
+          const text = element.textContent?.trim() || "";
+          let id = element.id || text.toLowerCase()
             .trim()
             .replace(/\s+/g, "-")
             .replace(/[^\w-]/g, "") || "section";
           
-          // Ensure uniqueness
           let uniqueId = id;
           let counter = 1;
           while (usedIds.has(uniqueId)) {
@@ -37,47 +89,47 @@ export function TableOfContents() {
 
           return {
             id: uniqueId,
-            title: element.textContent?.trim() || "Section",
+            title: text,
             level: Number(element.tagName.replace("H", "")),
           };
         });
+      
       setHeadings(elements);
 
-      // Intersection Observer logic
       const observer = new IntersectionObserver(
         (entries) => {
           entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              setActiveId(entry.target.id);
-            }
+            if (entry.isIntersecting) setActiveId(entry.target.id);
           });
         },
         { rootMargin: "-10% 0% -60% 0%" }
       );
 
-      document.querySelectorAll("h2, h3").forEach((h) => observer.observe(h));
+      articleBody.querySelectorAll("h2, h3").forEach((h) => observer.observe(h));
       return observer;
     };
 
-    // Initial scan
-    let intersectionObserver = scanHeaders();
+    let intersectionObserver: IntersectionObserver | void;
+    const timeoutId = setTimeout(() => {
+      intersectionObserver = scanHeaders();
+    }, 500);
 
-    // Watch for DOM changes (since content is injected via dangerouslySetInnerHTML)
     const mutationObserver = new MutationObserver(() => {
-      intersectionObserver.disconnect();
+      if (intersectionObserver) intersectionObserver.disconnect();
       intersectionObserver = scanHeaders();
     });
 
     const articleBody = document.querySelector(".prose-custom");
     if (articleBody) {
-      mutationObserver.observe(articleBody, { childList: true, subtree: true });
+      mutationObserver.observe(articleBody, { childList: true, subtree: true, characterData: true });
     }
 
     return () => {
-      intersectionObserver.disconnect();
+      clearTimeout(timeoutId);
+      if (intersectionObserver) intersectionObserver.disconnect();
       mutationObserver.disconnect();
     };
-  }, []);
+  }, [editor]);
 
   if (headings.length === 0) return null;
 
