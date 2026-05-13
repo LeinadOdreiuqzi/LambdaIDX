@@ -30,9 +30,6 @@ export default function AdminDashboard() {
       <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 border-b border-zinc-200 dark:border-zinc-800 pb-6">
         <div>
           <h1 className="text-4xl font-black uppercase tracking-tighter">Knowledge Editor</h1>
-          <p className="text-sm text-zinc-500 font-mono tracking-widest uppercase mt-2">
-            Status: <span className="text-green-500">SYSTEM_READY</span>
-          </p>
         </div>
         <div className="flex gap-4">
           <button className="px-6 py-3 border border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-colors font-bold uppercase tracking-widest text-xs flex items-center gap-2">
@@ -50,12 +47,6 @@ export default function AdminDashboard() {
       </header>
 
       <section>
-        <div className="mb-4">
-          <label className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest">
-            Node Content
-          </label>
-        </div>
-        
         {/* Editor Container */}
         <div className="shadow-2xl shadow-black/5 dark:shadow-black/40">
           <RichTextEditor 
