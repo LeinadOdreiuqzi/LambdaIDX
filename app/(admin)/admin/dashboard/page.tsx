@@ -33,6 +33,24 @@ export default function AdminDashboard() {
       .catch(err => console.error("Error fetching nav tree:", err));
   }, []);
 
+  // Logic to generate dynamic breadcrumbs for the preview
+  const getDynamicBreadcrumbs = () => {
+    // 1. Get real Science from the Database Tree
+    // We look for the first root node in the tree as a default context
+    const rootScience = tree.length > 0 ? tree[0] : null;
+    const scienceName = rootScience ? rootScience.title : 'Sin Categoría';
+    const scienceSlug = rootScience ? rootScience.slug : 'draft';
+    
+    // 2. Extract Title from content (Look for first <h2> or <h1>)
+    const titleMatch = content.match(/<(h1|h2)[^>]*>(.*?)<\/\1>/);
+    const pageTitle = titleMatch ? titleMatch[2].replace(/<[^>]*>/g, '') : 'Nuevo Documento';
+
+    return [
+      { title: scienceName, slug: scienceSlug },
+      { title: pageTitle, slug: 'preview' }
+    ];
+  };
+
   const handleSave = () => {
     // In a real app, we would send jsonContent to the API to save to Prisma
     console.log("Saving JSON to DB:", jsonContent);
@@ -66,13 +84,9 @@ export default function AdminDashboard() {
               <PublicClientLayout tree={tree}>
                 <div className="pb-40">
                   <ArticleView 
-                    title="Knowledge Node Preview" 
+                    title={getDynamicBreadcrumbs()[1].title} 
                     content={content} 
-                    breadcrumbs={[
-                      { title: "Science", slug: "science" },
-                      { title: "Category", slug: "category" },
-                      { title: "Preview", slug: "preview" }
-                    ]} 
+                    breadcrumbs={getDynamicBreadcrumbs()} 
                   />
                 </div>
               </PublicClientLayout>
