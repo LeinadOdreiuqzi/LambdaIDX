@@ -3,8 +3,10 @@
 import React, { useState } from 'react';
 import { RichTextEditor } from '@/components/features/editor/rich-text-editor';
 import { ArticleView } from '@/components/features/content/article-view';
+import { PublicClientLayout } from '@/components/features/navigation/public-client-layout';
 import { Save, Eye, X } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { NavPage } from '@/types';
 
 const INITIAL_CONTENT = `
   <h2>Welcome to the LambdaIDX Editor</h2>
@@ -21,6 +23,15 @@ export default function AdminDashboard() {
   const [content, setContent] = useState(INITIAL_CONTENT);
   const [jsonContent, setJsonContent] = useState<any>(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [tree, setTree] = useState<NavPage[]>([]);
+
+  // Fetch tree for preview navigation
+  React.useEffect(() => {
+    fetch('/api/navigation')
+      .then(res => res.json())
+      .then(data => setTree(data))
+      .catch(err => console.error("Error fetching nav tree:", err));
+  }, []);
 
   const handleSave = () => {
     // In a real app, we would send jsonContent to the API to save to Prisma
@@ -34,34 +45,37 @@ export default function AdminDashboard() {
       <AnimatePresence>
         {isPreviewOpen && (
           <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            className="fixed inset-0 z-[200] bg-white dark:bg-[#050505] overflow-y-auto"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[500] bg-white dark:bg-[#050505] overflow-hidden flex flex-col"
           >
-            <div className="sticky top-0 z-[210] p-4 flex justify-between items-center bg-white/80 dark:bg-black/80 backdrop-blur-xl border-b border-zinc-200 dark:border-zinc-800">
-              <span className="text-[10px] font-mono font-bold tracking-[0.3em] uppercase text-zinc-400">
-                Live Preview Mode // Rendering Knowledge Node
-              </span>
+            {/* Master Close Button (Always on top) */}
+            <div className="fixed top-6 right-6 z-[600]">
               <button 
                 onClick={() => setIsPreviewOpen(false)}
-                className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-full transition-colors"
-                title="Close Preview"
+                className="group flex items-center gap-3 px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-all"
               >
-                <X className="w-5 h-5" />
+                <span className="text-[10px] font-mono font-bold tracking-widest uppercase">Close Preview</span>
+                <X className="w-4 h-4" />
               </button>
             </div>
-            
-            <div className="pb-40">
-              <ArticleView 
-                title="Knowledge Node Preview" 
-                content={content} 
-                breadcrumbs={[
-                  { title: "Admin", slug: "admin" },
-                  { title: "Editor", slug: "dashboard" },
-                  { title: "Preview", slug: "preview" }
-                ]} 
-              />
+
+            {/* Simulated Public Layout */}
+            <div className="flex-1 overflow-y-auto">
+              <PublicClientLayout tree={tree}>
+                <div className="pb-40">
+                  <ArticleView 
+                    title="Knowledge Node Preview" 
+                    content={content} 
+                    breadcrumbs={[
+                      { title: "Science", slug: "science" },
+                      { title: "Category", slug: "category" },
+                      { title: "Preview", slug: "preview" }
+                    ]} 
+                  />
+                </div>
+              </PublicClientLayout>
             </div>
           </motion.div>
         )}
