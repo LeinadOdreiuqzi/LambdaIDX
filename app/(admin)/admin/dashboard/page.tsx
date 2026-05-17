@@ -30,7 +30,14 @@ export default function AdminDashboard() {
   React.useEffect(() => {
     fetch('/api/navigation')
       .then(res => res.json())
-      .then(data => setTree(data))
+      .then(data => {
+        if (Array.isArray(data)) {
+          setTree(data);
+        } else {
+          console.warn("Navigation API did not return an array, defaulting to empty tree.", data);
+          setTree([]);
+        }
+      })
       .catch(err => console.error("Error fetching nav tree:", err));
   }, []);
 
