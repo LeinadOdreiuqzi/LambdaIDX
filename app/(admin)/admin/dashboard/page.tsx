@@ -7,6 +7,7 @@ import { PublicClientLayout } from '@/components/features/navigation/public-clie
 import { Save, Eye, X } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { NavPage } from '@/types';
+import { toast } from 'sonner';
 
 const INITIAL_CONTENT = `
   <h2>Welcome to the LambdaIDX Editor</h2>
@@ -54,7 +55,9 @@ export default function AdminDashboard() {
   const handleSave = () => {
     // In a real app, we would send jsonContent to the API to save to Prisma
     console.log("Saving JSON to DB:", jsonContent);
-    alert("Contenido guardado (revisa la consola para ver el JSON)");
+    toast.success("Node Content Saved", {
+      description: "Data has been successfully written to the local state. Database persistence pending."
+    });
   };
 
   return (

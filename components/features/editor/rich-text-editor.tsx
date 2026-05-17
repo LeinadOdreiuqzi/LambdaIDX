@@ -207,9 +207,11 @@ export function RichTextEditor({
         {/* Editor Footer - Statistics */}
         {!isFullscreen && (
           <div className="px-6 py-2 border-t border-zinc-100 dark:border-zinc-900 bg-zinc-50/50 dark:bg-zinc-950/50 flex items-center justify-between">
-            <div className="flex items-center gap-4 text-[10px] font-mono text-zinc-400 uppercase tracking-widest">
+            <div className="flex items-center gap-6 text-[10px] font-mono text-zinc-400 uppercase tracking-widest">
               <span>Words: {editor?.storage.characterCount?.words?.() || 0}</span>
               <span>Chars: {editor?.storage.characterCount?.characters?.() || 0}</span>
+              <span className="text-zinc-300 dark:text-zinc-600">|</span>
+              <span>Read Time: {Math.max(1, Math.ceil((editor?.storage.characterCount?.words?.() || 0) / 200))} MIN</span>
             </div>
             <div className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest text-right">
               LambdaIDX Core v1.0
