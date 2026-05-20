@@ -5,7 +5,7 @@ import { ArticleView } from "@/components/features/content/article-view";
 import { Metadata } from "next";
 
 interface PageProps {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ slug: string[] }>;
 }
 
 /**
@@ -13,7 +13,7 @@ interface PageProps {
  */
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const page = await PageService.getPageBySlug(slug);
+  const page = await PageService.getPageByNestedSlugs(slug);
 
   if (!page) {
     return {
@@ -36,7 +36,7 @@ export default async function KnowledgePage({ params }: PageProps) {
   const { slug } = await params;
   
   // Fetch page data
-  const page = await PageService.getPageBySlug(slug);
+  const page = await PageService.getPageByNestedSlugs(slug);
 
   if (!page) {
     notFound();

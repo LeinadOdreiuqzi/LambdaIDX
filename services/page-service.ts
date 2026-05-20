@@ -184,9 +184,6 @@ export class PageService {
     }
   }
 
-  /**
-   * Fetches a single page by its slug.
-   */
   static async getPageBySlug(slug: string): Promise<PageContent | null> {
     try {
       if (!process.env.DATABASE_URL) {
@@ -212,6 +209,71 @@ export class PageService {
     } catch (error) {
       console.warn(`❌ Failed to fetch page ${slug}, using mock fallback:`, error);
       return this.getMockPage(slug);
+    }
+  }
+
+  /**
+   * Fetches a single page by its nested slug path.
+   * e.g., ["ciencias-naturales", "quimica", "quimica-organica"]
+   */
+  static async getPageByNestedSlugs(slugs: string[]): Promise<PageContent | null> {
+    try {
+      if (!slugs || slugs.length === 0) return null;
+
+      if (!process.env.DATABASE_URL) {
+        // In disconnected/mock mode, resolve using our mock database mapping
+        const targetSlug = slugs[slugs.length - 1];
+        const page = this.getMockPage(targetSlug);
+        if (!page) return null;
+
+        // Verify the parent path hierarchy of the mock page matches the provided slugs
+        const mockBreadcrumbs = this.getMockBreadcrumbs(page.path);
+        const matchesHierarchy = mockBreadcrumbs.every((b, idx) => b.slug === slugs[idx]);
+        return matchesHierarchy ? page : null;
+      }
+
+      // 1. Get the target page by its unique slug (the last element in the array)
+      const targetSlug = slugs[slugs.length - 1];
+      const page = await prisma.page.findUnique({
+        where: { slug: targetSlug, status: "PUBLISHED" },
+      });
+
+      if (!page) return null;
+
+      // 2. Resolve the full path hierarchy of parent pages to verify the URL matching
+      const breadcrumbs = await this.getBreadcrumbs(page);
+      
+      // The breadcrumbs must match the slugs exactly in order and length
+      if (breadcrumbs.length !== slugs.length) {
+        return null;
+      }
+
+      for (let i = 0; i < slugs.length; i++) {
+        if (breadcrumbs[i].slug !== slugs[i]) {
+          return null;
+        }
+      }
+
+      return {
+        id: page.id,
+        title: page.title,
+        slug: page.slug,
+        contentJson: page.contentJson,
+        excerpt: page.excerpt,
+        path: page.path,
+        parentId: page.parentId,
+        status: page.status,
+      };
+    } catch (error) {
+      console.warn(`❌ Failed to fetch page by nested slugs [${slugs.join("/")}], using mock fallback:`, error);
+      // Fallback logic
+      const targetSlug = slugs[slugs.length - 1];
+      const page = this.getMockPage(targetSlug);
+      if (!page) return null;
+
+      const mockBreadcrumbs = this.getMockBreadcrumbs(page.path);
+      const matchesHierarchy = mockBreadcrumbs.every((b, idx) => b.slug === slugs[idx]);
+      return matchesHierarchy ? page : null;
     }
   }
 
