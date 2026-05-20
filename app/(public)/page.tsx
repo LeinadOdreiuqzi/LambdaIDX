@@ -20,14 +20,14 @@ export default function Home() {
             className="flex flex-col items-center text-center"
           >
             <h1 className="text-6xl md:text-9xl font-black uppercase tracking-tighter leading-[0.85] mb-12">
-              Knowledge <br />
+              Knowledge<br />
               <span className="text-zinc-600 outline-text">Archive.</span>
             </h1>
 
             <p className="max-w-3xl text-lg md:text-xl text-zinc-400 font-medium leading-relaxed mb-16">
-              The unified repository for the investigation of the 5 Core Sciences.
-              LambdaIDX provides a high-efficiency research environment to navigate the complexity
-              of all known human knowledge through clear, hierarchical structures.
+              El repositorio unificado para la investigación de las 5 Ciencias Fundamentales.
+              LambdaIDX proporciona un entorno de investigación de alta eficiencia para navegar por la complejidad
+              de todo el conocimiento humano a través de estructuras jerárquicas claras.
             </p>
 
             <div className="flex flex-wrap justify-center items-center gap-6">
@@ -35,7 +35,7 @@ export default function Home() {
                 href="/p/introduction"
                 className="group relative px-10 py-5 bg-white text-black font-black uppercase tracking-widest text-sm overflow-hidden transition-all hover:pr-14"
               >
-                <span>Initialize Cartography</span>
+                <span>Iniciar Cartografía</span>
                 <ArrowRight className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 opacity-0 group-hover:opacity-100 transition-all" />
               </Link>
 
@@ -43,7 +43,7 @@ export default function Home() {
                 href="/admin/dashboard"
                 className="px-10 py-5 border border-zinc-800 bg-black dark:bg-zinc-950 hover:bg-[rgb(205,127,50)] dark:hover:bg-zinc-800 transition-colors font-bold uppercase tracking-widest text-xs text-zinc-400 dark:text-zinc-500 hover:text-white"
               >
-                Core Management
+                Gestión Central
               </Link>
             </div>
           </motion.div>
@@ -54,7 +54,7 @@ export default function Home() {
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="flex flex-col items-center text-center">
                 <Database className="w-12 h-12 text-zinc-700 mb-4 animate-bounce" />
-                <span className="font-mono text-[10px] text-zinc-600 tracking-[0.3em] uppercase">Mapping Hierarchical Academic Nodes...</span>
+                <span className="font-mono text-[10px] text-zinc-600 tracking-[0.3em] uppercase">Mapeando Nodos Académicos Jerárquicos...</span>
               </div>
             </div>
             {/* Decorative blueprint lines */}
@@ -68,15 +68,15 @@ export default function Home() {
           <div className="max-w-7xl mx-auto">
             <div className="flex flex-col md:flex-row justify-between items-end gap-10 mb-20">
               <div className="max-w-xl text-left">
-                <span className="text-zinc-600 font-mono text-[10px] uppercase tracking-widest mb-4 block underline underline-offset-8">Section: Knowledge_Ecosystem</span>
+                <span className="text-zinc-600 font-mono text-[10px] uppercase tracking-widest mb-4 block underline underline-offset-8">Sección: Ecosistema_Del_Conocimiento</span>
                 <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter mt-4">
-                  Beyond <br /> <span className="text-zinc-600">Classification.</span>
+                  Más Allá de la <br /> <span className="text-zinc-600">Clasificación.</span>
                 </h2>
               </div>
               <div className="flex flex-col gap-2 font-mono text-[10px] text-zinc-700 uppercase tracking-widest border-l border-zinc-800 pl-6">
-                <span>Hierarchy: Multi-Level</span>
-                <span>Curation: Human-Led</span>
-                <span>Goal: Discovery</span>
+                <span>Jerarquía: Multinivel</span>
+                <span>Curaduría: Humana</span>
+                <span>Objetivo: Descubrimiento</span>
               </div>
             </div>
 
@@ -84,38 +84,38 @@ export default function Home() {
               <FeatureBlock
                 id="01"
                 icon={<Layers className="w-5 h-5 text-white" />}
-                title="Universal Repository"
-                description="A centralized archive for the 5 Core Sciences, organizing every known concept into a clear, navigable hierarchy."
+                title="Repositorio Universal"
+                description="Un archivo centralizado para las 5 Ciencias Fundamentales, organizando cada concepto conocido en una jerarquía clara y navegable."
               />
               <FeatureBlock
                 id="02"
                 icon={<Target className="w-5 h-5 text-white" />}
-                title="Research Efficiency"
-                description="Optimized for deep study and investigation. Find the exact node of information without the noise of generic search."
+                title="Eficiencia de Investigación"
+                description="Optimizado para el estudio y la investigación profunda. Encuentra el nodo exacto de información sin el ruido de las búsquedas genéricas."
               />
               <FeatureBlock
                 id="03"
                 icon={<Globe className="w-5 h-5 text-white" />}
-                title="Scientific Mapping"
-                description="Visualize the connections between Formal, Natural, and Social sciences in a living map of relationships."
+                title="Mapeo Científico"
+                description="Visualiza las conexiones entre las ciencias formales, naturales y sociales en un mapa vivo de relaciones."
               />
               <FeatureBlock
                 id="04"
                 icon={<Cpu className="w-5 h-5 text-white" />}
-                title="Infoxication Shield"
-                description="Reduces cognitive overload by providing structure and direction. Know 'what', 'with what' and 'where' to study."
+                title="Escudo Anti-Infoxicación"
+                description="Reduce la sobrecarga cognitiva proporcionando estructura y dirección. Conoce qué, con qué y dónde estudiar."
               />
               <FeatureBlock
                 id="05"
                 icon={<Activity className="w-5 h-5 text-white" />}
-                title="Discovery Engine"
-                description="Transform search into logic. Every node is a step in a structured journey of learning and research."
+                title="Motor de Descubrimiento"
+                description="Transforma la búsqueda en lógica. Cada nodo es un paso en un viaje estructurado de aprendizaje e investigación."
               />
               <FeatureBlock
                 id="06"
                 icon={<Code className="w-5 h-5 text-white" />}
-                title="Technical Density"
-                description="Designed for professional analysis and data collection, ensuring sub-200ms transitions between nodes."
+                title="Densidad Técnica"
+                description="Diseñado para el análisis profesional y la recopilación de datos, garantizando transiciones de menos de 200 ms entre nodos."
               />
             </div>
           </div>
@@ -128,16 +128,16 @@ export default function Home() {
               <div className="w-2.5 h-2.5 rounded-full bg-red-500/30" />
               <div className="w-2.5 h-2.5 rounded-full bg-amber-500/30" />
               <div className="w-2.5 h-2.5 rounded-full bg-green-500/30" />
-              <span className="ml-auto text-[10px] font-mono text-zinc-500 uppercase tracking-widest">lambdaidx_mission_log --read</span>
+              <span className="ml-auto text-[10px] font-mono text-zinc-500 uppercase tracking-widest">bitacora_mision_lambdaidx --read</span>
             </div>
             <div className="p-8 font-mono text-sm leading-relaxed text-zinc-400">
-              <p className="text-white">$ cat mission.txt</p>
-              <p className="mt-4 text-zinc-300">"LambdaIDX serves as a living repository for the investigation and study of all known sciences."</p>
-              <p className="mt-2">Efficiently mapping the complexity of scientific knowledge through 5 core foundational branches.</p>
-              <p className="mt-4 text-green-500">✓ Unified Scientific Archive Online</p>
-              <p className="mt-1 text-green-500">✓ High-efficiency Research Environment</p>
-              <p className="mt-1 text-green-500">✓ Mapping complexity of the 5 Sciences</p>
-              <p className="mt-8 text-white">Status: ARCHIVE_READY. Proceed with Research.</p>
+              <p className="text-white">$ cat mision.txt</p>
+              <p className="mt-4 text-zinc-300">"LambdaIDX sirve como un repositorio vivo para la investigación y el estudio de todas las ciencias conocidas."</p>
+              <p className="mt-2">Mapeando eficientemente la complejidad del conocimiento científico a través de 5 ramas fundamentales centrales.</p>
+              <p className="mt-4 text-green-500">✓ Archivo Científico Unificado en Línea</p>
+              <p className="mt-1 text-green-500">✓ Entorno de Investigación de Alta Eficiencia</p>
+              <p className="mt-1 text-green-500">✓ Mapeando la complejidad de las 5 Ciencias</p>
+              <p className="mt-8 text-white">Estado: ARCHIVE_READY. Proceder con la Investigación.</p>
             </div>
           </div>
         </section>
@@ -151,17 +151,17 @@ export default function Home() {
               <Logo size={40} className="mb-6" />
             </Link>
             <p className="text-zinc-500 max-w-xs text-sm leading-relaxed italic">
-              "Because information without structure is just static noise."
+              "Porque la información sin estructura es solo ruido estático."
             </p>
           </div>
           <div className="grid grid-cols-2 gap-16">
             <FooterLinkGroup
-              title="Architecture"
-              links={["Nodes", "Registry", "Engine"]}
+              title="Arquitectura"
+              links={["Nodos", "Registro", "Motor"]}
             />
             <FooterLinkGroup
-              title="Protocol"
-              links={["Docs", "Security", "Standards"]}
+              title="Protocolo"
+              links={["Docs", "Seguridad", "Estándares"]}
             />
           </div>
         </div>
