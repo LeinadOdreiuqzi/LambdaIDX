@@ -171,12 +171,12 @@ export function RichTextEditor({
   }, [editor]);
 
   return (
-    <div className="max-w-[1400px] mx-auto w-full px-4 flex gap-8 items-start relative">
+    <div className="mx-auto w-full px-4 flex gap-8 items-start relative" style={{ maxWidth: "1400px" }}>
       {/* Main Editor Column */}
       <div className={cn(
         "flex-1 flex flex-col relative transition-all duration-500 ease-in-out group",
         isFullscreen 
-          ? "fixed inset-0 z-[100] bg-white dark:bg-[#050505]" 
+          ? "fixed inset-0 z-100 bg-white dark:bg-black" 
           : "bg-white dark:bg-[#0a0a0a] rounded-xl border border-zinc-300/50 dark:border-zinc-800 shadow-[0_20px_70px_rgba(0,0,0,0.08)] dark:shadow-[0_20px_70px_rgba(0,0,0,0.4)]",
         className
       )}>
@@ -195,7 +195,7 @@ export function RichTextEditor({
 
         <div className={cn(
           "flex-1 overflow-y-auto custom-scrollbar relative",
-          isFullscreen ? "h-[calc(100vh-64px)]" : "max-h-[800px]"
+          isFullscreen ? "h-[calc(100vh-64px)]" : "h-96"
         )}>
           <div className="max-w-3xl mx-auto w-full">
             <BubbleMenu editor={editor} />

@@ -450,6 +450,239 @@ export class PageService {
     }));
   }
 
+  /**
+   * Fetches a single page by ID (for editing in backend)
+   */
+  static async getPageById(id: string): Promise<PageContent | null> {
+    try {
+      if (!process.env.DATABASE_URL) {
+        return null;
+      }
+
+      const page = await prisma.page.findUnique({
+        where: { id },
+      });
+
+      if (!page) return null;
+
+      return {
+        id: page.id,
+        title: page.title,
+        slug: page.slug,
+        contentJson: page.contentJson,
+        excerpt: page.excerpt,
+        path: page.path,
+        parentId: page.parentId,
+        status: page.status,
+      };
+    } catch (error) {
+      console.error(`❌ Failed to fetch page ${id}:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Creates a new page
+   */
+  static async createPage(data: {
+    title: string;
+    slug: string;
+    parentId?: string;
+    excerpt?: string;
+    contentJson?: Record<string, unknown>;
+    metaTitle?: string;
+    metaDescription?: string;
+  }): Promise<PageContent | null> {
+    try {
+      if (!process.env.DATABASE_URL) {
+        throw new Error("Database not configured");
+      }
+
+      // Calculate path and depth
+      let path = data.parentId || "";
+      let depth = 0;
+
+      if (data.parentId) {
+        const parent = await prisma.page.findUnique({
+          where: { id: data.parentId },
+          select: { path: true, depth: true },
+        });
+
+        if (parent) {
+          path = parent.path ? `${parent.path}/${data.parentId}` : data.parentId;
+          depth = parent.depth + 1;
+        }
+      }
+
+      const page = await prisma.page.create({
+        data: {
+          title: data.title,
+          slug: data.slug,
+          parentId: data.parentId || null,
+          path,
+          depth,
+          excerpt: data.excerpt,
+          contentJson: (data.contentJson || { type: "doc", content: [] }) as any,
+          metaTitle: data.metaTitle || data.title,
+          metaDescription: data.metaDescription || data.excerpt,
+          status: "DRAFT",
+        },
+      });
+
+      return {
+        id: page.id,
+        title: page.title,
+        slug: page.slug,
+        contentJson: page.contentJson,
+        excerpt: page.excerpt,
+        path: page.path,
+        parentId: page.parentId,
+        status: page.status,
+      };
+    } catch (error) {
+      console.error("❌ Failed to create page:", error);
+      return null;
+    }
+  }
+
+  /**
+   * Updates page content (editor save)
+   */
+  static async updatePageContent(
+    id: string,
+    contentJson: Record<string, unknown>,
+    excerpt?: string
+  ): Promise<PageContent | null> {
+    try {
+      if (!process.env.DATABASE_URL) {
+        throw new Error("Database not configured");
+      }
+
+      const page = await prisma.page.update({
+        where: { id },
+        data: {
+          contentJson: contentJson as any,
+          excerpt: excerpt || undefined,
+          updatedAt: new Date(),
+        },
+      });
+
+      return {
+        id: page.id,
+        title: page.title,
+        slug: page.slug,
+        contentJson: page.contentJson,
+        excerpt: page.excerpt,
+        path: page.path,
+        parentId: page.parentId,
+        status: page.status,
+      };
+    } catch (error) {
+      console.error(`❌ Failed to update page ${id}:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Publishes a page (changes status to PUBLISHED)
+   */
+  static async publishPage(id: string): Promise<PageContent | null> {
+    try {
+      if (!process.env.DATABASE_URL) {
+        throw new Error("Database not configured");
+      }
+
+      const page = await prisma.page.update({
+        where: { id },
+        data: {
+          status: "PUBLISHED",
+          publishedAt: new Date(),
+          updatedAt: new Date(),
+        },
+      });
+
+      return {
+        id: page.id,
+        title: page.title,
+        slug: page.slug,
+        contentJson: page.contentJson,
+        excerpt: page.excerpt,
+        path: page.path,
+        parentId: page.parentId,
+        status: page.status,
+      };
+    } catch (error) {
+      console.error(`❌ Failed to publish page ${id}:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Updates page metadata
+   */
+  static async updatePageMetadata(
+    id: string,
+    data: {
+      title?: string;
+      metaTitle?: string;
+      metaDescription?: string;
+      canonicalUrl?: string;
+      isFeatured?: boolean;
+    }
+  ): Promise<PageContent | null> {
+    try {
+      if (!process.env.DATABASE_URL) {
+        throw new Error("Database not configured");
+      }
+
+      const page = await prisma.page.update({
+        where: { id },
+        data: {
+          title: data.title,
+          metaTitle: data.metaTitle,
+          metaDescription: data.metaDescription,
+          canonicalUrl: data.canonicalUrl,
+          isFeatured: data.isFeatured,
+          updatedAt: new Date(),
+        },
+      });
+
+      return {
+        id: page.id,
+        title: page.title,
+        slug: page.slug,
+        contentJson: page.contentJson,
+        excerpt: page.excerpt,
+        path: page.path,
+        parentId: page.parentId,
+        status: page.status,
+      };
+    } catch (error) {
+      console.error(`❌ Failed to update page metadata ${id}:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Deletes a page
+   */
+  static async deletePage(id: string): Promise<boolean> {
+    try {
+      if (!process.env.DATABASE_URL) {
+        throw new Error("Database not configured");
+      }
+
+      await prisma.page.delete({
+        where: { id },
+      });
+
+      return true;
+    } catch (error) {
+      console.error(`❌ Failed to delete page ${id}:`, error);
+      return false;
+    }
+  }
+
   private static getMockHierarchy(): NavPage[] {
     return [
       {
