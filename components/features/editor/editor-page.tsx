@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { RichTextEditor } from "./rich-text-editor";
 import { usePageEditor } from "@/hooks/use-page-editor";
 import { cn } from "@/lib/utils";
-import { Loader2, CheckCircle2 } from "lucide-react";
+import { Loader2, CheckCircle2, Save } from "lucide-react";
 
 interface EditorPageProps {
   pageId?: string;
@@ -32,11 +32,16 @@ export function EditorPage({ pageId, onPublish, className }: EditorPageProps) {
   const [showMetadata, setShowMetadata] = useState(false);
   const [metaTitle, setMetaTitle] = useState("");
   const [metaDescription, setMetaDescription] = useState("");
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const editorRef = useRef<any>(null);
 
   // Load page if ID is provided
   useEffect(() => {
     if (pageId) {
-      loadPage(pageId);
+      setLoadError(null);
+      loadPage(pageId).catch(() => {
+        setLoadError("Page not found or could not be loaded.");
+      });
     }
   }, [pageId, loadPage]);
 
@@ -49,7 +54,15 @@ export function EditorPage({ pageId, onPublish, className }: EditorPageProps) {
   const handleCreatePage = async () => {
     setIsCreating(true);
     try {
-      const slug = state.title.toLowerCase().replace(/\s+/g, "-");
+      // Slugify: lowercase, replace spaces with hyphens, remove accents and special characters
+      const slug = state.title
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "") // Remove diacritics
+        .replace(/[^a-z0-9\s-]/g, "") // Remove special characters except spaces and hyphens
+        .replace(/\s+/g, "-") // Replace spaces with hyphens
+        .replace(/-+/g, "-") // Replace multiple hyphens with single hyphen
+        .trim();
       await createPage({
         title: state.title,
         slug,
@@ -61,8 +74,8 @@ export function EditorPage({ pageId, onPublish, className }: EditorPageProps) {
   };
 
   const handleSave = async (
-    contentJson: Record<string, unknown>,
-    html: string
+    html: string,
+    contentJson: Record<string, unknown>
   ) => {
     const plainText = html
       .replace(/<[^>]*>/g, "")
@@ -73,7 +86,35 @@ export function EditorPage({ pageId, onPublish, className }: EditorPageProps) {
   };
 
   const handlePublish = async () => {
+    // Trigger manual save before publishing
+    if (editorRef.current) {
+      const editor = editorRef.current.getEditor();
+      if (editor) {
+        const contentJson = editor.getJSON();
+        const html = editor.getHTML();
+        const plainText = html
+          .replace(/<[^>]*>/g, "")
+          .substring(0, 160)
+          .trim();
+        await savePage(contentJson, plainText);
+      }
+    }
     await publishPage();
+  };
+
+  const handleManualSave = async () => {
+    if (editorRef.current) {
+      const editor = editorRef.current.getEditor();
+      if (editor) {
+        const contentJson = editor.getJSON();
+        const html = editor.getHTML();
+        const plainText = html
+          .replace(/<[^>]*>/g, "")
+          .substring(0, 160)
+          .trim();
+        await savePage(contentJson, plainText);
+      }
+    }
   };
 
   const handleUpdateMetadata = async () => {
@@ -83,6 +124,19 @@ export function EditorPage({ pageId, onPublish, className }: EditorPageProps) {
       metaDescription,
     });
   };
+
+  if (loadError) {
+    return (
+      <div className={cn("min-h-screen bg-zinc-50 dark:bg-zinc-950 flex items-center justify-center p-8", className)}>
+        <div className="max-w-md rounded-3xl border border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950/40 p-10 text-center">
+          <p className="text-lg font-semibold text-red-700 dark:text-red-200">{loadError}</p>
+          <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+            Revisa que la página exista o que el ID sea correcto.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={cn("min-h-screen bg-zinc-50 dark:bg-zinc-950", className)}>
@@ -112,6 +166,15 @@ export function EditorPage({ pageId, onPublish, className }: EditorPageProps) {
                 Saved
               </div>
             )}
+
+            <button
+              onClick={handleManualSave}
+              disabled={state.isSaving || !state.id}
+              className="inline-flex items-center justify-center gap-2 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-2 text-sm font-medium text-zinc-900 dark:text-white hover:bg-zinc-50 dark:hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <Save className="h-4 w-4" />
+              Save
+            </button>
 
             {state.status === "DRAFT" && (
               <button
@@ -228,9 +291,12 @@ export function EditorPage({ pageId, onPublish, className }: EditorPageProps) {
             {/* Rich Text Editor */}
             <div className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6">
               <RichTextEditor
-                content=""
+                ref={editorRef}
+                content={state.contentJson ? JSON.stringify(state.contentJson) : ""}
                 onChange={handleSave}
                 documentId={state.id}
+                contentJson={state.contentJson as Record<string, unknown> | undefined}
+                disableAutoSave={true}
                 className="min-h-96"
               />
             </div>

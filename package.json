@@ -12,7 +12,8 @@
     "infra:down": "docker compose down",
     "infra:logs": "docker compose logs -f",
     "db:push": "prisma db push",
-    "backend:bootstrap": "pnpm run infra:up && pnpm run db:push",
+    "db:seed": "node scripts/seed.mjs",
+    "backend:bootstrap": "pnpm run infra:up && pnpm run db:push && pnpm run db:seed",
     "search:reindex": "node scripts/reindex-search.mjs",
     "smoke:backend": "node scripts/smoke-backend.mjs"
   },

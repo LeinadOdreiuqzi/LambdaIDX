@@ -29,11 +29,11 @@ export function AdminClientLayout({ children, tree }: AdminClientLayoutProps) {
       <div className="fixed inset-0 pointer-events-none opacity-[0.08] dark:opacity-[0.05]" 
            style={{ backgroundImage: 'radial-gradient(circle, #71717a 1px, transparent 1px)', backgroundSize: '32px 32px' }} 
       />
-      <NavSidebar tree={tree} linkPrefix="/admin/dashboard" isAdmin={true} />
+      <NavSidebar tree={tree} linkPrefix="/admin/editor" isAdmin={true} />
 
       {/* Navigation - Mobile */}
       <div className="fixed top-0 left-0 right-0 z-40 md:hidden">
-        <MobileNav tree={tree} linkPrefix="/admin/dashboard" isAdmin={true} />
+        <MobileNav tree={tree} linkPrefix="/admin/editor" isAdmin={true} />
       </div>
 
       {/* Main Content Area */}

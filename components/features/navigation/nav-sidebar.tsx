@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { Search, PanelLeftClose, Layers, Moon, Sun, Monitor, Type, ChevronUp, ChevronDown, Plus } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useNavigation } from "@/hooks/use-navigation";
 import { NavTree } from "./nav-tree";
+import { PageActionDialogs, type PageActionDialogHandle } from "./page-action-dialogs";
 import { NavPage } from "@/types";
 import { Logo } from "@/components/shared/logo";
 
@@ -42,6 +43,8 @@ export function NavSidebar({ tree, linkPrefix = "/p", isAdmin = false }: NavSide
   const [theme, setTheme] = useState<ThemeMode>("dark");
   const [fontSize, setFontSize] = useState<FontSizeMode>("md");
   const [isAccessibilityOpen, setIsAccessibilityOpen] = useState(false);
+  const dialogRef = useRef<PageActionDialogHandle>(null);
+  const [, setRefreshTrigger] = useState(0);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
@@ -95,7 +98,7 @@ export function NavSidebar({ tree, linkPrefix = "/p", isAdmin = false }: NavSide
         "hidden md:flex flex-col sticky top-0 h-screen bg-white border-r border-zinc-200 dark:bg-black dark:border-zinc-800 overflow-hidden"
       )}
     >
-      <div className="flex flex-col h-full w-[280px]">
+      <div className="flex flex-col h-full w-70">
         {/* Header */}
         <div className="h-16 flex items-center justify-between px-6 border-b border-transparent">
           <Link href="/" className="hover:opacity-80 transition-opacity">
@@ -153,7 +156,7 @@ export function NavSidebar({ tree, linkPrefix = "/p", isAdmin = false }: NavSide
               <h3 className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Knowledge Tree</h3>
               {isAdmin && (
                 <button 
-                  onClick={() => console.log('Create new root science')}
+                  onClick={() => dialogRef.current?.openAddDialog("")}
                   className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-md text-zinc-400 hover:text-black dark:hover:text-white transition-colors"
                   title="Create new root science"
                 >
@@ -161,7 +164,14 @@ export function NavSidebar({ tree, linkPrefix = "/p", isAdmin = false }: NavSide
                 </button>
               )}
             </div>
-            <NavTree items={tree} linkPrefix={linkPrefix} isAdmin={isAdmin} />
+            <NavTree 
+              items={tree} 
+              linkPrefix={linkPrefix} 
+              isAdmin={isAdmin}
+              onAddPage={(parentId) => dialogRef.current?.openAddDialog(parentId)}
+              onEditPage={(pageId, currentTitle) => dialogRef.current?.openEditDialog(pageId, currentTitle)}
+              onDeletePage={(pageId) => dialogRef.current?.openDeleteDialog(pageId)}
+            />
           </div>
 
           {/* Accessibility Settings */}
@@ -272,6 +282,14 @@ export function NavSidebar({ tree, linkPrefix = "/p", isAdmin = false }: NavSide
           </div>
         </div>
       </div>
+      
+      {/* Page Action Dialogs */}
+      <PageActionDialogs 
+        ref={dialogRef}
+        onPageAdded={() => setRefreshTrigger(prev => prev + 1)}
+        onPageUpdated={() => setRefreshTrigger(prev => prev + 1)}
+        onPageDeleted={() => setRefreshTrigger(prev => prev + 1)}
+      />
     </motion.aside>
   );
 }

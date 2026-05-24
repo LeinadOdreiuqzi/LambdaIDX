@@ -43,7 +43,7 @@ export default async function KnowledgePage({ params }: PageProps) {
   }
 
   // Fetch breadcrumbs based on the page path
-  const breadcrumbs = await PageService.getBreadcrumbs(page);
+  const breadcrumbs = await PageService.getBreadcrumbs({ path: page.path, id: page.id });
 
   const contentHtml = renderTipTapToHtml(page.contentJson);
 

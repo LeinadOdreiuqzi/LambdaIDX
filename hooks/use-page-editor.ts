@@ -37,7 +37,9 @@ export function usePageEditor(options?: UsePageEditorOptions) {
       const response = await fetch(`/api/pages/${pageId}`);
 
       if (!response.ok) {
-        throw new Error("Failed to load page");
+        const errorText = await response.text().catch(() => "");
+        console.error(`Failed to load page ${pageId}:`, response.status, errorText);
+        throw new Error(`Failed to load page (${response.status})`);
       }
 
       const { data } = await response.json();

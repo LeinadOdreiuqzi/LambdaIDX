@@ -136,7 +136,7 @@ export class PageService {
     try {
       // Check if DB is configured (basic check)
       if (!process.env.DATABASE_URL) {
-        return this.getMockHierarchy();
+        return [];
       }
 
       const whereClause = includeAll ? {} : { status: "PUBLISHED" as const };
@@ -159,7 +159,7 @@ export class PageService {
         ],
       });
 
-      if (pages.length === 0) return this.getMockHierarchy();
+      if (pages.length === 0) return [];
 
       const pageMap: Record<string, NavPage> = {};
       const rootNodes: NavPage[] = [];
@@ -187,7 +187,7 @@ export class PageService {
   static async getPageBySlug(slug: string): Promise<PageContent | null> {
     try {
       if (!process.env.DATABASE_URL) {
-        return this.getMockPage(slug);
+        return null;
       }
 
       const page = await prisma.page.findUnique({
@@ -207,8 +207,8 @@ export class PageService {
         status: page.status,
       };
     } catch (error) {
-      console.warn(`❌ Failed to fetch page ${slug}, using mock fallback:`, error);
-      return this.getMockPage(slug);
+      console.error(`❌ Failed to fetch page ${slug}:`, error);
+      return null;
     }
   }
 
@@ -221,15 +221,7 @@ export class PageService {
       if (!slugs || slugs.length === 0) return null;
 
       if (!process.env.DATABASE_URL) {
-        // In disconnected/mock mode, resolve using our mock database mapping
-        const targetSlug = slugs[slugs.length - 1];
-        const page = this.getMockPage(targetSlug);
-        if (!page) return null;
-
-        // Verify the parent path hierarchy of the mock page matches the provided slugs
-        const mockBreadcrumbs = this.getMockBreadcrumbs(page.path);
-        const matchesHierarchy = mockBreadcrumbs.every((b, idx) => b.slug === slugs[idx]);
-        return matchesHierarchy ? page : null;
+        return null;
       }
 
       // 1. Get the target page by its unique slug (the last element in the array)
@@ -241,7 +233,7 @@ export class PageService {
       if (!page) return null;
 
       // 2. Resolve the full path hierarchy of parent pages to verify the URL matching
-      const breadcrumbs = await this.getBreadcrumbs(page);
+      const breadcrumbs = await this.getBreadcrumbs({ path: page.path, id: page.id });
       
       // The breadcrumbs must match the slugs exactly in order and length
       if (breadcrumbs.length !== slugs.length) {
@@ -265,25 +257,36 @@ export class PageService {
         status: page.status,
       };
     } catch (error) {
-      console.warn(`❌ Failed to fetch page by nested slugs [${slugs.join("/")}], using mock fallback:`, error);
-      // Fallback logic
-      const targetSlug = slugs[slugs.length - 1];
-      const page = this.getMockPage(targetSlug);
-      if (!page) return null;
-
-      const mockBreadcrumbs = this.getMockBreadcrumbs(page.path);
-      const matchesHierarchy = mockBreadcrumbs.every((b, idx) => b.slug === slugs[idx]);
-      return matchesHierarchy ? page : null;
+      console.error(`❌ Failed to fetch page by nested slugs [${slugs.join("/")}]:`, error);
+      return null;
     }
   }
 
   /**
    * Returns breadcrumbs for a given page.
    */
-  static async getBreadcrumbs(page: { path: string }): Promise<BreadcrumbItem[]> {
+  static async getBreadcrumbs(page: { path: string; id: string }): Promise<BreadcrumbItem[]> {
     try {
       if (!process.env.DATABASE_URL) {
-        return this.getMockBreadcrumbs(page.path);
+        return [];
+      }
+
+      // Handle empty path (legacy pages or root pages)
+      if (!page.path || page.path === "") {
+        // For pages with empty path, fetch the page itself as the only breadcrumb
+        const pageData = await prisma.page.findUnique({
+          where: { id: page.id },
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+          },
+        });
+
+        if (pageData) {
+          return [{ title: pageData.title, slug: pageData.slug }];
+        }
+        return [];
       }
 
       const pathSegments = page.path.split('/');
@@ -304,7 +307,8 @@ export class PageService {
         .filter((b): b is typeof b & { title: string; slug: string } => !!b)
         .map(b => ({ title: b.title, slug: b.slug }));
     } catch (error) {
-      return this.getMockBreadcrumbs(page.path);
+      console.error(`❌ Failed to fetch breadcrumbs for path ${page.path}:`, error);
+      return [];
     }
   }
 
@@ -499,7 +503,7 @@ export class PageService {
       }
 
       // Calculate path and depth
-      let path = data.parentId || "";
+      let path = "";
       let depth = 0;
 
       if (data.parentId) {
@@ -513,6 +517,9 @@ export class PageService {
           depth = parent.depth + 1;
         }
       }
+
+      // For root pages (no parent), path will be set to the page ID after creation
+      // This is handled below after the page is created
 
       const page = await prisma.page.create({
         data: {
@@ -528,6 +535,15 @@ export class PageService {
           status: "DRAFT",
         },
       });
+
+      // For root pages (no parent), set path to the page ID itself
+      if (!data.parentId && !path) {
+        await prisma.page.update({
+          where: { id: page.id },
+          data: { path: page.id },
+        });
+        page.path = page.id;
+      }
 
       return {
         id: page.id,

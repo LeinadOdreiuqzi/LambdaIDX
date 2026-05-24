@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from 'react';
+import React, { useEffect, forwardRef, useImperativeHandle } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
@@ -38,15 +38,19 @@ interface RichTextEditorProps {
   className?: string;
   scienceCode?: string;
   documentId?: string;
+  contentJson?: Record<string, unknown>;
+  disableAutoSave?: boolean;
 }
 
-export function RichTextEditor({ 
-  content, 
-  onChange, 
+export const RichTextEditor = forwardRef<any, RichTextEditorProps>(({
+  content,
+  onChange,
   className,
   scienceCode = 'DOC',
-  documentId = '0000'
-}: RichTextEditorProps) {
+  documentId = '0000',
+  contentJson,
+  disableAutoSave = false
+}, ref) => {
   const [isFullscreen, setIsFullscreen] = React.useState(false);
 
   const editor = useEditor({
@@ -114,7 +118,7 @@ export function RichTextEditor({
       Footnote,
       FootnoteReference,
     ],
-    content: content,
+    content: contentJson || content,
     editorProps: {
       attributes: {
         // We inject .content-grid and .prose-custom so it matches the frontend view perfectly
@@ -159,7 +163,9 @@ export function RichTextEditor({
       },
     },
     onUpdate: ({ editor }) => {
-      onChange(editor.getHTML(), editor.getJSON());
+      if (!disableAutoSave) {
+        onChange(editor.getHTML(), editor.getJSON());
+      }
     },
   });
 
@@ -169,6 +175,18 @@ export function RichTextEditor({
       editor?.destroy();
     };
   }, [editor]);
+
+  // Update editor content when contentJson changes (e.g., after save or page load)
+  useEffect(() => {
+    if (editor && contentJson) {
+      editor.commands.setContent(contentJson);
+    }
+  }, [contentJson, editor]);
+
+  // Expose editor methods to parent component
+  useImperativeHandle(ref, () => ({
+    getEditor: () => editor,
+  }));
 
   return (
     <div className="mx-auto w-full px-4 flex gap-8 items-start relative" style={{ maxWidth: "1400px" }}>
@@ -240,4 +258,6 @@ export function RichTextEditor({
       )}
     </div>
   );
-}
+});
+
+RichTextEditor.displayName = 'RichTextEditor';

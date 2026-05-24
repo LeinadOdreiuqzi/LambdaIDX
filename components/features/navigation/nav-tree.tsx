@@ -14,9 +14,12 @@ interface NavTreeProps {
   depth?: number;
   linkPrefix?: string;
   isAdmin?: boolean;
+  onAddPage?: (parentId: string) => void;
+  onEditPage?: (pageId: string, currentTitle: string) => void;
+  onDeletePage?: (pageId: string) => void;
 }
 
-export function NavTree({ items, depth = 0, linkPrefix = "/p", isAdmin = false }: NavTreeProps) {
+export function NavTree({ items, depth = 0, linkPrefix = "/p", isAdmin = false, onAddPage, onEditPage, onDeletePage }: NavTreeProps) {
   if (!items || items.length === 0) return null;
 
   return (
@@ -28,26 +31,30 @@ export function NavTree({ items, depth = 0, linkPrefix = "/p", isAdmin = false }
           depth={depth} 
           linkPrefix={linkPrefix} 
           isAdmin={isAdmin}
+          onAddPage={onAddPage}
+          onEditPage={onEditPage}
+          onDeletePage={onDeletePage}
         />
       ))}
     </ul>
   );
 }
 
-function NavTreeItem({ item, depth, linkPrefix, isAdmin }: { item: NavPage; depth: number; linkPrefix: string; isAdmin: boolean }) {
+function NavTreeItem({ item, depth, linkPrefix, isAdmin, onAddPage, onEditPage, onDeletePage }: { item: NavPage; depth: number; linkPrefix: string; isAdmin: boolean; onAddPage?: (parentId: string) => void; onEditPage?: (pageId: string, currentTitle: string) => void; onDeletePage?: (pageId: string) => void }) {
   const pathname = usePathname();
   const { expandedNodes, toggleNode } = useNavigation();
   const hasChildren = item.children && item.children.length > 0;
-  const isActive = pathname === `${linkPrefix}/${item.slug}`;
+  const itemLink = isAdmin ? `${linkPrefix}/${item.id}` : `${linkPrefix}/${item.slug}`;
+  const isActive = pathname === itemLink;
   const isOpen = expandedNodes.has(item.id);
 
   // Auto-expand if active page is a child (only on mount if not already expanded)
   React.useEffect(() => {
-    const isChildActive = pathname.startsWith(`${linkPrefix}/${item.slug}/`) || item.children.some(child => pathname === `${linkPrefix}/${child.slug}`);
+    const isChildActive = pathname.startsWith(`${linkPrefix}/${isAdmin ? item.id : item.slug}/`) || item.children.some(child => pathname === `${linkPrefix}/${isAdmin ? child.id : child.slug}`);
     if ((isActive || isChildActive) && !isOpen) {
       toggleNode(item.id);
     }
-  }, [isActive, item.id, item.slug, item.children, pathname, linkPrefix]); // We only want this once for the active route
+  }, [isActive, item.id, item.slug, item.children, pathname, linkPrefix, isAdmin]); // We only want this once for the active route
 
   return (
     <li>
@@ -74,7 +81,7 @@ function NavTreeItem({ item, depth, linkPrefix, isAdmin }: { item: NavPage; dept
         </span>
 
         <Link 
-          href={`${linkPrefix}/${item.slug}`} 
+          href={itemLink} 
           className="flex-1 truncate py-1 flex items-center gap-2"
           onClick={(e) => e.stopPropagation()} // Prevent toggle when clicking the link directly
         >
@@ -94,21 +101,21 @@ function NavTreeItem({ item, depth, linkPrefix, isAdmin }: { item: NavPage; dept
         {isAdmin ? (
           <div className="hidden group-hover:flex items-center gap-0.5 ml-auto animate-in fade-in slide-in-from-right-1 duration-200">
             <button 
-              onClick={(e) => { e.stopPropagation(); console.log('Add child to', item.id); }}
+              onClick={(e) => { e.stopPropagation(); onAddPage?.(item.id); }}
               className="p-1 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-md text-zinc-400 hover:text-black dark:hover:text-white transition-colors"
               title="Add child page"
             >
               <Plus className="w-3 h-3" />
             </button>
             <button 
-              onClick={(e) => { e.stopPropagation(); console.log('Edit', item.id); }}
+              onClick={(e) => { e.stopPropagation(); onEditPage?.(item.id, item.title); }}
               className="p-1 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-md text-zinc-400 hover:text-black dark:hover:text-white transition-colors"
               title="Page Settings"
             >
               <Settings className="w-3 h-3" />
             </button>
             <button 
-              onClick={(e) => { e.stopPropagation(); if(confirm('Delete page?')) console.log('Delete', item.id); }}
+              onClick={(e) => { e.stopPropagation(); onDeletePage?.(item.id); }}
               className="p-1 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-md text-zinc-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
               title="Delete page"
             >
@@ -133,7 +140,7 @@ function NavTreeItem({ item, depth, linkPrefix, isAdmin }: { item: NavPage; dept
             transition={{ duration: 0.2, ease: "easeInOut" }}
             className="overflow-hidden"
           >
-            <NavTree items={item.children} depth={depth + 1} linkPrefix={linkPrefix} isAdmin={isAdmin} />
+            <NavTree items={item.children} depth={depth + 1} linkPrefix={linkPrefix} isAdmin={isAdmin} onAddPage={onAddPage} onEditPage={onEditPage} onDeletePage={onDeletePage} />
           </motion.div>
         )}
       </AnimatePresence>
