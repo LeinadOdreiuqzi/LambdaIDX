@@ -224,24 +224,67 @@ export class PageService {
         return null;
       }
 
-      // 1. Get the target page by its unique slug (the last element in the array)
+      const normalizeSlug = (slug: string): string => {
+        return decodeURIComponent(slug)
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^a-z0-9\s-]/g, "")
+          .replace(/\s+/g, "-")
+          .trim();
+      };
+
+      const normalizedSlugs = slugs.map(normalizeSlug);
+
       const targetSlug = slugs[slugs.length - 1];
-      const page = await prisma.page.findUnique({
+      const normalizedTargetSlug = normalizedSlugs[normalizedSlugs.length - 1];
+
+      let page = await prisma.page.findUnique({
         where: { slug: targetSlug, status: "PUBLISHED" },
       });
 
+      if (!page) {
+        page = await prisma.page.findFirst({
+          where: {
+            status: "PUBLISHED",
+            slug: {
+              equals: normalizedTargetSlug,
+              mode: 'insensitive',
+            },
+          },
+        });
+      }
+
       if (!page) return null;
 
-      // 2. Resolve the full path hierarchy of parent pages to verify the URL matching
       const breadcrumbs = await this.getBreadcrumbs({ path: page.path, id: page.id });
-      
-      // The breadcrumbs must match the slugs exactly in order and length
-      if (breadcrumbs.length !== slugs.length) {
+
+      const normalizedBreadcrumbs = breadcrumbs.map(b => ({
+        ...b,
+        slug: normalizeSlug(b.slug),
+      }));
+
+      if (normalizedBreadcrumbs.length !== normalizedSlugs.length) {
+        if (normalizedBreadcrumbs.length > normalizedSlugs.length) {
+          const lastBreadcrumb = normalizedBreadcrumbs[normalizedBreadcrumbs.length - 1];
+          if (lastBreadcrumb.slug === normalizedSlugs[normalizedSlugs.length - 1]) {
+            return {
+              id: page.id,
+              title: page.title,
+              slug: page.slug,
+              contentJson: page.contentJson,
+              excerpt: page.excerpt,
+              path: page.path,
+              parentId: page.parentId,
+              status: page.status,
+            };
+          }
+        }
         return null;
       }
 
-      for (let i = 0; i < slugs.length; i++) {
-        if (breadcrumbs[i].slug !== slugs[i]) {
+      for (let i = 0; i < normalizedSlugs.length; i++) {
+        if (normalizedBreadcrumbs[i].slug !== normalizedSlugs[i]) {
           return null;
         }
       }
@@ -502,7 +545,6 @@ export class PageService {
         throw new Error("Database not configured");
       }
 
-      // Calculate path and depth
       let path = "";
       let depth = 0;
 
@@ -513,13 +555,9 @@ export class PageService {
         });
 
         if (parent) {
-          path = parent.path ? `${parent.path}/${data.parentId}` : data.parentId;
           depth = parent.depth + 1;
         }
       }
-
-      // For root pages (no parent), path will be set to the page ID after creation
-      // This is handled below after the page is created
 
       const page = await prisma.page.create({
         data: {
@@ -536,13 +574,27 @@ export class PageService {
         },
       });
 
-      // For root pages (no parent), set path to the page ID itself
-      if (!data.parentId && !path) {
+      if (data.parentId) {
+        const parent = await prisma.page.findUnique({
+          where: { id: data.parentId },
+          select: { path: true },
+        });
+
+        if (parent && parent.path) {
+          path = `${parent.path}/${page.id}`;
+          await prisma.page.update({
+            where: { id: page.id },
+            data: { path },
+          });
+          page.path = path;
+        }
+      } else {
+        path = page.id;
         await prisma.page.update({
           where: { id: page.id },
-          data: { path: page.id },
+          data: { path },
         });
-        page.path = page.id;
+        page.path = path;
       }
 
       return {

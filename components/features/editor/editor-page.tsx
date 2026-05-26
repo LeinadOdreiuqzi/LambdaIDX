@@ -54,14 +54,13 @@ export function EditorPage({ pageId, onPublish, className }: EditorPageProps) {
   const handleCreatePage = async () => {
     setIsCreating(true);
     try {
-      // Slugify: lowercase, replace spaces with hyphens, remove accents and special characters
       const slug = state.title
         .toLowerCase()
         .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "") // Remove diacritics
-        .replace(/[^a-z0-9\s-]/g, "") // Remove special characters except spaces and hyphens
-        .replace(/\s+/g, "-") // Replace spaces with hyphens
-        .replace(/-+/g, "-") // Replace multiple hyphens with single hyphen
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9\s-]/g, "")
+        .replace(/\s+/g, "-")
+        .replace(/-+/g, "-")
         .trim();
       await createPage({
         title: state.title,
@@ -86,7 +85,6 @@ export function EditorPage({ pageId, onPublish, className }: EditorPageProps) {
   };
 
   const handlePublish = async () => {
-    // Trigger manual save before publishing
     if (editorRef.current) {
       const editor = editorRef.current.getEditor();
       if (editor) {
