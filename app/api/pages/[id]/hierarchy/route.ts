@@ -20,26 +20,24 @@ export async function PATCH(
       );
     }
 
-    // Get current page
-    const currentPage = await PageService.getPageById(id);
-    if (!currentPage) {
+    const updated = await PageService.updatePageHierarchy(id, {
+      parentId,
+      sortOrder,
+    });
+
+    if (!updated) {
       return NextResponse.json(
-        { success: false, error: "Page not found" },
-        { status: 404 }
+        { success: false, error: "Failed to update hierarchy" },
+        { status: 500 }
       );
     }
 
-    // Update would go here - for now just return success
-    // In a real implementation, you'd update the database
     return NextResponse.json({
       success: true,
-      data: {
-        ...currentPage,
-        parentId: parentId || currentPage.parentId,
-      },
+      data: updated,
     });
   } catch (error) {
-    console.error("❌ PATCH /api/pages/[id]/hierarchy error:", error);
+    console.error("PATCH /api/pages/[id]/hierarchy error:", error);
     return NextResponse.json(
       { success: false, error: "Failed to update hierarchy" },
       { status: 500 }

@@ -751,6 +751,83 @@ export class PageService {
     }
   }
 
+  /**
+   * Updates page hierarchy (parent and sort order)
+   */
+  static async updatePageHierarchy(
+    id: string,
+    data: { parentId?: string | null; sortOrder?: number }
+  ): Promise<PageContent | null> {
+    try {
+      if (!process.env.DATABASE_URL) {
+        throw new Error("Database not configured");
+      }
+
+      const page = await prisma.page.findUnique({
+        where: { id },
+      });
+
+      if (!page) {
+        return null;
+      }
+
+      let path = page.path;
+      let depth = page.depth;
+      const parentId = data.parentId !== undefined ? data.parentId : page.parentId;
+
+      if (parentId !== page.parentId) {
+        if (parentId) {
+          const parent = await prisma.page.findUnique({
+            where: { id: parentId },
+            select: { path: true, depth: true },
+          });
+
+          if (parent) {
+            path = parent.path ? `${parent.path}/${id}` : id;
+            depth = parent.depth + 1;
+          }
+        } else {
+          path = id;
+          depth = 0;
+        }
+
+        await prisma.page.update({
+          where: { id },
+          data: { parentId, path, depth },
+        });
+      }
+
+      if (data.sortOrder !== undefined) {
+        await prisma.page.update({
+          where: { id },
+          data: { sortOrder: data.sortOrder },
+        });
+      }
+
+      const updatedPage = await prisma.page.findUnique({
+        where: { id },
+      });
+
+      if (!updatedPage) {
+        return null;
+      }
+
+      return {
+        id: updatedPage.id,
+        title: updatedPage.title,
+        slug: updatedPage.slug,
+        contentJson: updatedPage.contentJson,
+        excerpt: updatedPage.excerpt,
+        path: updatedPage.path,
+        parentId: updatedPage.parentId,
+        status: updatedPage.status,
+      };
+    } catch (error) {
+      console.error(`❌ Failed to update page hierarchy ${id}:`, error);
+      return null;
+    }
+  }
+
   private static getMockHierarchy(): NavPage[] {
     return [
       {
