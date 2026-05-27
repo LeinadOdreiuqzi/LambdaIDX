@@ -753,6 +753,8 @@ export class PageService {
 
   /**
    * Updates page hierarchy (parent and sort order)
+   * Ensures all descendant materialized paths and depths are updated recursively in a transaction.
+   * Incorporates safeguards against circular references (e.g., placing a parent under its own child).
    */
   static async updatePageHierarchy(
     id: string,
@@ -763,65 +765,83 @@ export class PageService {
         throw new Error("Database not configured");
       }
 
-      const page = await prisma.page.findUnique({
-        where: { id },
-      });
+      return await prisma.$transaction(async (tx) => {
+        const page = await tx.page.findUnique({
+          where: { id },
+          select: { id: true, path: true, depth: true, parentId: true }
+        });
 
-      if (!page) {
-        return null;
-      }
+        if (!page) {
+          return null;
+        }
 
-      let path = page.path;
-      let depth = page.depth;
-      const parentId = data.parentId !== undefined ? data.parentId : page.parentId;
+        const parentId = data.parentId !== undefined ? data.parentId : page.parentId;
+        let newPath = id;
+        let newDepth = 0;
 
-      if (parentId !== page.parentId) {
         if (parentId) {
-          const parent = await prisma.page.findUnique({
+          if (parentId === id) {
+            throw new Error("A page cannot be its own parent.");
+          }
+
+          const parent = await tx.page.findUnique({
             where: { id: parentId },
-            select: { path: true, depth: true },
+            select: { path: true, depth: true }
           });
 
           if (parent) {
-            path = parent.path ? `${parent.path}/${id}` : id;
-            depth = parent.depth + 1;
+            // Safeguard: Check if the new parent is a descendant of this page
+            if (page.path && parent.path.startsWith(`${page.path}/`)) {
+              throw new Error("A page cannot be moved under one of its own subpages/descendants.");
+            }
+
+            newPath = parent.path ? `${parent.path}/${id}` : id;
+            newDepth = parent.depth + 1;
           }
-        } else {
-          path = id;
-          depth = 0;
         }
 
-        await prisma.page.update({
-          where: { id },
-          data: { parentId, path, depth },
-        });
-      }
+        // If the parent has changed, we must recursively update all descendants' paths and depths
+        if (parentId !== page.parentId && page.path) {
+          const oldPathPrefix = `${page.path}/`;
+          const newPathPrefix = `${newPath}/`;
+          const depthDiff = newDepth - page.depth;
 
-      if (data.sortOrder !== undefined) {
-        await prisma.page.update({
-          where: { id },
-          data: { sortOrder: data.sortOrder },
-        });
-      }
+          // Perform a fast batch update on all descendants using safe parameterized raw SQL execution
+          await tx.$executeRawUnsafe(
+            `UPDATE "Page"
+             SET 
+               path = REPLACE(path, $1, $2),
+               depth = depth + $3
+             WHERE path LIKE $4`,
+            oldPathPrefix,
+            newPathPrefix,
+            depthDiff,
+            `${oldPathPrefix}%`
+          );
+        }
 
-      const updatedPage = await prisma.page.findUnique({
-        where: { id },
+        // Update the target page itself
+        const updatedPage = await tx.page.update({
+          where: { id },
+          data: {
+            parentId,
+            path: newPath,
+            depth: newDepth,
+            sortOrder: data.sortOrder !== undefined ? data.sortOrder : undefined,
+          },
+        });
+
+        return {
+          id: updatedPage.id,
+          title: updatedPage.title,
+          slug: updatedPage.slug,
+          contentJson: updatedPage.contentJson,
+          excerpt: updatedPage.excerpt,
+          path: updatedPage.path,
+          parentId: updatedPage.parentId,
+          status: updatedPage.status,
+        };
       });
-
-      if (!updatedPage) {
-        return null;
-      }
-
-      return {
-        id: updatedPage.id,
-        title: updatedPage.title,
-        slug: updatedPage.slug,
-        contentJson: updatedPage.contentJson,
-        excerpt: updatedPage.excerpt,
-        path: updatedPage.path,
-        parentId: updatedPage.parentId,
-        status: updatedPage.status,
-      };
     } catch (error) {
       console.error(`❌ Failed to update page hierarchy ${id}:`, error);
       return null;
