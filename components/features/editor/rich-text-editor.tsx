@@ -164,24 +164,49 @@ export const RichTextEditor = forwardRef<any, RichTextEditorProps>(({
     },
     onUpdate: ({ editor }) => {
       if (!disableAutoSave) {
-        onChange(editor.getHTML(), editor.getJSON());
+        if (debounceTimerRef.current) {
+          clearTimeout(debounceTimerRef.current);
+        }
+        debounceTimerRef.current = setTimeout(() => {
+          onChange(editor.getHTML(), editor.getJSON());
+        }, 2000); // 2 second debounce for smooth typing experience
       }
     },
   });
+
+  const debounceTimerRef = React.useRef<NodeJS.Timeout | null>(null);
+  const lastLoadedIdRef = React.useRef<string | null>(null);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
       editor?.destroy();
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
     };
   }, [editor]);
 
-  // Update editor content when contentJson changes (e.g., after save or page load)
+  // Update editor content when contentJson or documentId changes (e.g., after page load)
   useEffect(() => {
     if (editor && contentJson) {
-      editor.commands.setContent(contentJson);
+      const currentContent = editor.getJSON();
+      const hasContent = currentContent && currentContent.content && currentContent.content.length > 0;
+
+      // Only set content if we are loading a DIFFERENT document.
+      // This prevents losing cursor position and focus during auto-save loops.
+      if (lastLoadedIdRef.current !== documentId) {
+        // If transitioning from null (new unsaved page) to a concrete ID, and editor already has content,
+        // we just sync the ref to avoid resetting the user's active cursor/text.
+        if (lastLoadedIdRef.current === null && documentId && hasContent) {
+          lastLoadedIdRef.current = documentId;
+        } else {
+          editor.commands.setContent(contentJson);
+          lastLoadedIdRef.current = documentId ?? null;
+        }
+      }
     }
-  }, [contentJson, editor]);
+  }, [contentJson, editor, documentId]);
 
   // Expose editor methods to parent component
   useImperativeHandle(ref, () => ({
