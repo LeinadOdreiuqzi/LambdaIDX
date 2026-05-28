@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { redis } from '@/lib/redis';
-import { meilisearch } from '@/lib/meilisearch';
+import { meilisearch, PAGE_SEARCH_INDEX } from '@/lib/meilisearch';
 
 export async function GET() {
   // Test Redis (ping)
@@ -17,6 +17,8 @@ export async function GET() {
   let meiliOk = false;
   try {
     await meilisearch?.health();
+    // Ensure the "pages" index exists (no‑op if already present)
+    await meilisearch?.createIndex(PAGE_SEARCH_INDEX).catch(() => {});
     meiliOk = true;
   } catch (e) {
     console.error('MeiliSearch health error:', e);
