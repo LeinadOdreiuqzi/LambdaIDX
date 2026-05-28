@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PageService } from "@/services/page-service";
+import { revalidatePath } from "next/cache";
 
 /**
  * PATCH /api/pages/[id]/hierarchy - Update page hierarchy (parent, position)
@@ -31,6 +32,8 @@ export async function PATCH(
         { status: 500 }
       );
     }
+
+    revalidatePath("/", "layout");
 
     return NextResponse.json({
       success: true,

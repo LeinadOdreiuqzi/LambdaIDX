@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { RichTextEditor } from "./rich-text-editor";
 import { usePageEditor } from "@/hooks/use-page-editor";
 import { cn } from "@/lib/utils";
@@ -13,6 +14,7 @@ interface EditorPageProps {
 }
 
 export function EditorPage({ pageId, onPublish, className }: EditorPageProps) {
+  const router = useRouter();
   const {
     state,
     loadPage,
@@ -21,7 +23,11 @@ export function EditorPage({ pageId, onPublish, className }: EditorPageProps) {
     updateMetadata,
     publishPage,
   } = usePageEditor({
+    onSaveSuccess: () => {
+      router.refresh();
+    },
     onPublishSuccess: () => {
+      router.refresh();
       if (state.id && onPublish) {
         onPublish(state.id);
       }

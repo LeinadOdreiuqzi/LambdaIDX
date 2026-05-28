@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PageService } from "@/services/page-service";
+import { revalidatePath } from "next/cache";
 
 /**
  * GET /api/pages - List pages (admin only, optionally filtered)
@@ -56,6 +57,8 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
+
+    revalidatePath("/", "layout");
 
     return NextResponse.json(
       {

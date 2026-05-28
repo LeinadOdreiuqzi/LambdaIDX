@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PageService } from "@/services/page-service";
+import { revalidatePath } from "next/cache";
 
 /**
  * GET /api/pages/[id] - Get a single page by ID
@@ -56,6 +57,8 @@ export async function PUT(
         );
       }
 
+      revalidatePath("/", "layout");
+
       return NextResponse.json({
         success: true,
         data: updated,
@@ -78,6 +81,8 @@ export async function PUT(
           { status: 500 }
         );
       }
+
+      revalidatePath("/", "layout");
 
       return NextResponse.json({
         success: true,
@@ -116,6 +121,8 @@ export async function DELETE(
         { status: 500 }
       );
     }
+
+    revalidatePath("/", "layout");
 
     return NextResponse.json({
       success: true,

@@ -1,19 +1,28 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { usePageEditor } from "@/hooks/use-page-editor";
 import { RichTextEditor } from "@/components/features/editor/rich-text-editor";
 import { Loader2, CheckCircle2, Plus, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
 export default function AdminDashboard() {
+  const router = useRouter();
   const {
     state,
     createPage,
     savePage,
     updateMetadata,
     publishPage,
-  } = usePageEditor();
+  } = usePageEditor({
+    onSaveSuccess: () => {
+      router.refresh();
+    },
+    onPublishSuccess: () => {
+      router.refresh();
+    },
+  });
 
   const [isCreating, setIsCreating] = useState(false);
   const [isCreatingChild, setIsCreatingChild] = useState(false);

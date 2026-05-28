@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PageService } from "@/services/page-service";
+import { revalidatePath } from "next/cache";
 
 /**
  * POST /api/pages/[id]/publish - Publish a page
@@ -19,6 +20,8 @@ export async function POST(
         { status: 500 }
       );
     }
+
+    revalidatePath("/", "layout");
 
     return NextResponse.json({
       success: true,

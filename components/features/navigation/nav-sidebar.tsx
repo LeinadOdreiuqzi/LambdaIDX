@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Search, PanelLeftClose, Layers, Moon, Sun, Monitor, Type, ChevronUp, ChevronDown, Plus } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -40,6 +41,7 @@ function applyFontSizeToDocument(mode: FontSizeMode) {
 
 export function NavSidebar({ tree, linkPrefix = "/p", isAdmin = false }: NavSidebarProps) {
   const { isSidebarOpen, toggleSidebar, toggleCommandPalette } = useNavigation();
+  const router = useRouter();
   const [theme, setTheme] = useState<ThemeMode>("dark");
   const [fontSize, setFontSize] = useState<FontSizeMode>("md");
   const [isAccessibilityOpen, setIsAccessibilityOpen] = useState(false);
@@ -286,9 +288,18 @@ export function NavSidebar({ tree, linkPrefix = "/p", isAdmin = false }: NavSide
       {/* Page Action Dialogs */}
       <PageActionDialogs 
         ref={dialogRef}
-        onPageAdded={() => setRefreshTrigger(prev => prev + 1)}
-        onPageUpdated={() => setRefreshTrigger(prev => prev + 1)}
-        onPageDeleted={() => setRefreshTrigger(prev => prev + 1)}
+        onPageAdded={() => {
+          router.refresh();
+          setRefreshTrigger(prev => prev + 1);
+        }}
+        onPageUpdated={() => {
+          router.refresh();
+          setRefreshTrigger(prev => prev + 1);
+        }}
+        onPageDeleted={() => {
+          router.refresh();
+          setRefreshTrigger(prev => prev + 1);
+        }}
       />
     </motion.aside>
   );
