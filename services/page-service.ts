@@ -559,10 +559,23 @@ export class PageService {
         }
       }
 
+      // Settle slug collisions dynamically to avoid P2002 Unique Constraint Violation
+      let uniqueSlug = data.slug || "untitled";
+      let counter = 1;
+      while (true) {
+        const existing = await prisma.page.findUnique({
+          where: { slug: uniqueSlug },
+          select: { id: true },
+        });
+        if (!existing) break;
+        uniqueSlug = `${data.slug || "untitled"}-${counter}`;
+        counter++;
+      }
+
       const page = await prisma.page.create({
         data: {
           title: data.title,
-          slug: data.slug,
+          slug: uniqueSlug,
           parentId: data.parentId || null,
           path,
           depth,
