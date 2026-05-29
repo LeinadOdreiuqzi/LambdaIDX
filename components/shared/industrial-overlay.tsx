@@ -7,7 +7,7 @@ import { motion, useMotionTemplate, useMotionValue } from "framer-motion";
 export function IndustrialOverlay() {
   const pathname = usePathname();
   const isContentPage = pathname.startsWith("/p/");
-  
+
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
@@ -34,20 +34,20 @@ export function IndustrialOverlay() {
       />
 
       {/* Interactive mouse gradient - Moved after backgrounds to ensure visibility */}
-      <motion.div
+      {/* <motion.div
         className="fixed inset-0 pointer-events-none z-10 transition-opacity duration-700 hidden sm:block mix-blend-screen"
         style={{
           opacity: isContentPage ? 0 : 1, // Increased base opacity
           background: useMotionTemplate`radial-gradient(600px circle at ${mouseX}px ${mouseY}px, rgba(255, 255, 255, 0.08), transparent 80%)`
         }}
-      />
+      /> */}
 
 
       {!isContentPage && (
         <div className="fixed top-8 right-8 hidden lg:flex items-center gap-4 text-[10px] font-mono text-zinc-500 uppercase tracking-widest opacity-30 pointer-events-none z-50">
           <div className="flex items-center gap-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-              <span>Node Cluster Online</span>
+            <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+            <span>Node Cluster Online</span>
           </div>
           <span>UTC: {new Date().toISOString().split('T')[0]}</span>
         </div>
