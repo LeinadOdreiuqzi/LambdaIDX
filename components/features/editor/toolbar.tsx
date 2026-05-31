@@ -50,6 +50,19 @@ export function Toolbar({ editor, isFullscreen, onToggleFullscreen }: ToolbarPro
   const imageInputRef = React.useRef<HTMLInputElement>(null);
   const videoInputRef = React.useRef<HTMLInputElement>(null);
 
+  // Force re‑render when editor selection or formatting changes
+  const [, setTick] = React.useState(0);
+  React.useEffect(() => {
+    if (!editor) return;
+    const handler = () => setTick(t => t + 1);
+    editor.on('selectionUpdate', handler);
+    editor.on('transaction', handler);
+    return () => {
+      editor.off('selectionUpdate', handler);
+      editor.off('transaction', handler);
+    };
+  }, [editor]);
+
   if (!editor) return null;
 
   const ToolbarBtn = ({
