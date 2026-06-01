@@ -6,6 +6,7 @@ import { TableOfContents } from "./table-of-contents";
 import { RelationalPanel } from "./relational-panel";
 import { MobileTOC } from "./mobile-toc";
 import { ImageLightbox } from "./image-lightbox";
+import { ContentViewer } from "./content-viewer";
 import { useNavigation } from "@/hooks/use-navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { PanelRightClose, PanelRightOpen } from "lucide-react";
@@ -14,10 +15,11 @@ import { cn } from "@/lib/utils";
 interface ArticleViewProps {
   title: string;
   content: string;
+  contentJson?: Record<string, unknown>;
   breadcrumbs: { title: string; slug: string }[];
 }
 
-export function ArticleView({ title, content, breadcrumbs }: ArticleViewProps) {
+export function ArticleView({ title, content, contentJson, breadcrumbs }: ArticleViewProps) {
   const { isRightSidebarOpen, toggleRightSidebar } = useNavigation();
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
 
@@ -53,18 +55,22 @@ export function ArticleView({ title, content, breadcrumbs }: ArticleViewProps) {
         </div>
       </header>
 
-      {/* ─── CONTENT ZONE ─── 
+      {/* ─── CONTENT ZONE ───
            This is the rule-free render container.
-           Content comes from TipTap / CMS as HTML.
+           Content comes from TipTap / CMS as JSON or HTML.
            The .content-grid ensures text stays at 70ch
            while .breakout children (pre, img, table) go full width.
            .prose-custom handles only typographic styling of child elements. */}
       <div className="content-grid prose-custom">
-        <div
-          className="text-lg leading-[1.8] text-zinc-700 dark:text-zinc-300 pb-24"
-          dangerouslySetInnerHTML={{ __html: content }}
-          onClick={handleContentClick}
-        />
+        {contentJson ? (
+          <ContentViewer contentJson={contentJson} />
+        ) : (
+          <div
+            className="text-lg leading-[1.8] text-zinc-700 dark:text-zinc-300 pb-24"
+            dangerouslySetInnerHTML={{ __html: content }}
+            onClick={handleContentClick}
+          />
+        )}
       </div>
 
       {/* ─── FLOATING TOC + RELATIONAL PANEL ─── */}

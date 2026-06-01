@@ -45,13 +45,12 @@ export default async function KnowledgePage({ params }: PageProps) {
   // Fetch breadcrumbs based on the page path
   const breadcrumbs = await PageService.getBreadcrumbs({ path: page.path, id: page.id });
 
-  const contentHtml = renderTipTapToHtml(page.contentJson);
-
   return (
     <div className="animate-in fade-in duration-700">
-      <ArticleView 
+      <ArticleView
         title={page.title}
-        content={contentHtml}
+        content=""
+        contentJson={page.contentJson as Record<string, unknown>}
         breadcrumbs={breadcrumbs}
       />
     </div>
