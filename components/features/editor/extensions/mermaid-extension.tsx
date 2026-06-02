@@ -23,12 +23,15 @@ mermaid.initialize({
   securityLevel: 'loose',
 });
 
-const MermaidComponent = ({ node, updateAttributes, selected }: NodeViewProps) => {
+const MermaidComponent = ({ node, updateAttributes, selected, editor }: NodeViewProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [svg, setSvg] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const id = `mermaid-${Math.random().toString(36).substr(2, 9)}`;
+
+  // Check if editor is in read-only mode
+  const isReadOnly = !editor.isEditable;
 
   const renderDiagram = async () => {
     try {
@@ -58,22 +61,24 @@ const MermaidComponent = ({ node, updateAttributes, selected }: NodeViewProps) =
             <Code2 className="w-3.5 h-3.5 text-zinc-500" />
             <span className="text-[10px] font-mono font-bold tracking-widest text-zinc-500 uppercase">Scientific Diagram</span>
           </div>
-          <button
-            onClick={() => setIsEditing(!isEditing)}
-            className={cn(
-              "px-2 py-1 rounded text-[10px] font-mono font-bold transition-colors",
-              isEditing 
-                ? "bg-black text-white dark:bg-white dark:text-black" 
-                : "text-zinc-500 hover:bg-zinc-200 dark:hover:bg-zinc-800"
-            )}
-          >
-            {isEditing ? 'VIEW DIAGRAM' : 'EDIT SOURCE'}
-          </button>
+          {!isReadOnly && (
+            <button
+              onClick={() => setIsEditing(!isEditing)}
+              className={cn(
+                "px-2 py-1 rounded text-[10px] font-mono font-bold transition-colors",
+                isEditing
+                  ? "bg-black text-white dark:bg-white dark:text-black"
+                  : "text-zinc-500 hover:bg-zinc-200 dark:hover:bg-zinc-800"
+              )}
+            >
+              {isEditing ? 'VIEW DIAGRAM' : 'EDIT SOURCE'}
+            </button>
+          )}
         </div>
 
         <div className="relative">
           {/* Editor Area */}
-          {isEditing && (
+          {!isReadOnly && isEditing && (
             <div className="p-4 bg-zinc-950 font-mono text-sm">
               <textarea
                 value={node.attrs.code}
