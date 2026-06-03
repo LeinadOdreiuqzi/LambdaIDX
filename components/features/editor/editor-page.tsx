@@ -35,6 +35,8 @@ export function EditorPage({ pageId, onPublish, className }: EditorPageProps) {
   });
 
   const [isCreating, setIsCreating] = useState(false);
+  const [isCreatingChild, setIsCreatingChild] = useState(false);
+  const [childTitle, setChildTitle] = useState("");
   const [showMetadata, setShowMetadata] = useState(false);
   const [metaTitle, setMetaTitle] = useState("");
   const [metaDescription, setMetaDescription] = useState("");
@@ -75,6 +77,34 @@ export function EditorPage({ pageId, onPublish, className }: EditorPageProps) {
       });
     } finally {
       setIsCreating(false);
+    }
+  };
+
+  const handleCreateChildPage = async () => {
+    if (!childTitle.trim()) {
+      return;
+    }
+
+    setIsCreatingChild(true);
+    try {
+      const slug = childTitle
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9\s-]/g, "")
+        .replace(/\s+/g, "-")
+        .replace(/-+/g, "-")
+        .trim();
+      await createPage({
+        title: childTitle,
+        slug,
+        parentId: state.id || undefined,
+        contentJson: { type: "doc", content: [] },
+      });
+      setChildTitle("");
+      router.push(`/admin/editor/${state.id}`);
+    } finally {
+      setIsCreatingChild(false);
     }
   };
 
@@ -242,6 +272,41 @@ export function EditorPage({ pageId, onPublish, className }: EditorPageProps) {
           </div>
         ) : (
           <>
+            {/* Create Child Page Section */}
+            {state.id && (
+              <div className="mb-8 p-6 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800 space-y-4">
+                <h2 className="font-semibold text-zinc-900 dark:text-white">
+                  Create Child Page
+                </h2>
+                <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                  Add a sub-topic under "<strong>{state.title}</strong>"
+                </p>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={childTitle}
+                    onChange={(e) => setChildTitle(e.target.value)}
+                    placeholder="e.g., Quantum Superposition"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleCreateChildPage();
+                    }}
+                    className="flex-1 rounded-md border border-blue-300 dark:border-blue-700 bg-white dark:bg-blue-900/30 px-3 py-2 text-sm text-zinc-900 dark:text-white placeholder-zinc-500 dark:placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <button
+                    onClick={handleCreateChildPage}
+                    disabled={!childTitle.trim() || isCreatingChild}
+                    className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 text-sm font-medium transition-colors"
+                  >
+                    {isCreatingChild ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      "Create"
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* SEO Metadata Panel */}
             {showMetadata && (
               <div className="mb-8 p-6 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800 space-y-4">

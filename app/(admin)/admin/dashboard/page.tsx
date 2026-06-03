@@ -25,9 +25,7 @@ export default function AdminDashboard() {
   });
 
   const [isCreating, setIsCreating] = useState(false);
-  const [isCreatingChild, setIsCreatingChild] = useState(false);
   const [pageTitle, setPageTitle] = useState("");
-  const [childTitle, setChildTitle] = useState("");
   const [metaTitle, setMetaTitle] = useState("");
   const [metaDescription, setMetaDescription] = useState("");
   const [showMetadata, setShowMetadata] = useState(false);
@@ -52,35 +50,6 @@ export default function AdminDashboard() {
       toast.error("Failed to create page");
     } finally {
       setIsCreating(false);
-    }
-  };
-
-  const handleCreateChildPage = async () => {
-    if (!childTitle.trim()) {
-      toast.error("Please enter a child page title");
-      return;
-    }
-
-    setIsCreatingChild(true);
-    try {
-      const slug = childTitle.toLowerCase().replace(/\s+/g, "-");
-      await createPage({
-        title: childTitle,
-        slug,
-        parentId: state.id || undefined,
-        contentJson: { type: "doc", content: [] },
-      });
-      setChildTitle("");
-      setIsCreatingChild(false);
-      toast.success("Child page created! Refresh sidebar to see it.", {
-        action: {
-          label: "Refresh",
-          onClick: () => window.location.reload(),
-        },
-      });
-    } catch (error) {
-      toast.error("Failed to create child page");
-      setIsCreatingChild(false);
     }
   };
 
@@ -206,44 +175,6 @@ export default function AdminDashboard() {
         </div>
       ) : (
         <>
-          {/* Create Child Page Section */}
-          <div className="bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800 p-6 space-y-4">
-            <div className="flex items-start gap-3">
-              <Plus className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-1 shrink-0" />
-              <div className="flex-1">
-                <h3 className="font-semibold text-zinc-900 dark:text-white mb-3">
-                  Create Child Page
-                </h3>
-                <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
-                  Add a sub-topic under "<strong>{state.title}</strong>"
-                </p>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={childTitle}
-                    onChange={(e) => setChildTitle(e.target.value)}
-                    placeholder="e.g., Quantum Superposition"
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") handleCreateChildPage();
-                    }}
-                    className="flex-1 rounded-md border border-blue-300 dark:border-blue-700 bg-white dark:bg-blue-900/30 px-3 py-2 text-sm text-zinc-900 dark:text-white placeholder-zinc-500 dark:placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <button
-                    onClick={handleCreateChildPage}
-                    disabled={!childTitle.trim() || isCreatingChild}
-                    className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 text-sm font-medium transition-colors"
-                  >
-                    {isCreatingChild ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      "Create"
-                    )}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
           {/* SEO Settings */}
           {showMetadata && (
             <div className="bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800 p-6 space-y-4">
