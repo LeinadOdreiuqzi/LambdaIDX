@@ -21,7 +21,7 @@ export interface PageActionDialogHandle {
 interface PageActionDialogsProps {
   onPageAdded?: () => void;
   onPageUpdated?: () => void;
-  onPageDeleted?: () => void;
+  onPageDeleted?: (pageId: string) => void;
   ref?: React.Ref<PageActionDialogHandle>;
 }
 
@@ -124,9 +124,11 @@ export const PageActionDialogs = React.forwardRef<PageActionDialogHandle, PageAc
     const handleDeletePage = async () => {
       if (!state.pageId) return;
 
+      const deletedId = state.pageId;
+
       setIsLoading(true);
       try {
-        const response = await fetch(`/api/pages/${state.pageId}`, {
+        const response = await fetch(`/api/pages/${deletedId}`, {
           method: "DELETE",
         });
 
@@ -136,7 +138,7 @@ export const PageActionDialogs = React.forwardRef<PageActionDialogHandle, PageAc
 
         toast.success("Page deleted successfully");
         handleClose();
-        onPageDeleted?.();
+        onPageDeleted?.(deletedId);
       } catch (error) {
         console.error("Failed to delete page:", error);
         toast.error("Failed to delete page");

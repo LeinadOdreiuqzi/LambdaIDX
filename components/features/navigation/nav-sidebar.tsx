@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { Search, PanelLeftClose, Layers, Moon, Sun, Monitor, Type, ChevronUp, ChevronDown, Plus } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -42,6 +42,7 @@ function applyFontSizeToDocument(mode: FontSizeMode) {
 export function NavSidebar({ tree, linkPrefix = "/p", isAdmin = false }: NavSidebarProps) {
   const { isSidebarOpen, toggleSidebar, toggleCommandPalette } = useNavigation();
   const router = useRouter();
+  const pathname = usePathname();
   const [theme, setTheme] = useState<ThemeMode>("dark");
   const [fontSize, setFontSize] = useState<FontSizeMode>("md");
   const [isAccessibilityOpen, setIsAccessibilityOpen] = useState(false);
@@ -296,7 +297,13 @@ export function NavSidebar({ tree, linkPrefix = "/p", isAdmin = false }: NavSide
           router.refresh();
           setRefreshTrigger(prev => prev + 1);
         }}
-        onPageDeleted={() => {
+        onPageDeleted={(deletedId) => {
+          // If the deleted page is the one currently open in the editor,
+          // redirect to the central editor (dashboard) so we don't try to
+          // render a page that no longer exists.
+          if (deletedId && pathname === `/admin/editor/${deletedId}`) {
+            router.replace("/admin/dashboard");
+          }
           router.refresh();
           setRefreshTrigger(prev => prev + 1);
         }}
