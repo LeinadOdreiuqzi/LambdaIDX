@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { createPortal } from "react-dom";
+import { useRouter, usePathname } from "next/navigation";
 import { X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -31,6 +32,8 @@ export const PageActionDialogs = React.forwardRef<PageActionDialogHandle, PageAc
     const [title, setTitle] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [isMounted, setIsMounted] = useState(false);
+    const router = useRouter();
+    const pathname = usePathname();
 
     React.useImperativeHandle(ref, () => ({
       openAddDialog: (parentId: string) => {
@@ -135,8 +138,18 @@ export const PageActionDialogs = React.forwardRef<PageActionDialogHandle, PageAc
         }
 
         toast.success("Page deleted successfully");
+
+        // Check if the deleted page is currently being edited
+        const currentPath = pathname;
+        const isEditingCurrentPage = currentPath.includes(`/admin/editor/${state.pageId}`);
+
         handleClose();
         onPageDeleted?.();
+
+        // Redirect to dashboard if the deleted page was being edited
+        if (isEditingCurrentPage) {
+          router.push("/admin/dashboard");
+        }
       } catch (error) {
         console.error("Failed to delete page:", error);
         toast.error("Failed to delete page");
