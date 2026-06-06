@@ -276,6 +276,11 @@ body {
   border-left-color: var(--callout-accent, inherit);
 }
 
+/* Allow custom color to override Tailwind background classes */
+.callout[data-callout-color] {
+  background-color: var(--callout-accent) !important;
+}
+
 /* Common industrial background pattern */
 .callout::after {
   content: "";
@@ -294,7 +299,6 @@ body {
   color: var(--callout-accent);
   opacity: 0.6;
 }
-
 .callout-warning {
   --callout-accent: #f59e0b; /* amber-500 */
   @apply border-l-[var(--callout-accent)] bg-amber-50/50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-800/30 text-zinc-800 dark:text-zinc-200;
@@ -305,7 +309,6 @@ body {
   color: var(--callout-accent);
   opacity: 0.6;
 }
-
 .callout-theorem {
   --callout-accent: #4f46e5; /* indigo-600 */
   @apply border-l-[var(--callout-accent)] bg-indigo-50/50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-800/30 shadow-[0_10px_30px_-15px_rgba(79,70,229,0.1)];
@@ -316,7 +319,6 @@ body {
   color: var(--callout-accent);
   opacity: 0.6;
 }
-
 .callout-law {
   --callout-accent: #059669; /* emerald-600 */
   @apply border-l-[var(--callout-accent)] bg-emerald-50/50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-800/30;
@@ -327,7 +329,6 @@ body {
   color: var(--callout-accent);
   opacity: 0.6;
 }
-
 .callout-error {
   --callout-accent: #dc2626; /* red-600 */
   @apply border-l-[var(--callout-accent)] bg-red-50/50 dark:bg-red-900/10 border border-red-100 dark:border-red-800/30;
@@ -338,7 +339,6 @@ body {
   color: var(--callout-accent);
   opacity: 0.6;
 }
-
 /* Mermaid Diagram Styling */
 .prose-custom .mermaid-node-wrapper svg {
   @apply max-w-full h-auto;

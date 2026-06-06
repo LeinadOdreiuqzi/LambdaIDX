@@ -26,7 +26,7 @@ export const Callout = Node.create({
 
   renderHTML({ HTMLAttributes, node }) {
     const { type, color } = node.attrs;
-    
+
     // Create base attributes
     const attrs = {
       'data-callout-type': type,
@@ -35,7 +35,11 @@ export const Callout = Node.create({
     };
 
     // Inject styles if color is provided
-    const styles = color ? `border-left-color: ${color}; --callout-accent: ${color}` : '';
+    // Change both border and background color with !important to override Tailwind classes
+    // Use 50% transparency (80 in hex) to match the original Tailwind /50 classes
+    const styles = color
+      ? `border-left-color: ${color} !important; --callout-accent: ${color}; background-color: ${color}80 !important;`
+      : '';
 
     return ['div', mergeAttributes(HTMLAttributes, attrs, { style: styles }), 0];
   },
