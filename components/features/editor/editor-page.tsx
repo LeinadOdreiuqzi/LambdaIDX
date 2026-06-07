@@ -176,7 +176,7 @@ export function EditorPage({ pageId, onPublish, className }: EditorPageProps) {
     <div className={cn("min-h-screen bg-zinc-50 dark:bg-zinc-950", className)}>
       {/* Header */}
       <div className="sticky top-0 z-40 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/95 backdrop-blur supports-backdrop-filter:bg-white/75 dark:supports-backdrop-filter:bg-zinc-900/75">
-        <div className="mx-auto max-w-6xl px-4 py-4 flex items-center justify-between gap-4">
+        <div className="w-full py-4 flex items-center justify-between gap-4 px-6">
           <div className="flex-1">
             <h1 className="text-2xl font-bold text-zinc-900 dark:text-white">
               {state.title || "Untitled Page"}
@@ -240,7 +240,7 @@ export function EditorPage({ pageId, onPublish, className }: EditorPageProps) {
         </div>
       </div>
 
-      <div className="mx-auto max-w-6xl px-4 py-8">
+      <div className="w-full py-8">
         {!state.id ? (
           /* Create New Page */
           <div className="space-y-6 max-w-2xl">
@@ -358,7 +358,7 @@ export function EditorPage({ pageId, onPublish, className }: EditorPageProps) {
             )}
 
             {/* Rich Text Editor */}
-            <div className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 p-6">
+            <div className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
               <RichTextEditor
                 ref={editorRef}
                 content={state.contentJson ? JSON.stringify(state.contentJson) : ""}
