@@ -11,6 +11,7 @@ import { NavPage } from "@/types";
 import { motion, AnimatePresence } from "framer-motion";
 import { PanelLeftOpen, LayoutDashboard } from "lucide-react";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 interface AdminClientLayoutProps {
   children: React.ReactNode;
@@ -20,6 +21,7 @@ interface AdminClientLayoutProps {
 export function AdminClientLayout({ children, tree }: AdminClientLayoutProps) {
   const { isSidebarOpen, toggleSidebar } = useNavigation();
   const pathname = usePathname();
+  const isEditorRoute = pathname.startsWith("/admin/editor");
 
   return (
     <div className="relative flex min-h-screen bg-zinc-100 dark:bg-[#050505] selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black">
@@ -54,7 +56,12 @@ export function AdminClientLayout({ children, tree }: AdminClientLayoutProps) {
           </motion.div>
         )}
 
-        <div className="flex-1 p-8 pt-24 md:pt-8">
+        <div
+          className={cn(
+            "flex-1 pt-24 md:pt-8",
+            isEditorRoute ? "px-3 pb-4 md:px-4 md:pt-0" : "p-8"
+          )}
+        >
           <AnimatePresence mode="wait">
             <motion.div
               key={pathname}
@@ -62,7 +69,10 @@ export function AdminClientLayout({ children, tree }: AdminClientLayoutProps) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
-              className="w-full max-w-7xl mx-auto"
+              className={cn(
+                "w-full",
+                isEditorRoute ? "min-h-full" : "mx-auto max-w-7xl"
+              )}
             >
               {children}
             </motion.div>

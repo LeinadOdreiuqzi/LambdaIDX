@@ -214,7 +214,7 @@ export const RichTextEditor = forwardRef<any, RichTextEditorProps>(({
   }));
 
   return (
-    <div className="w-full flex gap-8 items-start relative">
+    <div className="relative flex w-full items-start gap-6 xl:gap-8">
       {/* Main Editor Column */}
       <div className={cn(
         "flex-1 flex flex-col relative transition-all duration-500 ease-in-out group",
@@ -238,7 +238,7 @@ export const RichTextEditor = forwardRef<any, RichTextEditorProps>(({
 
         <div className={cn(
           "flex-1 overflow-y-auto custom-scrollbar relative",
-          isFullscreen ? "h-[calc(100vh-64px)]" : "h-96"
+          isFullscreen ? "h-[calc(100vh-64px)]" : "min-h-[calc(100vh-16rem)]"
         )}>
           <div className="w-full">
             <BubbleMenu editor={editor} />

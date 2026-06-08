@@ -173,7 +173,7 @@ export function EditorPage({ pageId, onPublish, className }: EditorPageProps) {
   }
 
   return (
-    <div className={cn("min-h-screen bg-zinc-50 dark:bg-zinc-950", className)}>
+    <div className={cn("min-h-screen w-full bg-zinc-50 dark:bg-zinc-950", className)}>
       {/* Header */}
       <div className="sticky top-0 z-40 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/95 backdrop-blur supports-backdrop-filter:bg-white/75 dark:supports-backdrop-filter:bg-zinc-900/75">
         <div className="w-full py-4 flex items-center justify-between gap-4 px-6">
@@ -240,10 +240,10 @@ export function EditorPage({ pageId, onPublish, className }: EditorPageProps) {
         </div>
       </div>
 
-      <div className="w-full py-8">
+      <div className="w-full py-6">
         {!state.id ? (
           /* Create New Page */
-          <div className="space-y-6 max-w-2xl">
+          <div className="max-w-2xl space-y-6 px-6">
             <div>
               <label className="block text-sm font-medium text-zinc-900 dark:text-white mb-2">
                 Page Title
@@ -274,7 +274,7 @@ export function EditorPage({ pageId, onPublish, className }: EditorPageProps) {
           <>
             {/* Create Child Page Section */}
             {state.id && (
-              <div className="mb-8 p-6 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800 space-y-4">
+              <div className="mx-6 mb-6 space-y-4 rounded-lg border border-blue-200 bg-blue-50 p-6 dark:border-blue-800 dark:bg-blue-950/20">
                 <h2 className="font-semibold text-zinc-900 dark:text-white">
                   Create Child Page
                 </h2>
@@ -309,7 +309,7 @@ export function EditorPage({ pageId, onPublish, className }: EditorPageProps) {
 
             {/* SEO Metadata Panel */}
             {showMetadata && (
-              <div className="mb-8 p-6 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800 space-y-4">
+              <div className="mx-6 mb-6 space-y-4 rounded-lg border border-blue-200 bg-blue-50 p-6 dark:border-blue-800 dark:bg-blue-950/20">
                 <h2 className="font-semibold text-zinc-900 dark:text-white">
                   SEO & Metadata
                 </h2>
@@ -358,20 +358,18 @@ export function EditorPage({ pageId, onPublish, className }: EditorPageProps) {
             )}
 
             {/* Rich Text Editor */}
-            <div className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
-              <RichTextEditor
-                ref={editorRef}
-                content={state.contentJson ? JSON.stringify(state.contentJson) : ""}
-                onChange={handleSave}
-                documentId={state.id}
-                contentJson={state.contentJson as Record<string, unknown> | undefined}
-                disableAutoSave={true}
-                className="min-h-96"
-              />
-            </div>
+            <RichTextEditor
+              ref={editorRef}
+              content={state.contentJson ? JSON.stringify(state.contentJson) : ""}
+              onChange={handleSave}
+              documentId={state.id}
+              contentJson={state.contentJson as Record<string, unknown> | undefined}
+              disableAutoSave={true}
+              className="min-h-[calc(100vh-16rem)] rounded-2xl border border-zinc-200/70 shadow-sm dark:border-zinc-800/80"
+            />
 
             {/* Status */}
-            <div className="mt-8 flex items-center gap-4 text-sm text-zinc-600 dark:text-zinc-400">
+            <div className="mt-6 flex items-center gap-4 px-6 text-sm text-zinc-600 dark:text-zinc-400">
               {state.isSaving ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
