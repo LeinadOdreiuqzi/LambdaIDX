@@ -3,12 +3,13 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, FileText, CornerDownLeft, Command, X } from "lucide-react";
+import { Search, FileText, CornerDownLeft, X } from "lucide-react";
 import { useNavigation } from "@/hooks/use-navigation";
 import { useFocusTrap } from "@/hooks/use-focus-trap";
 import { StatusPage } from "@/components/shared/status-page";
 import { NavPage } from "@/types";
 import { cn } from "@/lib/utils";
+import { buildPublicPageHref } from "@/lib/page-paths";
 
 interface CommandPaletteProps {
   tree: NavPage[];
@@ -25,11 +26,23 @@ export function CommandPalette({ tree }: CommandPaletteProps) {
 
   // Flatten the tree for searching
   const flatPages = useMemo(() => {
-    const flatten = (items: NavPage[]): Omit<NavPage, 'children'>[] => {
+    const flatten = (
+      items: NavPage[],
+      slugTrail: string[] = []
+    ): Array<Omit<NavPage, "children"> & { href: string }> => {
       return items.reduce((acc, item) => {
         const { children, ...rest } = item;
-        return [...acc, rest, ...flatten(children)];
-      }, [] as Omit<NavPage, 'children'>[]);
+        const nextSlugTrail = [...slugTrail, item.slug];
+
+        return [
+          ...acc,
+          {
+            ...rest,
+            href: buildPublicPageHref(nextSlugTrail),
+          },
+          ...flatten(children, nextSlugTrail),
+        ];
+      }, [] as Array<Omit<NavPage, "children"> & { href: string }>);
     };
     return flatten(tree);
   }, [tree]);
@@ -87,8 +100,8 @@ export function CommandPalette({ tree }: CommandPaletteProps) {
     return () => observer.disconnect();
   }, []);
 
-  const handleSelect = (page: Omit<NavPage, 'children'>) => {
-    router.push(`/p/${page.slug}`);
+  const handleSelect = (page: Omit<NavPage, "children"> & { href: string }) => {
+    router.push(page.href);
     setIsCommandPaletteOpen(false);
   };
 
@@ -111,7 +124,7 @@ export function CommandPalette({ tree }: CommandPaletteProps) {
   return (
     <AnimatePresence>
       {isCommandPaletteOpen && (
-        <div ref={focusTrapRef} className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh] px-4">
+        <div ref={focusTrapRef} className="fixed inset-0 z-100 flex items-start justify-center pt-[15vh] px-4">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

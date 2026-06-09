@@ -4,10 +4,11 @@ import React from "react";
 import Link from "next/link";
 import { Link as LinkIcon, Hash, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { buildPublicPageHref } from "@/lib/page-paths";
 
 interface RelationalPanelProps {
   tags?: string[];
-  relatedPages?: { title: string; slug: string }[];
+  relatedPages?: { title: string; slug: string; href?: string }[];
   resources?: { title: string; url: string; type: string }[];
 }
 
@@ -34,7 +35,7 @@ export function RelationalPanel({
           {relatedPages.map((page) => (
             <Link 
               key={page.slug} 
-              href={`/p/${page.slug}`}
+              href={page.href ?? buildPublicPageHref([page.slug])}
               className="block group"
             >
               <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300 group-hover:text-black dark:group-hover:text-white transition-colors">

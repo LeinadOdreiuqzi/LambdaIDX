@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import { Breadcrumbs } from "@/components/shared/breadcrumbs";
 import { TableOfContents } from "./table-of-contents";
 import { RelationalPanel } from "./relational-panel";
@@ -16,7 +16,7 @@ interface ArticleViewProps {
   title: string;
   content: string;
   contentJson?: Record<string, unknown>;
-  breadcrumbs: { title: string; slug: string }[];
+  breadcrumbs: { title: string; slug: string; href: string }[];
 }
 
 export function ArticleView({ title, content, contentJson, breadcrumbs }: ArticleViewProps) {
@@ -51,7 +51,7 @@ export function ArticleView({ title, content, contentJson, breadcrumbs }: Articl
           </div>
 
           {/* Subtle separator */}
-          <div className="mt-12 h-px bg-gradient-to-r from-zinc-200 via-zinc-200/50 to-transparent dark:from-zinc-800 dark:via-zinc-800/50" />
+          <div className="mt-12 h-px bg-linear-to-r from-zinc-200 via-zinc-200/50 to-transparent dark:from-zinc-800 dark:via-zinc-800/50" />
         </div>
       </header>
 

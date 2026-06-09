@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+import { buildPublicPageHref } from "@/lib/page-paths";
 import { NavPage } from "@/types";
 
 export interface PageContent {
@@ -15,6 +16,7 @@ export interface PageContent {
 export interface BreadcrumbItem {
   title: string;
   slug: string;
+  href: string;
 }
 
 // TipTap JSON types
@@ -327,7 +329,13 @@ export class PageService {
         });
 
         if (pageData) {
-          return [{ title: pageData.title, slug: pageData.slug }];
+          return [
+            {
+              title: pageData.title,
+              slug: pageData.slug,
+              href: buildPublicPageHref([pageData.slug]),
+            },
+          ];
         }
         return [];
       }
@@ -345,10 +353,17 @@ export class PageService {
       });
 
       // Maintain order based on path segments and map to BreadcrumbItem
-      return pathSegments
+      const orderedBreadcrumbs = pathSegments
         .map(id => breadcrumbs.find(b => b.id === id))
         .filter((b): b is typeof b & { title: string; slug: string } => !!b)
         .map(b => ({ title: b.title, slug: b.slug }));
+
+      return orderedBreadcrumbs.map((breadcrumb, index) => ({
+        ...breadcrumb,
+        href: buildPublicPageHref(
+          orderedBreadcrumbs.slice(0, index + 1).map((item) => item.slug)
+        ),
+      }));
     } catch (error) {
       console.error(`❌ Failed to fetch breadcrumbs for path ${page.path}:`, error);
       return [];
@@ -491,9 +506,16 @@ export class PageService {
 
   private static getMockBreadcrumbs(path: string): BreadcrumbItem[] {
     const segments = path.split('/');
-    return segments.map((seg) => ({
+    const breadcrumbs = segments.map((seg) => ({
       title: seg.charAt(0).toUpperCase() + seg.slice(1).replace(/-/g, ' '),
       slug: seg === "mock-1" ? "introduction" : seg === "mock-2" ? "setup-guide" : seg,
+    }));
+
+    return breadcrumbs.map((breadcrumb, index) => ({
+      ...breadcrumb,
+      href: buildPublicPageHref(
+        breadcrumbs.slice(0, index + 1).map((item) => item.slug)
+      ),
     }));
   }
 
@@ -753,8 +775,43 @@ export class PageService {
         throw new Error("Database not configured");
       }
 
-      await prisma.page.delete({
-        where: { id },
+      await prisma.$transaction(async (tx) => {
+        const page = await tx.page.findUnique({
+          where: { id },
+          select: {
+            id: true,
+            path: true,
+            depth: true,
+          },
+        });
+
+        if (!page) {
+          throw new Error("Page not found");
+        }
+
+        const descendantPathPrefix = `${page.path}/`;
+
+        // Promote direct children to root level and repair the whole descendant subtree
+        // by removing the deleted node's path prefix.
+        await tx.$executeRawUnsafe(
+          `UPDATE "Page"
+           SET
+             path = REPLACE(path, $1, ''),
+             depth = depth - $2
+           WHERE path LIKE $3`,
+          descendantPathPrefix,
+          page.depth + 1,
+          `${descendantPathPrefix}%`
+        );
+
+        await tx.page.updateMany({
+          where: { parentId: id },
+          data: { parentId: null },
+        });
+
+        await tx.page.delete({
+          where: { id },
+        });
       });
 
       return true;

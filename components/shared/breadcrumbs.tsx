@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 interface BreadcrumbItem {
   title: string;
   slug: string;
+  href: string;
 }
 
 interface BreadcrumbsProps {
@@ -13,13 +14,20 @@ interface BreadcrumbsProps {
 }
 
 export function Breadcrumbs({ items }: BreadcrumbsProps) {
+  type DisplayBreadcrumbItem =
+    | BreadcrumbItem
+    | {
+        title: string;
+        slug: "collapsed";
+      };
+
   const displayItems = useMemo(() => {
     if (items.length <= 3) return items;
     return [
       items[0],
       { title: "...", slug: "collapsed" },
       items[items.length - 1]
-    ];
+    ] satisfies DisplayBreadcrumbItem[];
   }, [items]);
 
   return (
@@ -43,7 +51,7 @@ export function Breadcrumbs({ items }: BreadcrumbsProps) {
               <span className="opacity-40 cursor-default">...</span>
             ) : (
               <Link 
-                href={`/p/${item.slug}`}
+                href={item.href}
                 className={cn(
                   "transition-all duration-200",
                   isLast 

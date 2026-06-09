@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronRight, FileText, Folder, Plus, Settings, Trash2 } from "lucide-react";
+import { ChevronRight, FileText, Plus, Settings, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { buildPublicPageHref } from "@/lib/page-paths";
 import { NavPage } from "@/types";
 import { useNavigation } from "@/hooks/use-navigation";
 
@@ -14,12 +15,22 @@ interface NavTreeProps {
   depth?: number;
   linkPrefix?: string;
   isAdmin?: boolean;
+  slugTrail?: string[];
   onAddPage?: (parentId: string) => void;
   onEditPage?: (pageId: string, currentTitle: string) => void;
   onDeletePage?: (pageId: string) => void;
 }
 
-export function NavTree({ items, depth = 0, linkPrefix = "/p", isAdmin = false, onAddPage, onEditPage, onDeletePage }: NavTreeProps) {
+export function NavTree({
+  items,
+  depth = 0,
+  linkPrefix = "/p",
+  isAdmin = false,
+  slugTrail = [],
+  onAddPage,
+  onEditPage,
+  onDeletePage,
+}: NavTreeProps) {
   if (!items || items.length === 0) return null;
 
   return (
@@ -31,6 +42,7 @@ export function NavTree({ items, depth = 0, linkPrefix = "/p", isAdmin = false, 
           depth={depth} 
           linkPrefix={linkPrefix} 
           isAdmin={isAdmin}
+          slugTrail={slugTrail}
           onAddPage={onAddPage}
           onEditPage={onEditPage}
           onDeletePage={onDeletePage}
@@ -40,21 +52,40 @@ export function NavTree({ items, depth = 0, linkPrefix = "/p", isAdmin = false, 
   );
 }
 
-function NavTreeItem({ item, depth, linkPrefix, isAdmin, onAddPage, onEditPage, onDeletePage }: { item: NavPage; depth: number; linkPrefix: string; isAdmin: boolean; onAddPage?: (parentId: string) => void; onEditPage?: (pageId: string, currentTitle: string) => void; onDeletePage?: (pageId: string) => void }) {
+function NavTreeItem({
+  item,
+  depth,
+  linkPrefix,
+  isAdmin,
+  slugTrail,
+  onAddPage,
+  onEditPage,
+  onDeletePage,
+}: {
+  item: NavPage;
+  depth: number;
+  linkPrefix: string;
+  isAdmin: boolean;
+  slugTrail: string[];
+  onAddPage?: (parentId: string) => void;
+  onEditPage?: (pageId: string, currentTitle: string) => void;
+  onDeletePage?: (pageId: string) => void;
+}) {
   const pathname = usePathname();
   const { expandedNodes, toggleNode } = useNavigation();
   const hasChildren = item.children && item.children.length > 0;
-  const itemLink = isAdmin ? `${linkPrefix}/${item.id}` : `${linkPrefix}/${item.slug}`;
+  const itemSlugTrail = [...slugTrail, item.slug];
+  const itemLink = isAdmin ? `${linkPrefix}/${item.id}` : buildPublicPageHref(itemSlugTrail);
   const isActive = pathname === itemLink;
   const isOpen = expandedNodes.has(item.id);
 
   // Auto-expand if active page is a child (only on mount if not already expanded)
   React.useEffect(() => {
-    const isChildActive = pathname.startsWith(`${linkPrefix}/${isAdmin ? item.id : item.slug}/`) || item.children.some(child => pathname === `${linkPrefix}/${isAdmin ? child.id : child.slug}`);
+    const isChildActive = pathname.startsWith(`${itemLink}/`);
     if ((isActive || isChildActive) && !isOpen) {
       toggleNode(item.id);
     }
-  }, [isActive, item.id, item.slug, item.children, pathname, linkPrefix, isAdmin]); // We only want this once for the active route
+  }, [isActive, isOpen, item.id, itemLink, pathname, toggleNode]);
 
   return (
     <li>
@@ -140,7 +171,16 @@ function NavTreeItem({ item, depth, linkPrefix, isAdmin, onAddPage, onEditPage, 
             transition={{ duration: 0.2, ease: "easeInOut" }}
             className="overflow-hidden"
           >
-            <NavTree items={item.children} depth={depth + 1} linkPrefix={linkPrefix} isAdmin={isAdmin} onAddPage={onAddPage} onEditPage={onEditPage} onDeletePage={onDeletePage} />
+            <NavTree
+              items={item.children}
+              depth={depth + 1}
+              linkPrefix={linkPrefix}
+              isAdmin={isAdmin}
+              slugTrail={itemSlugTrail}
+              onAddPage={onAddPage}
+              onEditPage={onEditPage}
+              onDeletePage={onDeletePage}
+            />
           </motion.div>
         )}
       </AnimatePresence>
