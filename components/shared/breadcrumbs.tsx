@@ -51,7 +51,7 @@ export function Breadcrumbs({ items }: BreadcrumbsProps) {
               <span className="opacity-40 cursor-default">...</span>
             ) : (
               <Link 
-                href={item.href}
+                href={(item as BreadcrumbItem).href}
                 className={cn(
                   "transition-all duration-200",
                   isLast 

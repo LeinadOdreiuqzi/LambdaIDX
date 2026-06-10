@@ -14,6 +14,7 @@ import { Callout } from '../editor/extensions/callout-extension';
 import { MathNode } from '../editor/extensions/math-node';
 import { Video } from '../editor/extensions/video-extension';
 import { MermaidExtension } from '../editor/extensions/mermaid-extension';
+import { PageBreak } from '../editor/extensions/page-break-extension';
 import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
 import { Footnotes, Footnote, FootnoteReference } from 'tiptap-footnotes';
@@ -72,6 +73,7 @@ export function ContentViewer({ contentJson }: ContentViewerProps) {
       MathNode,
       Video,
       MermaidExtension,
+      PageBreak,
       TaskList,
       TaskItem.configure({
         nested: true,

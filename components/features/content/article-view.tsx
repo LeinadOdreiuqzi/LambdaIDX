@@ -9,8 +9,9 @@ import { ImageLightbox } from "./image-lightbox";
 import { ContentViewer } from "./content-viewer";
 import { useNavigation } from "@/hooks/use-navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { PanelRightClose, PanelRightOpen } from "lucide-react";
+import { PanelRightClose, PanelRightOpen, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 
 interface ArticleViewProps {
   title: string;
@@ -19,9 +20,64 @@ interface ArticleViewProps {
   breadcrumbs: { title: string; slug: string; href: string }[];
 }
 
+function splitContentIntoPages(contentJson?: Record<string, unknown>): Record<string, unknown>[] {
+  if (!contentJson || contentJson.type !== "doc" || !Array.isArray(contentJson.content)) {
+    return contentJson ? [contentJson] : [];
+  }
+
+  const pages: Record<string, unknown>[] = [];
+  let currentContent: any[] = [];
+
+  contentJson.content.forEach((node: any) => {
+    if (node.type === "pageBreak") {
+      pages.push({
+        ...contentJson,
+        content: currentContent,
+      });
+      currentContent = [];
+    } else {
+      currentContent.push(node);
+    }
+  });
+
+  pages.push({
+    ...contentJson,
+    content: currentContent,
+  });
+
+  return pages;
+}
+
 export function ArticleView({ title, content, contentJson, breadcrumbs }: ArticleViewProps) {
   const { isRightSidebarOpen, toggleRightSidebar } = useNavigation();
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
+
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  // Split contentJson into pages
+  const pages = React.useMemo(() => {
+    return splitContentIntoPages(contentJson);
+  }, [contentJson]);
+
+  const totalPages = pages.length;
+
+  // Read current page from query string
+  const currentPage = React.useMemo(() => {
+    const pageParam = searchParams.get("page");
+    if (!pageParam) return 1;
+    const pageNum = parseInt(pageParam, 10);
+    if (isNaN(pageNum) || pageNum < 1) return 1;
+    if (pageNum > totalPages) return totalPages;
+    return pageNum;
+  }, [searchParams, totalPages]);
+
+  const handlePageChange = useCallback((pageNumber: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", pageNumber.toString());
+    router.push(`${pathname}?${params.toString()}`, { scroll: true });
+  }, [searchParams, router, pathname]);
 
   // TOC remains visible whenever the sidebar is open, regardless of scroll direction
   const isTocVisible = isRightSidebarOpen;
@@ -63,7 +119,7 @@ export function ArticleView({ title, content, contentJson, breadcrumbs }: Articl
            .prose-custom handles only typographic styling of child elements. */}
       <div className="content-grid prose-custom">
         {contentJson ? (
-          <ContentViewer contentJson={contentJson} />
+          <ContentViewer contentJson={pages[currentPage - 1]} />
         ) : (
           <div
             className="text-lg leading-[1.8] text-zinc-700 dark:text-zinc-300 pb-24"
@@ -72,6 +128,65 @@ export function ArticleView({ title, content, contentJson, breadcrumbs }: Articl
           />
         )}
       </div>
+
+      {/* ─── PAGINATION BAR ─── */}
+      {totalPages > 1 && (
+        <div className="content-grid mt-16 pb-24">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-6 py-6 border-y border-zinc-100 dark:border-zinc-900 bg-zinc-50/30 dark:bg-zinc-950/20 rounded-2xl px-6 backdrop-blur-xs">
+            {/* Previous Page Button */}
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className={cn(
+                "flex items-center gap-2 px-4 py-2 text-xs font-mono uppercase tracking-widest transition-all rounded-lg border",
+                currentPage === 1
+                  ? "opacity-30 cursor-not-allowed border-zinc-200 dark:border-zinc-800 text-zinc-400"
+                  : "border-zinc-300 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-900 text-zinc-700 dark:text-zinc-300 hover:text-black dark:hover:text-white"
+              )}
+            >
+              <ChevronLeft className="w-4 h-4" />
+              <span>Anterior</span>
+            </button>
+
+            {/* Page Indicators */}
+            <div className="flex items-center gap-1">
+              {Array.from({ length: totalPages }).map((_, idx) => {
+                const pageNum = idx + 1;
+                const isActive = pageNum === currentPage;
+                return (
+                  <button
+                    key={pageNum}
+                    onClick={() => handlePageChange(pageNum)}
+                    className={cn(
+                      "w-8 h-8 rounded-lg text-xs font-mono flex items-center justify-center transition-all",
+                      isActive
+                        ? "bg-black text-white dark:bg-white dark:text-black font-bold scale-105 shadow-md"
+                        : "text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-900 hover:text-black dark:hover:text-white"
+                    )}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Next Page Button */}
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className={cn(
+                "flex items-center gap-2 px-4 py-2 text-xs font-mono uppercase tracking-widest transition-all rounded-lg border",
+                currentPage === totalPages
+                  ? "opacity-30 cursor-not-allowed border-zinc-200 dark:border-zinc-800 text-zinc-400"
+                  : "border-zinc-300 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-900 text-zinc-700 dark:text-zinc-300 hover:text-black dark:hover:text-white"
+              )}
+            >
+              <span>Siguiente</span>
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ─── FLOATING TOC + RELATIONAL PANEL ─── */}
       <button

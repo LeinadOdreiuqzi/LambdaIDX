@@ -34,7 +34,8 @@ import {
   Video,
   FileVideo,
   FileImage,
-  Network
+  Network,
+  Scissors
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { uploadFile } from '@/app/actions/upload';
@@ -239,6 +240,12 @@ export function Toolbar({ editor, isFullscreen, onToggleFullscreen }: ToolbarPro
           title="Insert Footnote / Citation"
         >
           <Hash className="w-4 h-4 text-blue-500" />
+        </ToolbarBtn>
+        <ToolbarBtn 
+          onClick={() => (editor as any).commands.setPageBreak()} 
+          title="Insert Page Break"
+        >
+          <Scissors className="w-4 h-4 text-amber-500" />
         </ToolbarBtn>
 
         <ToolbarBtn 

@@ -18,6 +18,7 @@ import { Callout } from './extensions/callout-extension';
 import { MathNode } from './extensions/math-node';
 import { Video } from './extensions/video-extension';
 import { MermaidExtension } from './extensions/mermaid-extension';
+import { PageBreak } from './extensions/page-break-extension';
 import CharacterCount from '@tiptap/extension-character-count';
 import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
@@ -109,6 +110,7 @@ export const RichTextEditor = forwardRef<any, RichTextEditorProps>(({
       MathNode,
       Video,
       MermaidExtension,
+      PageBreak,
       CharacterCount,
       TaskList,
       TaskItem.configure({

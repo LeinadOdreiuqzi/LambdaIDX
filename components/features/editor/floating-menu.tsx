@@ -16,7 +16,8 @@ import {
   CheckSquare,
   BookOpen,
   Scale,
-  Hash
+  Hash,
+  Scissors
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -186,6 +187,7 @@ export function FloatingMenu({ editor }: FloatingMenuProps) {
       />
       <Btn onClick={() => (editor as any).commands.addFootnote()} title="Footnote" icon={Hash} />
       <Btn onClick={() => editor.chain().focus().toggleTaskList().run()} title="Task List" icon={CheckSquare} />
+      <Btn onClick={() => (editor as any).commands.setPageBreak()} title="Page Break" icon={Scissors} />
     </div>
   );
 }
