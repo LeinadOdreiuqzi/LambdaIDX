@@ -1,26 +1,12 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React from "react";
 import { EditorPage } from "@/components/features/editor/editor-page";
 
-interface AdminEditorPageProps {
-  params: Promise<{ id: string }>;
-}
-
-export default function AdminEditorPage({ params }: AdminEditorPageProps) {
-  const [id, setId] = React.useState<string | null>(null);
-
-  useEffect(() => {
-    params.then((p) => {
-      if (p.id !== "new") {
-        setId(p.id);
-      }
-    });
-  }, [params]);
-
+export default function AdminEditorNewPage() {
   return (
     <EditorPage
-      pageId={id || undefined}
+      pageId={undefined}
       onPublish={(pageId) => {
         console.log("Page published:", pageId);
       }}
