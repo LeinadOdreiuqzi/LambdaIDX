@@ -30,18 +30,18 @@ export default function Home() {
               de todo el conocimiento humano a través de estructuras jerárquicas claras.
             </p>
 
-            <div className="flex flex-wrap justify-center items-center gap-6">
+            <div className="flex flex-col items-center gap-4">
               <Link
                 href="/p/introduction"
-                className="group relative px-10 py-5 bg-white text-black font-black uppercase tracking-widest text-sm overflow-hidden transition-all hover:pr-14"
+                className="group relative px-16 py-7 bg-white text-black font-black uppercase tracking-widest text-lg overflow-hidden transition-all hover:pr-20 hover:scale-105 shadow-2xl shadow-white/20"
               >
                 <span>Iniciar Cartografía</span>
-                <ArrowRight className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 opacity-0 group-hover:opacity-100 transition-all" />
+                <ArrowRight className="absolute right-6 top-1/2 -translate-y-1/2 w-6 h-6 opacity-0 group-hover:opacity-100 transition-all" />
               </Link>
 
               <Link
                 href="/admin/dashboard"
-                className="px-10 py-5 border border-zinc-800 bg-black dark:bg-zinc-950 hover:bg-[rgb(205,127,50)] dark:hover:bg-zinc-800 transition-colors font-bold uppercase tracking-widest text-xs text-zinc-400 dark:text-zinc-500 hover:text-white"
+                className="px-6 py-2 border border-zinc-800 bg-transparent hover:bg-zinc-900/50 transition-colors font-medium uppercase tracking-wider text-xs text-zinc-600 hover:text-zinc-400 mt-2"
               >
                 Gestión Central
               </Link>
