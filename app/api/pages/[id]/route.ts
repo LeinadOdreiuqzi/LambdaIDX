@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PageService } from "@/services/page-service";
 import { revalidatePath } from "next/cache";
+import { idSchema, updatePageContentSchema, updatePageMetadataSchema, validateBody } from "@/lib/validation";
 
 /**
  * GET /api/pages/[id] - Get a single page by ID
@@ -12,7 +13,16 @@ export async function GET(
   try {
     const { id } = await params;
 
-    const page = await PageService.getPageById(id);
+    // Validate ID format
+    const idValidation = idSchema.safeParse(id);
+    if (!idValidation.success) {
+      return NextResponse.json(
+        { success: false, error: "Invalid ID format" },
+        { status: 400 }
+      );
+    }
+
+    const page = await PageService.getPageById(idValidation.data);
 
     if (!page) {
       return NextResponse.json(
@@ -43,12 +53,29 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
+
+    // Validate ID format
+    const idValidation = idSchema.safeParse(id);
+    if (!idValidation.success) {
+      return NextResponse.json(
+        { success: false, error: "Invalid ID format" },
+        { status: 400 }
+      );
+    }
+
     const body = await request.json();
-    const { contentJson, excerpt, title, metaTitle, metaDescription, canonicalUrl, isFeatured } = body;
 
     // Update content
-    if (contentJson !== undefined) {
-      const updated = await PageService.updatePageContent(id, contentJson, excerpt);
+    if (body.contentJson !== undefined || body.excerpt !== undefined) {
+      const validation = validateBody(updatePageContentSchema, body);
+      if (!validation.success) {
+        return NextResponse.json(
+          { success: false, error: validation.error },
+          { status: 400 }
+        );
+      }
+
+      const updated = await PageService.updatePageContent(idValidation.data, validation.data.contentJson || { type: "doc", content: [] }, validation.data.excerpt);
 
       if (!updated) {
         return NextResponse.json(
@@ -66,14 +93,16 @@ export async function PUT(
     }
 
     // Update metadata
-    if (title || metaTitle || metaDescription || canonicalUrl !== undefined || isFeatured !== undefined) {
-      const updated = await PageService.updatePageMetadata(id, {
-        title: title || undefined,
-        metaTitle: metaTitle || undefined,
-        metaDescription: metaDescription || undefined,
-        canonicalUrl: canonicalUrl || undefined,
-        isFeatured: isFeatured !== undefined ? isFeatured : undefined,
-      });
+    if (body.title || body.metaTitle || body.metaDescription || body.canonicalUrl !== undefined || body.isFeatured !== undefined) {
+      const validation = validateBody(updatePageMetadataSchema, body);
+      if (!validation.success) {
+        return NextResponse.json(
+          { success: false, error: validation.error },
+          { status: 400 }
+        );
+      }
+
+      const updated = await PageService.updatePageMetadata(idValidation.data, validation.data);
 
       if (!updated) {
         return NextResponse.json(
@@ -113,7 +142,16 @@ export async function DELETE(
   try {
     const { id } = await params;
 
-    const success = await PageService.deletePage(id);
+    // Validate ID format
+    const idValidation = idSchema.safeParse(id);
+    if (!idValidation.success) {
+      return NextResponse.json(
+        { success: false, error: "Invalid ID format" },
+        { status: 400 }
+      );
+    }
+
+    const success = await PageService.deletePage(idValidation.data);
 
     if (!success) {
       return NextResponse.json(

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PageService } from "@/services/page-service";
 import { revalidatePath } from "next/cache";
+import { createPageSchema, validateBody } from "@/lib/validation";
 
 /**
  * GET /api/pages - List pages (admin only, optionally filtered)
@@ -31,25 +32,17 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { title, slug, parentId, excerpt, contentJson, metaTitle, metaDescription } = body;
 
-    // Validate required fields
-    if (!title || !slug) {
+    // Validate request body
+    const validation = validateBody(createPageSchema, body);
+    if (!validation.success) {
       return NextResponse.json(
-        { success: false, error: "Missing required fields: title, slug" },
+        { success: false, error: validation.error },
         { status: 400 }
       );
     }
 
-    const page = await PageService.createPage({
-      title,
-      slug,
-      parentId: parentId || undefined,
-      excerpt: excerpt || undefined,
-      contentJson: contentJson || undefined,
-      metaTitle: metaTitle || undefined,
-      metaDescription: metaDescription || undefined,
-    });
+    const page = await PageService.createPage(validation.data);
 
     if (!page) {
       return NextResponse.json(

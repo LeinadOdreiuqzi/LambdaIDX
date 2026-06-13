@@ -1,20 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { SearchService } from "@/services/search-service";
+import { searchSchema, validateQuery } from "@/lib/validation";
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const query = searchParams.get("q")?.trim() || "";
-    const limit = Number(searchParams.get("limit"));
+    const limit = searchParams.get("limit") || undefined;
 
-    if (!query) {
+    // Validate query parameters
+    const validation = validateQuery(searchSchema, { query, limit });
+    if (!validation.success) {
       return NextResponse.json(
-        { error: "The 'q' query parameter is required." },
+        { error: validation.error },
         { status: 400 }
       );
     }
 
-    const results = await SearchService.searchPages(query, limit);
+    const results = await SearchService.searchPages(validation.data.query, validation.data.limit);
     return NextResponse.json(results);
   } catch (error) {
     console.error("Search API error:", error);

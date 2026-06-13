@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PageService } from "@/services/page-service";
 import { revalidatePath } from "next/cache";
+import { idSchema, updatePageHierarchySchema, validateBody } from "@/lib/validation";
 
 /**
  * PATCH /api/pages/[id]/hierarchy - Update page hierarchy (parent, position)
@@ -11,20 +12,28 @@ export async function PATCH(
 ) {
   try {
     const { id } = await params;
-    const body = await request.json();
-    const { parentId, sortOrder } = body;
 
-    if (!id) {
+    // Validate ID format
+    const idValidation = idSchema.safeParse(id);
+    if (!idValidation.success) {
       return NextResponse.json(
-        { success: false, error: "Missing page ID" },
+        { success: false, error: "Invalid ID format" },
         { status: 400 }
       );
     }
 
-    const updated = await PageService.updatePageHierarchy(id, {
-      parentId,
-      sortOrder,
-    });
+    const body = await request.json();
+
+    // Validate request body
+    const validation = validateBody(updatePageHierarchySchema, body);
+    if (!validation.success) {
+      return NextResponse.json(
+        { success: false, error: validation.error },
+        { status: 400 }
+      );
+    }
+
+    const updated = await PageService.updatePageHierarchy(idValidation.data, validation.data);
 
     if (!updated) {
       return NextResponse.json(
