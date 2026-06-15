@@ -7,7 +7,7 @@ const prismaClientSingleton = () => {
   
   if (!connectionString) {
     console.warn("⚠️ DATABASE_URL is not defined. Prisma is running in disconnected mode.");
-    // Return a Proxy to prevent crashes on property access during development
+    // Devolver un Proxy para evitar fallas en el acceso a la propiedad durante el desarrollo
     return new Proxy({}, {
       get: (_, prop) => {
         return new Proxy(() => {}, {
