@@ -79,7 +79,7 @@ export function ArticleView({ title, content, contentJson, breadcrumbs }: Articl
     router.push(`${pathname}?${params.toString()}`, { scroll: true });
   }, [searchParams, router, pathname]);
 
-  // TOC remains visible whenever the sidebar is open, regardless of scroll direction
+  // La tabla de contenido permanece visible siempre que la barra lateral esté abierta, independientemente de la dirección de desplazamiento.
   const isTocVisible = isRightSidebarOpen;
 
   const handleContentClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
