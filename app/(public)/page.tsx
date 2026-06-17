@@ -33,7 +33,7 @@ export default function Home() {
             <div className="flex flex-col items-center gap-4">
               <Link
                 href="/p/introduction"
-                className="group relative px-16 py-7 bg-white text-black font-black uppercase tracking-widest text-lg overflow-hidden transition-all hover:pr-20 hover:scale-105 shadow-2xl shadow-white/20"
+                className="group relative px-16 py-7 bg-white dark:bg-zinc-200 text-black dark:text-black font-black uppercase tracking-widest text-lg overflow-hidden transition-all hover:pr-20 hover:scale-105 shadow-2xl shadow-white/20 dark:shadow-zinc-500/30"
               >
                 <span>Iniciar Cartografía</span>
                 <ArrowRight className="absolute right-6 top-1/2 -translate-y-1/2 w-6 h-6 opacity-0 group-hover:opacity-100 transition-all" />
@@ -41,7 +41,7 @@ export default function Home() {
 
               <Link
                 href="/admin/dashboard"
-                className="px-6 py-2 border border-zinc-800 bg-transparent hover:bg-zinc-900/50 transition-colors font-medium uppercase tracking-wider text-xs text-zinc-600 hover:text-zinc-400 mt-2"
+                className="px-6 py-2 border border-zinc-800 dark:border-zinc-600 bg-transparent hover:bg-zinc-900/50 dark:hover:bg-zinc-700/50 transition-colors font-medium uppercase tracking-wider text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-400 dark:hover:text-zinc-300 mt-2"
               >
                 Gestión Central
               </Link>
