@@ -40,7 +40,7 @@ export default function Home() {
               </Link>
 
               <Link
-                href="/admin/dashboard"
+                href="/admin/login"
                 className="px-6 py-2 border border-zinc-800 dark:border-zinc-600 bg-transparent hover:bg-zinc-900/50 dark:hover:bg-zinc-700/50 transition-colors font-medium uppercase tracking-wider text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-400 dark:hover:text-zinc-300 mt-2"
               >
                 Gestión Central
