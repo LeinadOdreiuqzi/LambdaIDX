@@ -3,7 +3,7 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Lock, Shield, ArrowRight } from "lucide-react";
+import { Lock, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 export default function LoginPage() {
@@ -41,9 +41,6 @@ export default function LoginPage() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="text-center mb-8"
           >
-            <div className="inline-flex items-center justify-center w-16 h-16 mb-4 bg-black dark:bg-white rounded-xl">
-              <Shield className="w-8 h-8 text-white dark:text-black" />
-            </div>
             <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
               LambdaIDX
             </h1>
