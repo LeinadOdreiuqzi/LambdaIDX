@@ -127,8 +127,7 @@ export default function LoginPage() {
             {/* Notice */}
             <div className="mt-6 p-4 bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-lg">
               <p className="text-xs text-zinc-500 dark:text-zinc-400 text-center">
-                <span className="font-semibold">Nota:</span> Esta es una página de login
-                temporal.
+                <span className="font-semibold">Nota:</span> Login placeholder temporal.
               </p>
             </div>
           </motion.div>
