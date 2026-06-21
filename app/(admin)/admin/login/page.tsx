@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Lock, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { Logo } from "@/components/shared/logo";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -39,11 +40,9 @@ export default function LoginPage() {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-center mb-8"
+            className="flex flex-col items-center mb-8"
           >
-            <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
-              LambdaIDX
-            </h1>
+            <Logo size={64} showText={true} className="text-zinc-900 dark:text-zinc-100 mb-4" />
             <p className="text-sm text-zinc-500 dark:text-zinc-400 font-mono tracking-wider">
               GESTIÓN CENTRAL
             </p>
