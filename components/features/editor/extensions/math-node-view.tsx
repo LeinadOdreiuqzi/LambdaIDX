@@ -27,6 +27,7 @@ export function MathNodeView({ node, updateAttributes, selected, editor }: NodeV
         katex.render(node.attrs.latex, containerRef.current, {
           throwOnError: false,
           displayMode: false,
+          strict: false,
         });
       } catch (e) {
         console.error('KaTeX error:', e);
@@ -55,7 +56,10 @@ export function MathNodeView({ node, updateAttributes, selected, editor }: NodeV
   };
 
   return (
-    <NodeViewWrapper className="inline-block relative group mx-1">
+    <NodeViewWrapper className={cn(
+      "inline-block relative mx-1",
+      isReadOnly && "cursor-text select-text"
+    )}>
       <span
         ref={containerRef}
         onClick={!isReadOnly ? (e) => {
@@ -63,9 +67,10 @@ export function MathNodeView({ node, updateAttributes, selected, editor }: NodeV
           setIsEditing(true);
         } : undefined}
         className={cn(
-          "inline-block px-1 rounded transition-colors min-w-[1ch] min-h-[1em]",
-          !isReadOnly && "cursor-pointer",
-          selected || isEditing ? "bg-zinc-100 dark:bg-zinc-800 ring-1 ring-zinc-300 dark:ring-zinc-700" : !isReadOnly && "hover:bg-zinc-50 dark:hover:bg-zinc-900"
+          "inline-block px-1 min-w-[1ch] min-h-[1em]",
+          !isReadOnly && "rounded cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900",
+          selected || isEditing ? "rounded bg-zinc-100 dark:bg-zinc-800 ring-1 ring-zinc-300 dark:ring-zinc-700" : "",
+          isReadOnly && "cursor-text select-text"
         )}
       />
 

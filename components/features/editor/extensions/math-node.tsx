@@ -6,8 +6,8 @@ export const MathNode = Node.create({
   name: 'math',
   group: 'inline',
   inline: true,
-  selectable: true,
-  draggable: true,
+  selectable: false,
+  draggable: false,
   atom: true,
 
   addAttributes() {

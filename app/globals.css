@@ -402,7 +402,35 @@ body {
 }
 
 .prose-custom .Tiptap-mathematics-render {
-  @apply cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded px-1 transition-colors;
+  @apply inline px-1;
+}
+
+/* Override KaTeX hover effects to allow normal text selection */
+.prose-custom .katex,
+.prose-custom .katex-display,
+.prose-custom .katex * {
+  cursor: text !important;
+  pointer-events: auto !important;
+  user-select: text !important;
+}
+
+.prose-custom .katex:hover,
+.prose-custom .katex-display:hover,
+.prose-custom .katex *:hover {
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* Disable any KaTeX-specific hover backgrounds */
+.prose-custom .katex .mord:hover,
+.prose-custom .katex .mop:hover,
+.prose-custom .katex .mrel:hover,
+.prose-custom .katex .mbin:hover,
+.prose-custom .katex .mpunct:hover,
+.prose-custom .katex .mopen:hover,
+.prose-custom .katex .mclose:hover {
+  background: transparent !important;
 }
 
 
