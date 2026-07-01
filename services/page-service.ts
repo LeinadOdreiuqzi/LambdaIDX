@@ -2,6 +2,36 @@ import prisma from "@/lib/prisma";
 import { buildPublicPageHref } from "@/lib/page-paths";
 import { NavPage } from "@/types";
 
+/**
+ * Generates a subtle, short numeric ID (e.g., "8472")
+ * Ensures uniqueness by checking against existing IDs
+ */
+async function generateSubtleId(): Promise<string> {
+  let attempts = 0;
+  const maxAttempts = 100;
+
+  while (attempts < maxAttempts) {
+    const timestamp = Date.now();
+    const random = Math.floor(Math.random() * 1000);
+    const candidateId = String((timestamp % 10000) + random).slice(-4);
+
+    // Check if this ID already exists
+    const existing = await prisma.page.findUnique({
+      where: { id: candidateId },
+      select: { id: true },
+    });
+
+    if (!existing) {
+      return candidateId;
+    }
+
+    attempts++;
+  }
+
+  // Fallback to timestamp-based ID if all attempts fail
+  return String(Date.now()).slice(-4);
+}
+
 export interface PageContent {
   id: string;
   title: string;
@@ -594,8 +624,12 @@ export class PageService {
         counter++;
       }
 
+      // Generate a subtle custom ID
+      const customId = await generateSubtleId();
+
       const page = await prisma.page.create({
         data: {
+          id: customId,
           title: data.title,
           slug: uniqueSlug,
           parentId: data.parentId || null,
