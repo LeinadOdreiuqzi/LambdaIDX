@@ -3,7 +3,7 @@
 import React, { useEffect, forwardRef, useImperativeHandle } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import Image from '@tiptap/extension-image';
+import { CustomImage } from './extensions/custom-image';
 import Link from '@tiptap/extension-link';
 import BubbleMenuExtension from '@tiptap/extension-bubble-menu';
 import FloatingMenuExtension from '@tiptap/extension-floating-menu';
@@ -68,7 +68,7 @@ export const RichTextEditor = forwardRef<any, RichTextEditorProps>(({
         },
         dropcursor: false,
       }),
-      Image.configure({
+      CustomImage.configure({
         HTMLAttributes: {
           class: 'rounded-xl my-10 w-full object-cover shadow-2xl',
         },
@@ -131,6 +131,13 @@ export const RichTextEditor = forwardRef<any, RichTextEditorProps>(({
         ),
       },
       handleDrop: (view, event, _slice, moved) => {
+        // Fix for tiptap-extension-global-drag-handle duplication bug:
+        // The extension incorrectly sets view.dragging.move = event.ctrlKey, which causes
+        // lines to duplicate when dragged. We restore standard ProseMirror behavior (move unless Ctrl is pressed).
+        if ((view as any).dragging) {
+          (view as any).dragging.move = !event.ctrlKey;
+        }
+
         if (!moved && event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0]) {
           const file = event.dataTransfer.files[0];
           const formData = new FormData();

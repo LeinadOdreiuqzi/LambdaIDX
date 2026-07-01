@@ -3,7 +3,7 @@
 import React from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import Image from '@tiptap/extension-image';
+import { CustomImage } from '../editor/extensions/custom-image';
 import Link from '@tiptap/extension-link';
 import { Table } from '@tiptap/extension-table';
 import { TableRow } from '@tiptap/extension-table-row';
@@ -39,7 +39,7 @@ export function ContentViewer({ contentJson }: ContentViewerProps) {
           },
         },
       }),
-      Image.configure({
+      CustomImage.configure({
         HTMLAttributes: {
           class: 'rounded-xl my-10 w-full object-cover shadow-2xl',
         },
