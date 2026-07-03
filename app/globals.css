@@ -94,8 +94,25 @@ body {
   grid-column: full;
 }
 
+.editor-prose {
+  --content-max: 65ch;
+  --content-padding: 1.5rem;
+  --editor-text-width: min(var(--content-max), calc(100% - var(--content-padding) * 2));
+}
+
+.editor-prose > * {
+  width: var(--editor-text-width);
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 @media (min-width: 768px) {
   .content-grid {
+    --content-padding: 3rem;
+  }
+
+  .editor-prose {
     --content-padding: 3rem;
   }
 }
@@ -138,6 +155,7 @@ body {
 }
 .prose-custom blockquote {
   @apply border-l-2 border-zinc-300 dark:border-zinc-700 pl-6 my-8 text-zinc-500 dark:text-zinc-400 italic;
+  clear: both;
 }
 .prose-custom code {
   @apply px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-sm font-mono text-zinc-900 dark:text-zinc-100;
@@ -145,6 +163,7 @@ body {
 .prose-custom pre {
   @apply p-6 rounded-xl bg-zinc-950 border border-zinc-800 text-zinc-100 overflow-x-auto my-10 font-mono text-sm leading-relaxed;
   grid-column: full;
+  clear: both;
 }
 .prose-custom img {
   @apply rounded-xl my-10 w-full cursor-zoom-in hover:opacity-90 transition-opacity;
@@ -159,10 +178,12 @@ body {
 }
 .prose-custom hr {
   @apply my-16 border-zinc-200 dark:border-zinc-800;
+  clear: both;
 }
 .prose-custom table {
   @apply w-full my-8 text-sm;
   grid-column: full;
+  clear: both;
 }
 .prose-custom th {
   @apply text-left font-bold px-4 py-3 border-b border-zinc-200 dark:border-zinc-800 text-black dark:text-white;
@@ -177,6 +198,100 @@ body {
 .grid-pattern {
   background-image: radial-gradient(circle, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
   background-size: 32px 32px;
+}
+
+.prose-custom::after {
+  content: "";
+  display: block;
+  clear: both;
+}
+
+.prose-custom h2,
+.prose-custom h3,
+.prose-custom h4,
+.prose-custom .callout,
+.prose-custom [data-type="column-group"] {
+  clear: both;
+}
+
+.prose-custom [data-image-layout] {
+  position: relative;
+  z-index: 1;
+}
+
+.prose-custom [data-image-layout] img {
+  @apply my-0 w-full;
+  display: block;
+}
+
+.prose-custom [data-image-layout="block-center"] {
+  clear: both;
+}
+
+.prose-custom figure[data-image-layout="block-center"] img,
+.prose-custom .image-node[data-image-layout="block-center"] img {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.editor-prose > [data-image-layout="wrap-left"],
+.editor-prose > [data-image-layout="wrap-right"] {
+  width: min(var(--image-width, 40%), var(--editor-text-width));
+  max-width: min(24rem, var(--editor-text-width));
+}
+
+.editor-prose > [data-image-layout="wrap-left"] {
+  float: left;
+  clear: left;
+  margin-top: 0.5rem;
+  margin-right: 1.5rem;
+  margin-bottom: 1rem;
+  margin-left: max(var(--content-padding), calc((100% - var(--editor-text-width)) / 2));
+}
+
+.editor-prose > [data-image-layout="wrap-right"] {
+  float: right;
+  clear: right;
+  margin-top: 0.5rem;
+  margin-right: max(var(--content-padding), calc((100% - var(--editor-text-width)) / 2));
+  margin-bottom: 1rem;
+  margin-left: 1.5rem;
+}
+
+.prose-custom figure[data-image-layout="wrap-left"],
+.prose-custom .image-node[data-image-layout="wrap-left"] {
+  float: left;
+  clear: left;
+  width: min(var(--image-width, 40%), 100%);
+  max-width: min(24rem, 100%);
+  margin-top: 0.5rem;
+  margin-right: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.prose-custom figure[data-image-layout="wrap-right"],
+.prose-custom .image-node[data-image-layout="wrap-right"] {
+  float: right;
+  clear: right;
+  width: min(var(--image-width, 40%), 100%);
+  max-width: min(24rem, 100%);
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
+  margin-left: 1.5rem;
+}
+
+@media (max-width: 767px) {
+  .editor-prose > [data-image-layout="wrap-left"],
+  .editor-prose > [data-image-layout="wrap-right"],
+  .prose-custom figure[data-image-layout="wrap-left"],
+  .prose-custom figure[data-image-layout="wrap-right"],
+  .prose-custom .image-node[data-image-layout="wrap-left"],
+  .prose-custom .image-node[data-image-layout="wrap-right"] {
+    float: none;
+    clear: both;
+    width: min(100%, 22rem);
+    margin: 1.25rem auto;
+  }
 }
 
 .glass-panel {
@@ -432,6 +547,3 @@ body {
 .prose-custom .katex .mclose:hover {
   background: transparent !important;
 }
-
-
-

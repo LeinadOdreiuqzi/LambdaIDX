@@ -6,9 +6,22 @@ import React, { useRef, useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { AlignLeft, AlignCenter, AlignRight, Trash2 } from 'lucide-react';
 
+type ImageLayout = 'block-center' | 'wrap-left' | 'wrap-right';
+
+function normalizeImageLayout(layout?: string | null, align?: string | null): ImageLayout {
+  if (layout === 'wrap-left' || layout === 'wrap-right' || layout === 'block-center') {
+    return layout;
+  }
+
+  if (align === 'left') return 'wrap-left';
+  if (align === 'right') return 'wrap-right';
+
+  return 'block-center';
+}
+
 const ImageResizeComponent = (props: NodeViewProps) => {
   const { node, updateAttributes, selected, editor, deleteNode } = props;
-  const { src, alt, title, width, align } = node.attrs;
+  const { src, alt, title, width, align, layout: rawLayout } = node.attrs;
   const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
   const [resizing, setResizing] = useState(false);
@@ -16,14 +29,19 @@ const ImageResizeComponent = (props: NodeViewProps) => {
   const [startX, setStartX] = useState(0);
 
   const isEditable = editor.isEditable;
+  const layout = normalizeImageLayout(rawLayout, align);
+  const isWrapped = layout === 'wrap-left' || layout === 'wrap-right';
 
-  // Alignments class mapping
-  const alignClass = cn(
-    "flex w-full my-10",
-    align === 'left' && "justify-start",
-    align === 'right' && "justify-end",
-    (align === 'center' || !align) && "justify-center"
+  const wrapperClass = cn(
+    "image-node group relative",
+    layout === 'block-center' && "block w-full my-10 clear-both",
+    layout === 'wrap-left' && "block my-6",
+    layout === 'wrap-right' && "block my-6"
   );
+
+  const wrapperStyle = {
+    '--image-width': width || (isWrapped ? '40%' : '100%'),
+  } as React.CSSProperties;
 
   // Resize handler
   const handleMouseDown = (event: React.MouseEvent) => {
@@ -44,14 +62,14 @@ const ImageResizeComponent = (props: NodeViewProps) => {
       const dx = event.clientX - startX;
       
       if (containerRef.current) {
-        // Measure parent container to calculate relative percentage
-        const parentElement = containerRef.current.parentElement?.parentElement;
+        // Use the editor surface width so the resize math stays stable after moving the node.
+        const parentElement = containerRef.current.closest('.ProseMirror') as HTMLElement | null;
         const parentWidth = parentElement ? parentElement.clientWidth : 800;
         
         let newWidth = startWidth + dx;
-        if (align === 'center') {
+        if (layout === 'block-center') {
           newWidth = startWidth + dx * 2; // Symmetric growth
-        } else if (align === 'right') {
+        } else if (layout === 'wrap-right') {
           newWidth = startWidth - dx; // Opposite drag behavior
         }
         
@@ -78,10 +96,31 @@ const ImageResizeComponent = (props: NodeViewProps) => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [resizing, startWidth, startX, align, updateAttributes]);
+  }, [resizing, startWidth, startX, layout, updateAttributes]);
 
-  const setAlign = (newAlign: 'left' | 'center' | 'right') => {
-    updateAttributes({ align: newAlign });
+  const setLayout = (nextLayout: ImageLayout) => {
+    if (nextLayout === 'wrap-left') {
+      updateAttributes({
+        layout: nextLayout,
+        align: 'left',
+        width: width && width !== '100%' ? width : '40%',
+      });
+      return;
+    }
+
+    if (nextLayout === 'wrap-right') {
+      updateAttributes({
+        layout: nextLayout,
+        align: 'right',
+        width: width && width !== '100%' ? width : '40%',
+      });
+      return;
+    }
+
+    updateAttributes({
+      layout: 'block-center',
+      align: 'center',
+    });
   };
 
   const setPresetWidth = (pct: number) => {
@@ -89,17 +128,25 @@ const ImageResizeComponent = (props: NodeViewProps) => {
   };
 
   return (
-    <NodeViewWrapper className={alignClass}>
+    <NodeViewWrapper
+      className={wrapperClass}
+      data-image-layout={layout}
+      style={wrapperStyle}
+    >
       <div 
         ref={containerRef}
-        className="relative max-w-full group"
-        style={{ width: width || '100%' }}
+        className={cn(
+          "relative max-w-full group",
+          layout === 'block-center' && "mx-auto"
+        )}
+        style={{ width: isWrapped ? '100%' : (width || '100%') }}
       >
         <img
           ref={imageRef}
           src={src}
           alt={alt}
           title={title}
+          draggable={false}
           className={cn(
             "rounded-xl object-cover shadow-2xl w-full border border-transparent select-none transition-all",
             isEditable && selected && "border-zinc-500 ring-2 ring-zinc-500/50 dark:ring-zinc-400/50"
@@ -122,32 +169,32 @@ const ImageResizeComponent = (props: NodeViewProps) => {
           <div className="absolute -top-14 left-1/2 -translate-x-1/2 flex items-center gap-1 p-1.5 bg-zinc-900/95 dark:bg-zinc-950/95 border border-zinc-800 rounded-lg shadow-2xl z-30 backdrop-blur-sm animate-in fade-in slide-in-from-bottom-2 duration-200">
             {/* Alignments */}
             <button
-              onClick={() => setAlign('left')}
+              onClick={() => setLayout('wrap-left')}
               className={cn(
                 "p-1.5 rounded text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors",
-                align === 'left' && "text-white bg-zinc-800"
+                layout === 'wrap-left' && "text-white bg-zinc-800"
               )}
-              title="Align Left"
+              title="Wrap Left"
             >
               <AlignLeft className="w-3.5 h-3.5" />
             </button>
             <button
-              onClick={() => setAlign('center')}
+              onClick={() => setLayout('block-center')}
               className={cn(
                 "p-1.5 rounded text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors",
-                (align === 'center' || !align) && "text-white bg-zinc-800"
+                layout === 'block-center' && "text-white bg-zinc-800"
               )}
-              title="Align Center"
+              title="Block"
             >
               <AlignCenter className="w-3.5 h-3.5" />
             </button>
             <button
-              onClick={() => setAlign('right')}
+              onClick={() => setLayout('wrap-right')}
               className={cn(
                 "p-1.5 rounded text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors",
-                align === 'right' && "text-white bg-zinc-800"
+                layout === 'wrap-right' && "text-white bg-zinc-800"
               )}
-              title="Align Right"
+              title="Wrap Right"
             >
               <AlignRight className="w-3.5 h-3.5" />
             </button>
@@ -191,11 +238,19 @@ export const CustomImage = Image.extend({
       ...this.parent?.(),
       width: {
         default: '100%',
-        parseHTML: element => element.style.width || element.getAttribute('width') || '100%',
+        parseHTML: element => {
+          const style = element.getAttribute('style');
+          const widthMatch = style ? style.match(/width:\s*([^;]+)/) : null;
+          if (widthMatch) {
+            return widthMatch[1].trim();
+          }
+          return element.getAttribute('data-width') || element.getAttribute('width') || '100%';
+        },
         renderHTML: attributes => {
           if (!attributes.width) return {};
           return {
             style: `width: ${attributes.width}`,
+            'data-width': attributes.width,
             width: attributes.width,
           };
         },
@@ -207,6 +262,19 @@ export const CustomImage = Image.extend({
           if (!attributes.align) return {};
           return {
             'data-align': attributes.align,
+          };
+        },
+      },
+      layout: {
+        default: 'block-center',
+        parseHTML: element => normalizeImageLayout(
+          element.getAttribute('data-layout'),
+          element.getAttribute('data-align')
+        ),
+        renderHTML: attributes => {
+          const layout = normalizeImageLayout(attributes.layout, attributes.align);
+          return {
+            'data-layout': layout,
           };
         },
       },

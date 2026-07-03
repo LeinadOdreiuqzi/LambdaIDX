@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { buildPublicPageHref } from "@/lib/page-paths";
 import { NavPage } from "@/types";
 
@@ -63,6 +64,8 @@ interface TipTapDoc {
   content: TipTapNode[];
 }
 
+type ImageLayout = "block-center" | "wrap-left" | "wrap-right";
+
 /**
  * Renders TipTap JSON to HTML string.
  * Supports: paragraph, heading, bulletList, listItem, codeBlock, text with marks (bold, code)
@@ -74,6 +77,21 @@ export function renderTipTapToHtml(contentJson: unknown | null): string {
   if (!doc.content || !Array.isArray(doc.content)) return "";
 
   return doc.content.map(renderNode).join("");
+}
+
+function normalizeImageLayout(layout?: unknown, align?: unknown): ImageLayout {
+  if (layout === "wrap-left" || layout === "wrap-right" || layout === "block-center") {
+    return layout;
+  }
+
+  if (align === "left") return "wrap-left";
+  if (align === "right") return "wrap-right";
+
+  return "block-center";
+}
+
+function toInputJsonValue(value: unknown): Prisma.InputJsonValue {
+  return value as Prisma.InputJsonValue;
 }
 
 function renderNode(node: TipTapNode): string {
@@ -92,7 +110,16 @@ function renderNode(node: TipTapNode): string {
     case "image":
       const src = (node.attrs?.src as string) || "";
       const alt = (node.attrs?.alt as string) || "";
-      return `<figure><img src="${escapeHtml(src)}" alt="${escapeHtml(alt)}" /><figcaption>${escapeHtml(alt)}</figcaption></figure>`;
+      const title = (node.attrs?.title as string) || "";
+      const width = (node.attrs?.width as string) || "100%";
+      const align = (node.attrs?.align as string) || "center";
+      const layout = normalizeImageLayout(node.attrs?.layout, align);
+      const figureStyle = ` style="--image-width: ${escapeHtml(width)};"`;
+      const imageStyle = layout === "block-center" ? ` style="width: ${escapeHtml(width)};"` : "";
+      const titleAttr = title ? ` title="${escapeHtml(title)}"` : "";
+      const caption = alt ? `<figcaption>${escapeHtml(alt)}</figcaption>` : "";
+
+      return `<figure data-image-layout="${layout}" data-align="${escapeHtml(align)}"${figureStyle}><img src="${escapeHtml(src)}" alt="${escapeHtml(alt)}"${titleAttr}${imageStyle} />${caption}</figure>`;
     default:
       return renderContent(node.content);
   }
@@ -636,7 +663,7 @@ export class PageService {
           path,
           depth,
           excerpt: data.excerpt,
-          contentJson: (data.contentJson || { type: "doc", content: [] }) as any,
+          contentJson: toInputJsonValue(data.contentJson || { type: "doc", content: [] }),
           metaTitle: data.metaTitle || data.title,
           metaDescription: data.metaDescription || data.excerpt,
           status: "DRAFT",
@@ -698,7 +725,7 @@ export class PageService {
       const page = await prisma.page.update({
         where: { id },
         data: {
-          contentJson: contentJson as any,
+          contentJson: toInputJsonValue(contentJson),
           excerpt: excerpt || undefined,
           updatedAt: new Date(),
         },

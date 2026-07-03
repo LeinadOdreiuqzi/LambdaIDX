@@ -1,12 +1,10 @@
 "use client";
 
 import React, { useEffect, forwardRef, useImperativeHandle } from 'react';
-import { useEditor, EditorContent } from '@tiptap/react';
+import { useEditor, EditorContent, type Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { CustomImage } from './extensions/custom-image';
 import Link from '@tiptap/extension-link';
-import BubbleMenuExtension from '@tiptap/extension-bubble-menu';
-import FloatingMenuExtension from '@tiptap/extension-floating-menu';
 import Dropcursor from '@tiptap/extension-dropcursor';
 import GlobalDragHandle from 'tiptap-extension-global-drag-handle';
 import { Table } from '@tiptap/extension-table';
@@ -35,7 +33,7 @@ import { ListTree } from 'lucide-react';
 
 interface RichTextEditorProps {
   content: string;
-  onChange: (html: string, json: any) => void;
+  onChange: (html: string, json: Record<string, unknown>) => void;
   className?: string;
   scienceCode?: string;
   documentId?: string;
@@ -43,7 +41,17 @@ interface RichTextEditorProps {
   disableAutoSave?: boolean;
 }
 
-export const RichTextEditor = forwardRef<any, RichTextEditorProps>(({
+interface RichTextEditorHandle {
+  getEditor: () => Editor | null;
+}
+
+type DraggingEditorView = {
+  dragging?: {
+    move: boolean;
+  };
+};
+
+export const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(({
   content,
   onChange,
   className,
@@ -123,9 +131,9 @@ export const RichTextEditor = forwardRef<any, RichTextEditorProps>(({
     content: contentJson || content,
     editorProps: {
       attributes: {
-        // We inject .content-grid and .prose-custom so it matches the frontend view perfectly
+        // The editor uses flow layout so wrapped images can let following text reuse free space.
         class: cn(
-          "content-grid prose-custom w-full focus:outline-none py-20 pb-40",
+          "editor-prose prose-custom w-full focus:outline-none py-20 pb-40",
           "text-lg leading-[1.8] text-zinc-700 dark:text-zinc-300",
           isFullscreen ? "min-h-screen" : "min-h-[500px]"
         ),
@@ -134,8 +142,15 @@ export const RichTextEditor = forwardRef<any, RichTextEditorProps>(({
         // Fix for tiptap-extension-global-drag-handle duplication bug:
         // The extension incorrectly sets view.dragging.move = event.ctrlKey, which causes
         // lines to duplicate when dragged. We restore standard ProseMirror behavior (move unless Ctrl is pressed).
-        if ((view as any).dragging) {
-          (view as any).dragging.move = !event.ctrlKey;
+        const dragView = view as typeof view & DraggingEditorView;
+        if (dragView.dragging) {
+          dragView.dragging.move = !event.ctrlKey;
+        }
+
+        // Internal ProseMirror drags must be handled by ProseMirror itself. If we continue,
+        // browsers can expose the dragged image as a file and re-trigger the upload path.
+        if (event.dataTransfer?.types.includes('application/x-prosemirror-slice')) {
+          return false;
         }
 
         if (!moved && event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0]) {
