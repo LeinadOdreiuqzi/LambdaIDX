@@ -117,14 +117,13 @@ export function ArticleView({ title, content, contentJson, breadcrumbs }: Articl
            The .content-grid ensures text stays at 70ch
            while .breakout children (pre, img, table) go full width.
            .prose-custom handles only typographic styling of child elements. */}
-      <div className="content-grid prose-custom">
+      <div className="content-grid prose-custom" onClick={handleContentClick}>
         {contentJson ? (
           <ContentViewer contentJson={pages[currentPage - 1]} />
         ) : (
           <div
             className="text-lg leading-[1.8] text-zinc-700 dark:text-zinc-300 pb-24"
             dangerouslySetInnerHTML={{ __html: content }}
-            onClick={handleContentClick}
           />
         )}
       </div>

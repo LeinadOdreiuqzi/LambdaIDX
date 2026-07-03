@@ -149,7 +149,8 @@ const ImageResizeComponent = (props: NodeViewProps) => {
           draggable={false}
           className={cn(
             "rounded-xl object-cover shadow-2xl w-full border border-transparent select-none transition-all",
-            isEditable && selected && "border-zinc-500 ring-2 ring-zinc-500/50 dark:ring-zinc-400/50"
+            isEditable && selected && "border-zinc-500 ring-2 ring-zinc-500/50 dark:ring-zinc-400/50",
+            !isEditable && "cursor-zoom-in hover:opacity-90"
           )}
         />
         
