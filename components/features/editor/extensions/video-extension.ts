@@ -17,6 +17,8 @@ export const Video = Node.create<VideoOptions>({
   name: 'video',
   group: 'block',
   atom: true,
+  draggable: false,
+  selectable: true,
 
   addAttributes() {
     return {
