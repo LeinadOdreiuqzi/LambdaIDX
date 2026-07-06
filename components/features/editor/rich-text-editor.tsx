@@ -14,7 +14,7 @@ import { TableCell } from '@tiptap/extension-table-cell';
 import { ColumnGroup, Column } from './extensions/column-extension';
 import { Callout } from './extensions/callout-extension';
 import { MathNode } from './extensions/math-node';
-import { Video } from './extensions/video-extension';
+import { CustomVideo } from './extensions/custom-video';
 import { MermaidExtension } from './extensions/mermaid-extension';
 import { PageBreak } from './extensions/page-break-extension';
 import CharacterCount from '@tiptap/extension-character-count';
@@ -116,7 +116,7 @@ export const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorPro
       Column,
       Callout,
       MathNode,
-      Video,
+      CustomVideo,
       MermaidExtension,
       PageBreak,
       CharacterCount,

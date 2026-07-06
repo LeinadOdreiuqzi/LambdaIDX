@@ -12,7 +12,7 @@ import { TableCell } from '@tiptap/extension-table-cell';
 import { ColumnGroup, Column } from '../editor/extensions/column-extension';
 import { Callout } from '../editor/extensions/callout-extension';
 import { MathNode } from '../editor/extensions/math-node';
-import { Video } from '../editor/extensions/video-extension';
+import { CustomVideo } from '../editor/extensions/custom-video';
 import { MermaidExtension } from '../editor/extensions/mermaid-extension';
 import { PageBreak } from '../editor/extensions/page-break-extension';
 import TaskList from '@tiptap/extension-task-list';
@@ -71,7 +71,7 @@ export function ContentViewer({ contentJson }: ContentViewerProps) {
       Column,
       Callout,
       MathNode,
-      Video,
+      CustomVideo,
       MermaidExtension,
       PageBreak,
       TaskList,
