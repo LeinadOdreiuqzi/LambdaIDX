@@ -41,6 +41,8 @@ const VideoResizeComponent = (props: NodeViewProps) => {
 
   const wrapperStyle = {
     '--video-width': width || (isWrapped ? '40%' : '100%'),
+    ...(layout === 'wrap-right' && { float: 'right' }),
+    ...(layout === 'wrap-left' && { float: 'left' }),
   } as React.CSSProperties;
 
   // Resize handler
@@ -100,11 +102,14 @@ const VideoResizeComponent = (props: NodeViewProps) => {
 
   const setLayout = (nextLayout: VideoLayout) => (e: React.MouseEvent) => {
     e.stopPropagation();
+    // Always preserve current width when changing layout
+    const currentWidth = width || '100%';
+    
     if (nextLayout === 'wrap-left') {
       updateAttributes({
         layout: nextLayout,
         align: 'left',
-        width: width && width !== '100%' ? width : '40%',
+        width: currentWidth,
       });
       return;
     }
@@ -113,14 +118,16 @@ const VideoResizeComponent = (props: NodeViewProps) => {
       updateAttributes({
         layout: nextLayout,
         align: 'right',
-        width: width && width !== '100%' ? width : '40%',
+        width: currentWidth,
       });
       return;
     }
 
+    // For block-center, preserve current width
     updateAttributes({
       layout: 'block-center',
       align: 'center',
+      width: currentWidth,
     });
   };
 
@@ -147,7 +154,11 @@ const VideoResizeComponent = (props: NodeViewProps) => {
           "relative max-w-full group",
           layout === 'block-center' && "mx-auto"
         )}
-        style={{ width: isWrapped ? '100%' : (width || '100%') }}
+        style={{ 
+          width: width || '100%',
+          ...(layout === 'wrap-right' && { float: 'right' }),
+          ...(layout === 'wrap-left' && { float: 'left' }),
+        }}
       >
         <div className="video-container rounded-xl overflow-hidden bg-zinc-950 shadow-2xl border border-zinc-800">
           <video
