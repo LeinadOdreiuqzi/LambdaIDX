@@ -260,8 +260,7 @@ body {
 }
 
 .prose-custom figure[data-image-layout="wrap-left"],
-.prose-custom .image-node[data-image-layout="wrap-left"],
-.prose-custom .video-node[data-video-layout="wrap-left"] {
+.prose-custom .image-node[data-image-layout="wrap-left"] {
   float: left;
   clear: left;
   width: min(var(--image-width, 40%), 100%);
@@ -271,13 +270,32 @@ body {
   margin-bottom: 1rem;
 }
 
+.prose-custom .video-node[data-video-layout="wrap-left"] {
+  float: left;
+  clear: left;
+  width: min(var(--video-width, 40%), 100%);
+  max-width: min(100%, 100%);
+  margin-top: 0.5rem;
+  margin-right: 1.5rem;
+  margin-bottom: 1rem;
+}
+
 .prose-custom figure[data-image-layout="wrap-right"],
-.prose-custom .image-node[data-image-layout="wrap-right"],
-.prose-custom .video-node[data-video-layout="wrap-right"] {
+.prose-custom .image-node[data-image-layout="wrap-right"] {
   float: right;
   clear: right;
   width: min(var(--image-width, 40%), 100%);
   max-width: min(24rem, 100%);
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
+  margin-left: 1.5rem;
+}
+
+.prose-custom .video-node[data-video-layout="wrap-right"] {
+  float: right;
+  clear: right;
+  width: min(var(--video-width, 40%), 100%);
+  max-width: min(100%, 100%);
   margin-top: 0.5rem;
   margin-bottom: 1rem;
   margin-left: 1.5rem;
