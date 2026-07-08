@@ -35,14 +35,12 @@ const VideoResizeComponent = (props: NodeViewProps) => {
   const wrapperClass = cn(
     "video-node group relative",
     layout === 'block-center' && "block w-full my-10 clear-both",
-    layout === 'wrap-left' && "float-left mr-6 my-6",
-    layout === 'wrap-right' && "float-right ml-6 my-6"
+    layout === 'wrap-left' && "float-left my-6",
+    layout === 'wrap-right' && "float-right my-6"
   );
 
   const wrapperStyle = {
     '--video-width': width || (isWrapped ? '40%' : '100%'),
-    ...(layout === 'wrap-right' && { float: 'right' }),
-    ...(layout === 'wrap-left' && { float: 'left' }),
   } as React.CSSProperties;
 
   // Resize handler
@@ -154,11 +152,7 @@ const VideoResizeComponent = (props: NodeViewProps) => {
           "relative max-w-full group",
           layout === 'block-center' && "mx-auto"
         )}
-        style={{ 
-          width: width || '100%',
-          ...(layout === 'wrap-right' && { float: 'right' }),
-          ...(layout === 'wrap-left' && { float: 'left' }),
-        }}
+        style={{ width: isWrapped ? '100%' : (width || '100%') }}
       >
         <div className="video-container rounded-xl overflow-hidden bg-zinc-950 shadow-2xl border border-zinc-800">
           <video
