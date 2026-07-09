@@ -241,7 +241,7 @@ export const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorPro
     <div className="relative flex w-full items-start gap-6 xl:gap-8">
       {/* Main Editor Column */}
       <div className={cn(
-        "flex-1 flex flex-col relative transition-all duration-500 ease-in-out group",
+        "flex-1 min-w-0 flex flex-col relative transition-all duration-500 ease-in-out group",
         isFullscreen 
           ? "fixed inset-0 z-100 bg-white dark:bg-black" 
           : "bg-white dark:bg-[#0a0a0a] rounded-xl border border-zinc-300/50 dark:border-zinc-800 shadow-[0_20px_70px_rgba(0,0,0,0.08)] dark:shadow-[0_20px_70px_rgba(0,0,0,0.4)]",
@@ -261,7 +261,7 @@ export const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorPro
         />
 
         <div className={cn(
-          "flex-1 overflow-y-auto custom-scrollbar relative",
+          "flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar relative",
           isFullscreen ? "h-[calc(100vh-64px)]" : "min-h-[calc(100vh-16rem)]"
         )}>
           <div className="w-full">

@@ -41,6 +41,9 @@ const VideoResizeComponent = (props: NodeViewProps) => {
 
   const wrapperStyle = {
     '--video-width': width || (isWrapped ? '40%' : '100%'),
+    // Prevent the NodeViewWrapper from overflowing its float context
+    maxWidth: '100%',
+    boxSizing: 'border-box' as const,
   } as React.CSSProperties;
 
   // Resize handler

@@ -98,13 +98,32 @@ body {
   --content-max: 65ch;
   --content-padding: 1.5rem;
   --editor-text-width: min(var(--content-max), calc(100% - var(--content-padding) * 2));
+  /*
+   * PADDING-BASED CENTERING — compatible with CSS floats.
+   *
+   * The previous approach (width + margin:auto on children) is architecturally
+   * incompatible with CSS floats. When a child has an explicit width + margin:auto,
+   * its box does NOT shrink to avoid an adjacent float — only its text line-boxes do.
+   * This creates layout tension that the browser resolves by expanding the container.
+   *
+   * Solution: constrain the text column via padding on THIS element instead.
+   * Children then fill the padded area naturally, and floats work correctly.
+   *
+   * DO NOT add overflow-x: hidden here — it would implicitly set overflow-y: auto
+   * (per CSS spec), which clips the absolute-positioned floating toolbars (-top-14)
+   * on image/video nodes. Overflow containment is handled by the parent scroll div.
+   */
+  padding-left: max(var(--content-padding), calc((100% - var(--content-max)) / 2));
+  padding-right: max(var(--content-padding), calc((100% - var(--content-max)) / 2));
+  box-sizing: border-box;
 }
 
 .editor-prose > * {
-  width: var(--editor-text-width);
+  /* Children fill the padded text column naturally. No explicit width needed. */
   max-width: 100%;
-  margin-left: auto;
-  margin-right: auto;
+  /* Prevent unbreakable strings (URLs, code) from pushing the container wider */
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 @media (min-width: 768px) {
@@ -237,8 +256,14 @@ body {
 
 .editor-prose > [data-image-layout="wrap-left"],
 .editor-prose > [data-image-layout="wrap-right"] {
-  width: min(var(--image-width, 40%), var(--editor-text-width));
-  max-width: min(24rem, var(--editor-text-width));
+  /*
+   * With padding-based centering on .editor-prose, floated nodes are already
+   * within the constrained text column. Width is relative to the padded area.
+   * Cap at 55% to always leave enough room for text to flow beside the media.
+   */
+  width: min(var(--image-width, 40%), 55%);
+  max-width: min(24rem, 55%);
+  box-sizing: border-box;
 }
 
 .editor-prose > [data-image-layout="wrap-left"] {
@@ -247,14 +272,14 @@ body {
   margin-top: 0.5rem;
   margin-right: 1.5rem;
   margin-bottom: 1rem;
-  margin-left: max(var(--content-padding), calc((100% - var(--editor-text-width)) / 2));
+  /* margin-left: 0 — container padding already provides the indent */
 }
 
 .editor-prose > [data-image-layout="wrap-right"] {
   float: right;
   clear: right;
   margin-top: 0.5rem;
-  margin-right: max(var(--content-padding), calc((100% - var(--editor-text-width)) / 2));
+  /* margin-right: 0 — container padding already provides the indent */
   margin-bottom: 1rem;
   margin-left: 1.5rem;
 }
@@ -263,8 +288,10 @@ body {
 .prose-custom .image-node[data-image-layout="wrap-left"] {
   float: left;
   clear: left;
-  width: min(var(--image-width, 40%), 100%);
-  max-width: min(24rem, 100%);
+  width: min(var(--image-width, 40%), 60%);
+  max-width: min(24rem, 60%);
+  box-sizing: border-box;
+  overflow: hidden;
   margin-top: 0.5rem;
   margin-right: 1.5rem;
   margin-bottom: 1rem;
@@ -273,8 +300,10 @@ body {
 .prose-custom .video-node[data-video-layout="wrap-left"] {
   float: left;
   clear: left;
-  width: min(var(--video-width, 40%), 100%);
-  max-width: min(100%, 100%);
+  width: min(var(--video-width, 40%), 60%);
+  max-width: 60%;
+  box-sizing: border-box;
+  overflow: hidden;
   margin-top: 0.5rem;
   margin-right: 1.5rem;
   margin-bottom: 1rem;
@@ -284,8 +313,10 @@ body {
 .prose-custom .image-node[data-image-layout="wrap-right"] {
   float: right;
   clear: right;
-  width: min(var(--image-width, 40%), 100%);
-  max-width: min(24rem, 100%);
+  width: min(var(--image-width, 40%), 60%);
+  max-width: min(24rem, 60%);
+  box-sizing: border-box;
+  overflow: hidden;
   margin-top: 0.5rem;
   margin-bottom: 1rem;
   margin-left: 1.5rem;
@@ -294,8 +325,10 @@ body {
 .prose-custom .video-node[data-video-layout="wrap-right"] {
   float: right;
   clear: right;
-  width: min(var(--video-width, 40%), 100%);
-  max-width: min(100%, 100%);
+  width: min(var(--video-width, 40%), 60%);
+  max-width: 60%;
+  box-sizing: border-box;
+  overflow: hidden;
   margin-top: 0.5rem;
   margin-bottom: 1rem;
   margin-left: 1.5rem;
