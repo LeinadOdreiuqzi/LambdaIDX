@@ -35,7 +35,9 @@ import {
   FileVideo,
   FileImage,
   Network,
-  Scissors
+  Scissors,
+  Eraser,
+  AlertTriangle,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { uploadFile } from '@/app/actions/upload';
@@ -50,6 +52,7 @@ interface ToolbarProps {
 export function Toolbar({ editor, isFullscreen, onToggleFullscreen }: ToolbarProps) {
   const imageInputRef = React.useRef<HTMLInputElement>(null);
   const videoInputRef = React.useRef<HTMLInputElement>(null);
+  const [showClearDialog, setShowClearDialog] = React.useState(false);
 
   // Force re‑render when editor selection or formatting changes
   const [, setTick] = React.useState(0);
@@ -354,6 +357,18 @@ export function Toolbar({ editor, isFullscreen, onToggleFullscreen }: ToolbarPro
       </div>
 
       <div className="flex items-center gap-1 pl-2 ml-auto">
+        {/* ─── CLEAR PAGE ─── */}
+        <button
+          type="button"
+          onClick={() => setShowClearDialog(true)}
+          title="Clear Page Content"
+          className="w-8 h-8 flex items-center justify-center transition-all border border-transparent text-red-400 hover:bg-red-950/60 hover:border-red-800/60 hover:text-red-300 dark:text-red-500 dark:hover:bg-red-950/40 dark:hover:text-red-400 rounded-sm"
+        >
+          <Eraser className="w-4 h-4" />
+        </button>
+
+        <div className="w-px h-4 bg-zinc-200 dark:bg-zinc-800 mx-1" />
+
         <ToolbarBtn 
           onClick={() => onToggleFullscreen?.()} 
           isActive={isFullscreen}
@@ -362,6 +377,83 @@ export function Toolbar({ editor, isFullscreen, onToggleFullscreen }: ToolbarPro
           {isFullscreen ? <Minimize className="w-4 h-4" /> : <Maximize className="w-4 h-4" />}
         </ToolbarBtn>
       </div>
+
+      {/* ─── CLEAR PAGE CONFIRMATION DIALOG ─── */}
+      {showClearDialog && (
+        <div
+          className="fixed inset-0 z-[200] flex items-center justify-center"
+          onClick={(e) => { if (e.target === e.currentTarget) setShowClearDialog(false); }}
+        >
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-black/60 dark:bg-black/75 backdrop-blur-sm animate-in fade-in duration-200" />
+
+          {/* Dialog Panel */}
+          <div className="relative w-full max-w-md mx-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
+            {/* Industrial badge */}
+            <div className="absolute -top-3 -left-3 z-10 px-3 py-1 bg-red-600 text-white text-[8px] font-mono font-bold tracking-[0.2em] rounded-sm shadow-xl transform -rotate-1">
+              DESTRUCTIVE // CLEAR-ALL
+            </div>
+
+            <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-[0_32px_80px_rgba(0,0,0,0.25)] dark:shadow-[0_32px_80px_rgba(0,0,0,0.6)] overflow-hidden">
+              {/* Header */}
+              <div className="flex items-start gap-4 p-6 border-b border-zinc-100 dark:border-zinc-900">
+                <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-red-50 dark:bg-red-950/50 border border-red-100 dark:border-red-900/50 flex items-center justify-center">
+                  <AlertTriangle className="w-5 h-5 text-red-500 dark:text-red-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[10px] font-mono font-bold tracking-[0.2em] text-red-500 dark:text-red-400 uppercase mb-1">
+                    Acción Irreversible
+                  </p>
+                  <h2 className="text-lg font-bold text-black dark:text-white leading-tight">
+                    Limpiar página
+                  </h2>
+                </div>
+              </div>
+
+              {/* Body */}
+              <div className="px-6 py-5">
+                <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                  Todo el contenido de esta página será eliminado permanentemente.
+                  Esta acción{' '}
+                  <span className="font-semibold text-black dark:text-white">no se puede deshacer</span>.
+                </p>
+
+                {/* Warning callout */}
+                <div className="mt-4 flex items-start gap-3 p-3 rounded-lg bg-red-50/80 dark:bg-red-950/20 border border-red-100 dark:border-red-900/40">
+                  <div className="w-1 self-stretch rounded-full bg-red-400 dark:bg-red-600 flex-shrink-0" />
+                  <p className="text-xs font-mono text-red-600 dark:text-red-400 leading-relaxed">
+                    Se borrarán todos los bloques: texto, imágenes, videos, tablas, callouts y fórmulas.
+                  </p>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center justify-end gap-2 px-6 py-4 bg-zinc-50/80 dark:bg-zinc-900/50 border-t border-zinc-100 dark:border-zinc-900">
+                <button
+                  type="button"
+                  id="clear-dialog-cancel"
+                  onClick={() => setShowClearDialog(false)}
+                  className="px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600 transition-all duration-150"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  id="clear-dialog-confirm"
+                  onClick={() => {
+                    editor.chain().focus().clearContent(true).run();
+                    setShowClearDialog(false);
+                  }}
+                  className="px-4 py-2 text-sm font-bold text-white bg-red-600 hover:bg-red-700 active:bg-red-800 border border-red-600 hover:border-red-700 rounded-lg shadow-sm hover:shadow-red-900/20 transition-all duration-150 flex items-center gap-2"
+                >
+                  <Eraser className="w-4 h-4" />
+                  Limpiar página
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ─── CONTEXTUAL TABLE TOOLS ─── */}
       {editor.isActive('table') && (
