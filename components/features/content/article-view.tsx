@@ -114,7 +114,7 @@ export function ArticleView({ title, content, contentJson, breadcrumbs }: Articl
       {/* ─── CONTENT ZONE ───
            This is the rule-free render container.
            Content comes from TipTap / CMS as JSON or HTML.
-           The .content-grid ensures text stays at 70ch
+           The .content-grid ensures text stays at 85ch
            while .breakout children (pre, img, table) go full width.
            .prose-custom handles only typographic styling of child elements. */}
       <div className="content-grid prose-custom" onClick={handleContentClick}>
