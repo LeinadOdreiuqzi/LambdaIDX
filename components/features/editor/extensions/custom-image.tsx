@@ -170,61 +170,66 @@ const ImageResizeComponent = (props: NodeViewProps) => {
 
         {/* Floating Quick Action Toolbar (only in edit mode when selected) */}
         {isEditable && selected && (
-          <div className="absolute -top-14 left-1/2 -translate-x-1/2 flex items-center gap-1 p-1.5 bg-zinc-900/95 dark:bg-zinc-950/95 border border-zinc-800 rounded-lg shadow-2xl z-30 backdrop-blur-sm animate-in fade-in slide-in-from-bottom-2 duration-200">
+          <div className="absolute -top-14 left-1/2 -translate-x-1/2 flex items-center gap-1 p-1.5 bg-white/95 dark:bg-zinc-950/95 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-2xl z-30 backdrop-blur-sm animate-in fade-in slide-in-from-bottom-2 duration-200">
             {/* Alignments */}
             <button
+              type="button"
               onClick={() => setLayout('wrap-left')}
               className={cn(
-                "p-1.5 rounded text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors",
-                layout === 'wrap-left' && "text-white bg-zinc-800"
+                "p-1.5 rounded text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors shrink-0",
+                layout === 'wrap-left' && "text-black bg-zinc-100 dark:text-white dark:bg-zinc-800"
               )}
               title="Wrap Left"
             >
               <AlignLeft className="w-3.5 h-3.5" />
             </button>
             <button
+              type="button"
               onClick={() => setLayout('block-center')}
               className={cn(
-                "p-1.5 rounded text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors",
-                layout === 'block-center' && "text-white bg-zinc-800"
+                "p-1.5 rounded text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors shrink-0",
+                layout === 'block-center' && "text-black bg-zinc-100 dark:text-white dark:bg-zinc-800"
               )}
               title="Block"
             >
               <AlignCenter className="w-3.5 h-3.5" />
             </button>
             <button
+              type="button"
               onClick={() => setLayout('wrap-right')}
               className={cn(
-                "p-1.5 rounded text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors",
-                layout === 'wrap-right' && "text-white bg-zinc-800"
+                "p-1.5 rounded text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors shrink-0",
+                layout === 'wrap-right' && "text-black bg-zinc-100 dark:text-white dark:bg-zinc-800"
               )}
               title="Wrap Right"
             >
               <AlignRight className="w-3.5 h-3.5" />
             </button>
             
-            <div className="w-[1px] h-4 bg-zinc-800 dark:bg-zinc-800 mx-1" />
+            <div className="w-[1px] h-4 bg-zinc-200 dark:bg-zinc-800 mx-1 shrink-0" />
             
             {/* Presets */}
             {[25, 50, 75, 100].map((pct) => (
               <button
                 key={pct}
+                type="button"
                 onClick={() => setPresetWidth(pct)}
                 className={cn(
-                  "px-2 py-0.5 rounded text-[10px] font-mono font-bold text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors",
-                  (width === `${pct}%` || (pct === 100 && !width)) && "text-white bg-zinc-800"
+                  "px-2 py-0.5 rounded text-[10px] font-mono font-bold text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors shrink-0 whitespace-nowrap",
+                  (width === `${pct}%` || (pct === 100 && !width)) && "text-black bg-zinc-100 dark:text-white dark:bg-zinc-800"
                 )}
               >
                 {pct}%
               </button>
             ))}
 
-            <div className="w-[1px] h-4 bg-zinc-850 mx-1" />
+            <div className="w-[1px] h-4 bg-zinc-200 dark:bg-zinc-800 mx-1 shrink-0" />
 
             {/* Delete button */}
             <button
+              type="button"
               onClick={() => deleteNode()}
-              className="p-1.5 rounded text-red-400 hover:text-red-300 hover:bg-red-950/50 transition-colors"
+              className="p-1.5 rounded text-red-500 hover:text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950/50 transition-colors shrink-0"
               title="Delete Image"
             >
               <Trash2 className="w-3.5 h-3.5" />

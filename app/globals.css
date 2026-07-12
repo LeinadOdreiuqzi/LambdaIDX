@@ -291,7 +291,6 @@ body {
   width: min(var(--image-width, 40%), 60%);
   max-width: min(24rem, 60%);
   box-sizing: border-box;
-  overflow: hidden;
   margin-top: 0.5rem;
   margin-right: 1.5rem;
   margin-bottom: 1rem;
@@ -303,7 +302,6 @@ body {
   width: min(var(--video-width, 40%), 60%);
   max-width: 60%;
   box-sizing: border-box;
-  overflow: hidden;
   margin-top: 0.5rem;
   margin-right: 1.5rem;
   margin-bottom: 1rem;
@@ -316,7 +314,6 @@ body {
   width: min(var(--image-width, 40%), 60%);
   max-width: min(24rem, 60%);
   box-sizing: border-box;
-  overflow: hidden;
   margin-top: 0.5rem;
   margin-bottom: 1rem;
   margin-left: 1.5rem;
@@ -328,7 +325,6 @@ body {
   width: min(var(--video-width, 40%), 60%);
   max-width: 60%;
   box-sizing: border-box;
-  overflow: hidden;
   margin-top: 0.5rem;
   margin-bottom: 1rem;
   margin-left: 1.5rem;
