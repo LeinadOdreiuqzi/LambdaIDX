@@ -46,6 +46,24 @@ export function BubbleMenu({ editor }: BubbleMenuProps) {
     <TiptapBubbleMenu
       editor={editor}
       className="flex items-center gap-0.5 p-1 glass-panel rounded-lg shadow-xl border border-zinc-200 dark:border-zinc-800 bg-white/90 dark:bg-zinc-950/90"
+      shouldShow={({ editor, view, state }) => {
+        const { selection } = state;
+        const { $from, $to } = selection;
+        
+        // Check if selection is within a video node
+        let inVideo = false;
+        state.doc.nodesBetween($from.pos, $to.pos, (node) => {
+          if (node.type.name === 'video') {
+            inVideo = true;
+            return false; // Stop traversal
+          }
+        });
+        
+        // Don't show bubble menu if inside a video node
+        if (inVideo) return false;
+        
+        return true;
+      }}
     >
       <Btn onClick={() => editor.chain().focus().toggleBold().run()} isActive={editor.isActive('bold')}>
         <Bold className="w-4 h-4" />

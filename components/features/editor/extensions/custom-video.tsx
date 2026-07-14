@@ -156,17 +156,30 @@ const VideoResizeComponent = (props: NodeViewProps) => {
           layout === 'block-center' && "mx-auto"
         )}
         style={{ width: isWrapped ? '100%' : (width || '100%') }}
+        onClick={(e) => {
+          // Prevent editor from interfering with video container
+          e.stopPropagation();
+        }}
+        onDoubleClick={(e) => {
+          e.stopPropagation();
+        }}
       >
-        <div className="video-container rounded-xl overflow-hidden bg-zinc-950 shadow-2xl border border-zinc-800">
+        <div 
+          className="video-container rounded-xl overflow-hidden bg-zinc-950 shadow-2xl border border-zinc-800"
+          onClick={(e) => {
+            // Prevent editor from interfering with video playback
+            e.stopPropagation();
+          }}
+          onDoubleClick={(e) => {
+            e.stopPropagation();
+          }}
+        >
           <video
             ref={videoRef}
             src={src}
             poster={poster}
             controls={true}
-            className={cn(
-              "w-full aspect-video outline-none",
-              isEditable && selected && "pointer-events-none"
-            )}
+            className="w-full aspect-video outline-none"
             preload="metadata"
           />
         </div>
@@ -281,7 +294,7 @@ export const CustomVideo = Node.create({
   group: 'block',
   atom: true,
   draggable: false,
-  selectable: true,
+  selectable: false,
 
   addAttributes() {
     return {
