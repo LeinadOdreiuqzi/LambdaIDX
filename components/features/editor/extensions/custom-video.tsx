@@ -156,24 +156,8 @@ const VideoResizeComponent = (props: NodeViewProps) => {
           layout === 'block-center' && "mx-auto"
         )}
         style={{ width: isWrapped ? '100%' : (width || '100%') }}
-        onClick={(e) => {
-          // Prevent editor from interfering with video container
-          e.stopPropagation();
-        }}
-        onDoubleClick={(e) => {
-          e.stopPropagation();
-        }}
       >
-        <div 
-          className="video-container rounded-xl overflow-hidden bg-zinc-950 shadow-2xl border border-zinc-800"
-          onClick={(e) => {
-            // Prevent editor from interfering with video playback
-            e.stopPropagation();
-          }}
-          onDoubleClick={(e) => {
-            e.stopPropagation();
-          }}
-        >
+        <div className="video-container rounded-xl overflow-hidden bg-zinc-950 shadow-2xl border border-zinc-800">
           <video
             ref={videoRef}
             src={src}
@@ -293,7 +277,7 @@ export const CustomVideo = Node.create({
   name: 'video',
   group: 'block',
   atom: true,
-  draggable: false,
+  draggable: true,
   selectable: false,
 
   addAttributes() {
@@ -362,7 +346,16 @@ export const CustomVideo = Node.create({
   },
 
   addNodeView() {
-    return ReactNodeViewRenderer(VideoResizeComponent);
+    return ReactNodeViewRenderer(VideoResizeComponent, {
+      stopEvent: ({ event }) => {
+        // Allow drag events to pass through to the editor
+        if (event.type === 'dragstart' || event.type === 'dragend' || event.type === 'drop') {
+          return false;
+        }
+        // Block other events that would interfere with the custom UI
+        return true;
+      },
+    });
   },
 
   addCommands() {

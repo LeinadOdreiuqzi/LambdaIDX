@@ -242,6 +242,7 @@ const ImageResizeComponent = (props: NodeViewProps) => {
 };
 
 export const CustomImage = Image.extend({
+  draggable: true,
   addAttributes() {
     return {
       ...this.parent?.(),
@@ -291,6 +292,15 @@ export const CustomImage = Image.extend({
   },
 
   addNodeView() {
-    return ReactNodeViewRenderer(ImageResizeComponent);
+    return ReactNodeViewRenderer(ImageResizeComponent, {
+      stopEvent: ({ event }) => {
+        // Allow drag events to pass through to the editor
+        if (event.type === 'dragstart' || event.type === 'dragend' || event.type === 'drop') {
+          return false;
+        }
+        // Block other events that would interfere with the custom UI
+        return true;
+      },
+    });
   },
 });
