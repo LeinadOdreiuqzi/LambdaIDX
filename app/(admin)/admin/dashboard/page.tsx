@@ -38,7 +38,13 @@ export default function AdminDashboard() {
 
     setIsCreating(true);
     try {
-      const slug = pageTitle.toLowerCase().replace(/\s+/g, "-");
+      const slug = pageTitle
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9\s-]/g, "")
+        .replace(/\s+/g, "-")
+        .trim();
       await createPage({
         title: pageTitle,
         slug,
