@@ -4,7 +4,7 @@ import Image from '@tiptap/extension-image';
 import { ReactNodeViewRenderer, NodeViewWrapper, NodeViewProps } from '@tiptap/react';
 import React, { useRef, useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
-import { AlignLeft, AlignCenter, AlignRight, Trash2 } from 'lucide-react';
+import { AlignLeft, AlignCenter, AlignRight, Trash2, Settings } from 'lucide-react';
 
 type ImageLayout = 'block-center' | 'wrap-left' | 'wrap-right';
 
@@ -27,6 +27,7 @@ const ImageResizeComponent = (props: NodeViewProps) => {
   const [resizing, setResizing] = useState(false);
   const [startWidth, setStartWidth] = useState(0);
   const [startX, setStartX] = useState(0);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const isEditable = editor.isEditable;
   const layout = normalizeImageLayout(rawLayout, align);
@@ -157,6 +158,21 @@ const ImageResizeComponent = (props: NodeViewProps) => {
           )}
         />
         
+        {/* Settings Button (top-right corner) */}
+        {isEditable && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setMenuOpen(!menuOpen);
+            }}
+            className="absolute top-3 right-3 w-8 h-8 bg-white/95 dark:bg-zinc-950/95 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-lg z-20 flex items-center justify-center hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
+            title="Image settings"
+          >
+            <Settings className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />
+          </button>
+        )}
+        
         {/* Resize Handle (Only bottom-right in edit mode when selected) */}
         {isEditable && selected && (
           <div 
@@ -168,71 +184,89 @@ const ImageResizeComponent = (props: NodeViewProps) => {
           </div>
         )}
 
-        {/* Floating Quick Action Toolbar (only in edit mode when selected) */}
-        {isEditable && selected && (
-          <div className="absolute -top-14 left-1/2 -translate-x-1/2 flex items-center gap-1 p-1.5 bg-white/95 dark:bg-zinc-950/95 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-2xl z-30 backdrop-blur-sm animate-in fade-in slide-in-from-bottom-2 duration-200">
+        {/* Context Menu Dropdown (only when menuOpen) */}
+        {isEditable && menuOpen && (
+          <div className="absolute top-12 right-3 flex flex-col gap-1 p-1.5 bg-white/95 dark:bg-zinc-950/95 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-2xl z-30 backdrop-blur-sm min-w-[200px]">
             {/* Alignments */}
-            <button
-              type="button"
-              onClick={() => setLayout('wrap-left')}
-              className={cn(
-                "p-1.5 rounded text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors shrink-0",
-                layout === 'wrap-left' && "text-black bg-zinc-100 dark:text-white dark:bg-zinc-800"
-              )}
-              title="Wrap Left"
-            >
-              <AlignLeft className="w-3.5 h-3.5" />
-            </button>
-            <button
-              type="button"
-              onClick={() => setLayout('block-center')}
-              className={cn(
-                "p-1.5 rounded text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors shrink-0",
-                layout === 'block-center' && "text-black bg-zinc-100 dark:text-white dark:bg-zinc-800"
-              )}
-              title="Block"
-            >
-              <AlignCenter className="w-3.5 h-3.5" />
-            </button>
-            <button
-              type="button"
-              onClick={() => setLayout('wrap-right')}
-              className={cn(
-                "p-1.5 rounded text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors shrink-0",
-                layout === 'wrap-right' && "text-black bg-zinc-100 dark:text-white dark:bg-zinc-800"
-              )}
-              title="Wrap Right"
-            >
-              <AlignRight className="w-3.5 h-3.5" />
-            </button>
-            
-            <div className="w-[1px] h-4 bg-zinc-200 dark:bg-zinc-800 mx-1 shrink-0" />
+            <div className="flex items-center gap-1 mb-1 pb-1 border-b border-zinc-200 dark:border-zinc-800">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setLayout('wrap-left');
+                }}
+                className={cn(
+                  "p-1.5 rounded text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors shrink-0",
+                  layout === 'wrap-left' && "text-black bg-zinc-100 dark:text-white dark:bg-zinc-800"
+                )}
+                title="Wrap Left"
+              >
+                <AlignLeft className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setLayout('block-center');
+                }}
+                className={cn(
+                  "p-1.5 rounded text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors shrink-0",
+                  layout === 'block-center' && "text-black bg-zinc-100 dark:text-white dark:bg-zinc-800"
+                )}
+                title="Block"
+              >
+                <AlignCenter className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setLayout('wrap-right');
+                }}
+                className={cn(
+                  "p-1.5 rounded text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors shrink-0",
+                  layout === 'wrap-right' && "text-black bg-zinc-100 dark:text-white dark:bg-zinc-800"
+                )}
+                title="Wrap Right"
+              >
+                <AlignRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
             
             {/* Presets */}
-            {[25, 50, 75, 100].map((pct) => (
-              <button
-                key={pct}
-                type="button"
-                onClick={() => setPresetWidth(pct)}
-                className={cn(
-                  "px-2 py-0.5 rounded text-[10px] font-mono font-bold text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors shrink-0 whitespace-nowrap",
-                  (width === `${pct}%` || (pct === 100 && !width)) && "text-black bg-zinc-100 dark:text-white dark:bg-zinc-800"
-                )}
-              >
-                {pct}%
-              </button>
-            ))}
+            <div className="flex flex-wrap gap-1">
+              {[25, 50, 75, 100].map((pct) => (
+                <button
+                  key={pct}
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setPresetWidth(pct);
+                  }}
+                  className={cn(
+                    "px-2 py-0.5 rounded text-[10px] font-mono font-bold text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors shrink-0 whitespace-nowrap",
+                    (width === `${pct}%` || (pct === 100 && !width)) && "text-black bg-zinc-100 dark:text-white dark:bg-zinc-800"
+                  )}
+                >
+                  {pct}%
+                </button>
+              ))}
+            </div>
 
-            <div className="w-[1px] h-4 bg-zinc-200 dark:bg-zinc-800 mx-1 shrink-0" />
+            <div className="w-full h-[1px] bg-zinc-200 dark:bg-zinc-800 my-1" />
 
             {/* Delete button */}
             <button
               type="button"
-              onClick={() => deleteNode()}
-              className="p-1.5 rounded text-red-500 hover:text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950/50 transition-colors shrink-0"
+              onClick={(e) => {
+                e.stopPropagation();
+                deleteNode();
+              }}
+              className="w-full p-1.5 rounded text-red-500 hover:text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-950/50 transition-colors flex items-center justify-center gap-2"
               title="Delete Image"
             >
               <Trash2 className="w-3.5 h-3.5" />
+              <span className="text-xs font-medium">Eliminar</span>
             </button>
           </div>
         )}
