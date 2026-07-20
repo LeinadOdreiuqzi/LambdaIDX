@@ -28,16 +28,19 @@ html[data-theme="dark"] {
   --font-mono: var(--font-geist-mono);
 }
 
-html[data-font-size="sm"] {
-  font-size: 15px;
+html[data-font-size="sm"],
+:root[data-font-size="sm"] {
+  font-size: 14px !important;
 }
 
-html[data-font-size="md"] {
-  font-size: 16px;
+html[data-font-size="md"],
+:root[data-font-size="md"] {
+  font-size: 16px !important;
 }
 
-html[data-font-size="lg"] {
-  font-size: 18px;
+html[data-font-size="lg"],
+:root[data-font-size="lg"] {
+  font-size: 19px !important;
 }
 
 body {
