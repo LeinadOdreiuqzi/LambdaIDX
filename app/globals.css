@@ -28,25 +28,74 @@ html[data-theme="dark"] {
   --font-mono: var(--font-geist-mono);
 }
 
+/* Font size scaling - use CSS variables to scale content without breaking layout */
 html[data-font-size="sm"],
 :root[data-font-size="sm"] {
-  font-size: 14px !important;
+  --content-scale: 0.875;
 }
 
 html[data-font-size="md"],
 :root[data-font-size="md"] {
-  font-size: 16px !important;
+  --content-scale: 1;
 }
 
 html[data-font-size="lg"],
 :root[data-font-size="lg"] {
-  font-size: 19px !important;
+  --content-scale: 1.125;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Apply font-size scaling only to text content, not layout */
+.prose-custom, .editor-prose, [data-content-scale] {
+  font-size: calc(16px * var(--content-scale, 1)) !important;
+  line-height: 1.6;
+}
+
+/* Ensure text elements inherit the scaled font size */
+.prose-custom h1,
+.prose-custom h2,
+.prose-custom h3,
+.prose-custom h4,
+.prose-custom h5,
+.prose-custom h6,
+.prose-custom p,
+.prose-custom li,
+.prose-custom a,
+.prose-custom span,
+.prose-custom td,
+.prose-custom th,
+.prose-custom blockquote,
+.prose-custom code,
+.prose-custom pre,
+.prose-custom strong,
+.prose-custom em,
+.prose-custom ul,
+.prose-custom ol,
+.editor-prose h1,
+.editor-prose h2,
+.editor-prose h3,
+.editor-prose h4,
+.editor-prose h5,
+.editor-prose h6,
+.editor-prose p,
+.editor-prose li,
+.editor-prose a,
+.editor-prose span,
+.editor-prose td,
+.editor-prose th,
+.editor-prose blockquote,
+.editor-prose code,
+.editor-prose pre,
+.editor-prose strong,
+.editor-prose em,
+.editor-prose ul,
+.editor-prose ol {
+  font-size: inherit !important;
 }
 
 .custom-scrollbar::-webkit-scrollbar {
