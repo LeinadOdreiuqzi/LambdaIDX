@@ -96,11 +96,11 @@ export function ArticleView({ title, content, contentJson, breadcrumbs }: Articl
         <div>
           <Breadcrumbs items={breadcrumbs} />
 
-          <h1 className="mt-10 text-3xl md:text-6xl lg:text-7xl font-black tracking-tighter text-black dark:text-white leading-[1.05]">
+          <h1 className="mt-10 text-3xl md:text-6xl lg:text-7xl font-black tracking-tight text-black dark:text-white leading-tight">
             {title}
           </h1>
 
-          <div className="mt-8 flex items-center gap-4 text-xs font-mono text-zinc-400 uppercase tracking-widest">
+          <div className="mt-6 flex items-center gap-4 text-xs font-mono text-zinc-400 uppercase tracking-widest">
             <span>LambdaIDX</span>
             <span className="w-1 h-1 rounded-full bg-zinc-600" />
             <span>Knowledge Node</span>

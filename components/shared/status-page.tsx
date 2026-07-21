@@ -116,7 +116,7 @@ export function StatusPage({
         </div>
 
         {/* Heading */}
-        <h1 className="text-6xl md:text-8xl font-black uppercase tracking-tighter leading-none mb-6">
+        <h1 className="text-6xl md:text-8xl font-black uppercase tracking-tight leading-tight mb-6">
           {heading}
         </h1>
 

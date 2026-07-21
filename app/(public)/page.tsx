@@ -19,7 +19,7 @@ export default function Home() {
             transition={{ duration: 0.8 }}
             className="flex flex-col items-center text-center"
           >
-            <h1 className="text-6xl md:text-9xl font-black uppercase tracking-tighter leading-[0.85] mb-12">
+            <h1 className="text-6xl md:text-9xl font-black uppercase tracking-tight leading-none md:leading-[0.95] mb-12">
               Knowledge<br />
               <span className="text-zinc-600 outline-text">Archive.</span>
             </h1>
@@ -69,7 +69,7 @@ export default function Home() {
             <div className="flex flex-col md:flex-row justify-between items-end gap-10 mb-20">
               <div className="max-w-xl text-left">
                 <span className="text-zinc-600 font-mono text-[10px] uppercase tracking-widest mb-4 block underline underline-offset-8">Sección: Ecosistema_Del_Conocimiento</span>
-                <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tighter mt-4">
+                <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tight leading-tight mt-4">
                   Más Allá de la <br /> <span className="text-zinc-600">Clasificación.</span>
                 </h2>
               </div>
