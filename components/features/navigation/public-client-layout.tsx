@@ -17,8 +17,18 @@ interface PublicClientLayoutProps {
 }
 
 export function PublicClientLayout({ children, tree }: PublicClientLayoutProps) {
-  const { isSidebarOpen, toggleSidebar } = useNavigation();
+  const { isSidebarOpen, setIsSidebarOpen, toggleSidebar } = useNavigation();
   const pathname = usePathname();
+
+  // Auto-collapse sidebar on root landing page for full-width layout
+  React.useEffect(() => {
+    if (pathname === "/") {
+      const saved = localStorage.getItem("lambdaidx-sidebar");
+      if (saved === null) {
+        setIsSidebarOpen(false);
+      }
+    }
+  }, [pathname, setIsSidebarOpen]);
 
   return (
     <div className="relative flex min-h-screen bg-white dark:bg-black">

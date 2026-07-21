@@ -29,6 +29,8 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
     const saved = localStorage.getItem("lambdaidx-sidebar");
     if (saved !== null) {
       setIsSidebarOpen(saved === "true");
+    } else if (typeof window !== "undefined" && window.location.pathname === "/") {
+      setIsSidebarOpen(false);
     }
     
     const savedRight = localStorage.getItem("lambdaidx-right-sidebar");
