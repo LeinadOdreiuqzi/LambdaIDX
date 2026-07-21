@@ -7,7 +7,7 @@
 }
 
 html {
-  font-size: 16px;
+  font-size: 14.4px; /* 90% density scale (16px * 0.9 = 14.4px) */
 }
 
 html[data-theme="light"] {
@@ -52,7 +52,7 @@ body {
 
 /* Apply font-size scaling only to text content, not layout */
 .prose-custom, .editor-prose, [data-content-scale] {
-  font-size: calc(16px * var(--content-scale, 1)) !important;
+  font-size: calc(14.4px * var(--content-scale, 1)) !important;
   line-height: 1.6;
 }
 
