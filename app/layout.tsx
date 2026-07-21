@@ -32,15 +32,22 @@ const ACCESSIBILITY_INIT_SCRIPT = `
 
     const fontSize = savedFontSize === "sm" || savedFontSize === "lg" ? savedFontSize : "md";
 
+    // Apply immediately to prevent flash - use kebab-case for CSS compatibility
     html.dataset.theme = theme;
     html.dataset.fontSize = fontSize;
+    html.setAttribute('data-font-size', fontSize);
     html.classList.toggle("dark", theme === "dark");
+
+    // Force a reflow to ensure styles are applied
+    void html.offsetHeight;
   } catch {
     const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     const theme = systemDark ? "dark" : "light";
     document.documentElement.dataset.theme = theme;
     document.documentElement.dataset.fontSize = "md";
+    document.documentElement.setAttribute('data-font-size', 'md');
     document.documentElement.classList.toggle("dark", theme === "dark");
+    void document.documentElement.offsetHeight;
   }
 })();
 `;
@@ -50,6 +57,9 @@ export const viewport: Viewport = {
     { media: "(prefers-color-scheme: light)", color: "#f8fafc" },
     { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
   ],
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
 };
 
 export const metadata: Metadata = {
