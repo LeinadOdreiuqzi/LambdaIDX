@@ -34,7 +34,8 @@ function applyThemeToDocument(mode: ThemeMode) {
 }
 
 function applyFontSizeToDocument(mode: FontSizeMode) {
-  document.documentElement.dataset.fontSize = mode;
+  // Temporarily disabled - font-size scaling removed
+  console.log('[Accessibility] Font size change disabled:', mode);
 }
 
 export function MobileNav({ tree, linkPrefix = "/p", isAdmin = false }: MobileNavProps) {

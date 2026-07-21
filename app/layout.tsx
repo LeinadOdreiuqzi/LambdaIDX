@@ -19,7 +19,6 @@ const ACCESSIBILITY_INIT_SCRIPT = `
   try {
     const html = document.documentElement;
     const savedTheme = localStorage.getItem("lambdaidx-theme");
-    const savedFontSize = localStorage.getItem("lambdaidx-font-size");
 
     let theme;
     if (savedTheme === "light" || savedTheme === "dark") {
@@ -30,24 +29,22 @@ const ACCESSIBILITY_INIT_SCRIPT = `
       theme = systemDark ? "dark" : "light";
     }
 
-    const fontSize = savedFontSize === "sm" || savedFontSize === "lg" ? savedFontSize : "md";
-
-    // Apply immediately to prevent flash - use kebab-case for CSS compatibility
+    // Apply immediately to prevent flash
     html.dataset.theme = theme;
-    html.dataset.fontSize = fontSize;
-    html.setAttribute('data-font-size', fontSize);
     html.classList.toggle("dark", theme === "dark");
 
     // Force a reflow to ensure styles are applied
     void html.offsetHeight;
-  } catch {
+
+    // Debug logging for production
+    console.log('[Accessibility] Theme:', theme);
+  } catch (error) {
     const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     const theme = systemDark ? "dark" : "light";
     document.documentElement.dataset.theme = theme;
-    document.documentElement.dataset.fontSize = "md";
-    document.documentElement.setAttribute('data-font-size', 'md');
     document.documentElement.classList.toggle("dark", theme === "dark");
     void document.documentElement.offsetHeight;
+    console.error('[Accessibility] Error:', error);
   }
 })();
 `;

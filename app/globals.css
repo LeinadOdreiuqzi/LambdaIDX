@@ -28,31 +28,10 @@ html[data-theme="dark"] {
   --font-mono: var(--font-geist-mono);
 }
 
-/* Font size scaling - preserve layout by using zoom on content areas */
-html[data-font-size="sm"],
-:root[data-font-size="sm"] {
-  --text-zoom: 0.875;
-}
-
-html[data-font-size="md"],
-:root[data-font-size="md"] {
-  --text-zoom: 1;
-}
-
-html[data-font-size="lg"],
-:root[data-font-size="lg"] {
-  --text-zoom: 1.125;
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
   transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-/* Apply zoom only to text content areas */
-.prose-custom, .editor-prose, [data-content-scale] {
-  font-size: calc(1rem * var(--text-zoom, 1));
 }
 
 .custom-scrollbar::-webkit-scrollbar {
