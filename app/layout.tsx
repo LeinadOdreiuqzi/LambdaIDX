@@ -19,6 +19,7 @@ const ACCESSIBILITY_INIT_SCRIPT = `
   try {
     const html = document.documentElement;
     const savedTheme = localStorage.getItem("lambdaidx-theme");
+    const savedFontSize = localStorage.getItem("lambdaidx-font-size");
 
     let theme;
     if (savedTheme === "light" || savedTheme === "dark") {
@@ -29,22 +30,17 @@ const ACCESSIBILITY_INIT_SCRIPT = `
       theme = systemDark ? "dark" : "light";
     }
 
-    // Apply immediately to prevent flash
+    const fontSize = savedFontSize === "sm" || savedFontSize === "lg" ? savedFontSize : "md";
+
     html.dataset.theme = theme;
+    html.dataset.fontSize = fontSize;
     html.classList.toggle("dark", theme === "dark");
-
-    // Force a reflow to ensure styles are applied
-    void html.offsetHeight;
-
-    // Debug logging for production
-    console.log('[Accessibility] Theme:', theme);
-  } catch (error) {
+  } catch {
     const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     const theme = systemDark ? "dark" : "light";
     document.documentElement.dataset.theme = theme;
+    document.documentElement.dataset.fontSize = "md";
     document.documentElement.classList.toggle("dark", theme === "dark");
-    void document.documentElement.offsetHeight;
-    console.error('[Accessibility] Error:', error);
   }
 })();
 `;
@@ -54,9 +50,6 @@ export const viewport: Viewport = {
     { media: "(prefers-color-scheme: light)", color: "#f8fafc" },
     { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
   ],
-  width: "device-width",
-  initialScale: 1,
-  maximumScale: 5,
 };
 
 export const metadata: Metadata = {
