@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React from "react";
 import { usePathname } from "next/navigation";
 import { useNavigation } from "@/hooks/use-navigation";
 import { NavSidebar } from "@/components/features/navigation/nav-sidebar";
@@ -11,11 +11,7 @@ import { NavPage } from "@/types";
 import { motion, AnimatePresence } from "framer-motion";
 import { PanelLeftOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
-
 import { FavoritesProvider } from "@/hooks/use-favorites";
-import { FavoritesContextMenu } from "@/components/features/navigation/favorites-context-menu";
-import { FolderModal, ResearchNoteModal } from "@/components/features/navigation/favorites-dialogs";
-import { ContextMenuState, FavoriteFolder } from "@/types/favorites";
 
 interface AdminClientLayoutProps {
   children: React.ReactNode;
@@ -26,43 +22,6 @@ function InnerAdminLayout({ children, tree }: AdminClientLayoutProps) {
   const { isSidebarOpen, toggleSidebar } = useNavigation();
   const pathname = usePathname();
   const isEditorRoute = pathname.startsWith("/admin/editor");
-
-  // Context Menu State
-  const [contextMenu, setContextMenu] = useState<ContextMenuState>({
-    isOpen: false,
-    x: 0,
-    y: 0,
-    type: "canvas",
-  });
-
-  // Modals State
-  const [isFolderModalOpen, setIsFolderModalOpen] = useState(false);
-  const [folderToEdit, setFolderToEdit] = useState<FavoriteFolder | null>(null);
-
-  const [noteModalState, setNoteModalState] = useState<{
-    isOpen: boolean;
-    itemId: string | null;
-    itemTitle: string;
-    note?: string;
-  }>({
-    isOpen: false,
-    itemId: null,
-    itemTitle: "",
-  });
-
-  const handleOpenFolderModal = useCallback((folder?: FavoriteFolder) => {
-    setFolderToEdit(folder || null);
-    setIsFolderModalOpen(true);
-  }, []);
-
-  const handleOpenNoteModal = useCallback((itemId: string, itemTitle: string, currentNote?: string) => {
-    setNoteModalState({
-      isOpen: true,
-      itemId,
-      itemTitle,
-      note: currentNote,
-    });
-  }, []);
 
   return (
     <div className="relative flex min-h-screen bg-zinc-100 dark:bg-[#050505] selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black">
@@ -76,26 +35,6 @@ function InnerAdminLayout({ children, tree }: AdminClientLayoutProps) {
         tree={tree} 
         linkPrefix="/admin/editor" 
         isAdmin={true} 
-        onOpenFolderModal={handleOpenFolderModal}
-        onOpenNoteModal={handleOpenNoteModal}
-        onContextMenuFolder={(e, folder) => {
-          setContextMenu({
-            isOpen: true,
-            x: e.clientX,
-            y: e.clientY,
-            type: "folder",
-            targetFolder: folder,
-          });
-        }}
-        onContextMenuFavItem={(e, item) => {
-          setContextMenu({
-            isOpen: true,
-            x: e.clientX,
-            y: e.clientY,
-            type: "item",
-            targetItem: item,
-          });
-        }}
       />
 
       {/* Navigation - Mobile */}
@@ -104,26 +43,6 @@ function InnerAdminLayout({ children, tree }: AdminClientLayoutProps) {
           tree={tree} 
           linkPrefix="/admin/editor" 
           isAdmin={true} 
-          onOpenFolderModal={handleOpenFolderModal}
-          onOpenNoteModal={handleOpenNoteModal}
-          onContextMenuFolder={(e, folder) => {
-            setContextMenu({
-              isOpen: true,
-              x: e.clientX,
-              y: e.clientY,
-              type: "folder",
-              targetFolder: folder,
-            });
-          }}
-          onContextMenuFavItem={(e, item) => {
-            setContextMenu({
-              isOpen: true,
-              x: e.clientX,
-              y: e.clientY,
-              type: "item",
-              targetItem: item,
-            });
-          }}
         />
       </div>
 
@@ -170,29 +89,6 @@ function InnerAdminLayout({ children, tree }: AdminClientLayoutProps) {
       </main>
 
       <CommandPalette tree={tree} />
-
-      {/* Right-click Context Menu */}
-      <FavoritesContextMenu
-        state={contextMenu}
-        onClose={() => setContextMenu((prev) => ({ ...prev, isOpen: false }))}
-        onOpenFolderModal={handleOpenFolderModal}
-        onOpenNoteModal={handleOpenNoteModal}
-      />
-
-      {/* Custom Dialogs */}
-      <FolderModal
-        isOpen={isFolderModalOpen}
-        onClose={() => setIsFolderModalOpen(false)}
-        folderToEdit={folderToEdit}
-      />
-
-      <ResearchNoteModal
-        isOpen={noteModalState.isOpen}
-        onClose={() => setNoteModalState((prev) => ({ ...prev, isOpen: false }))}
-        itemId={noteModalState.itemId}
-        itemTitle={noteModalState.itemTitle}
-        initialNote={noteModalState.note}
-      />
     </div>
   );
 }
