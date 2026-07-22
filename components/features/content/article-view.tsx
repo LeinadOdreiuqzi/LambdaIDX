@@ -8,8 +8,9 @@ import { MobileTOC } from "./mobile-toc";
 import { ImageLightbox } from "./image-lightbox";
 import { ContentViewer } from "./content-viewer";
 import { useNavigation } from "@/hooks/use-navigation";
+import { useFavorites } from "@/hooks/use-favorites";
 import { motion, AnimatePresence } from "framer-motion";
-import { PanelRightClose, PanelRightOpen, ChevronLeft, ChevronRight } from "lucide-react";
+import { PanelRightClose, PanelRightOpen, ChevronLeft, ChevronRight, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 
@@ -89,12 +90,31 @@ export function ArticleView({ title, content, contentJson, breadcrumbs }: Articl
     }
   }, []);
 
+  const { isFavorite, toggleFavorite } = useFavorites();
+  const isPinned = isFavorite(pathname);
+  const lastSlug = breadcrumbs.length > 0 ? breadcrumbs[breadcrumbs.length - 1].slug : "";
+
   return (
     <article className="relative min-h-screen">
       {/* ─── HEADER ZONE ─── */}
       <header className="content-grid pt-8 pb-16 md:pt-12 md:pb-20">
         <div>
-          <Breadcrumbs items={breadcrumbs} />
+          <div className="flex items-center justify-between gap-4">
+            <Breadcrumbs items={breadcrumbs} />
+            <button
+              onClick={() => toggleFavorite({ title, path: pathname, slug: lastSlug })}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all border shadow-xs cursor-pointer",
+                isPinned
+                  ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30 hover:bg-amber-500/20"
+                  : "bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-800"
+              )}
+              title={isPinned ? "Quitar de favoritos" : "Guardar en favoritos de estudio"}
+            >
+              <Star className={cn("w-3.5 h-3.5 transition-transform duration-200", isPinned && "fill-amber-500 text-amber-500 scale-110")} />
+              <span>{isPinned ? "En Favoritos" : "Guardar"}</span>
+            </button>
+          </div>
 
           <h1 className="mt-10 text-3xl md:text-6xl lg:text-7xl font-black tracking-tight text-black dark:text-white leading-tight">
             {title}

@@ -3,23 +3,31 @@
 import React, { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Search, PanelLeftClose, Layers, Moon, Sun, Monitor, Type, ChevronUp, ChevronDown, Plus } from "lucide-react";
+import { Search, PanelLeftClose, Layers, Moon, Sun, Monitor, Type, ChevronUp, ChevronDown, Plus, FolderTree, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useNavigation } from "@/hooks/use-navigation";
+import { useFavorites } from "@/hooks/use-favorites";
 import { NavTree } from "./nav-tree";
+import { NavFavoritesSection } from "./nav-favorites-section";
 import { PageActionDialogs, type PageActionDialogHandle } from "./page-action-dialogs";
 import { NavPage } from "@/types";
+import { FavoriteFolder, FavoriteItem } from "@/types/favorites";
 import { Logo } from "@/components/shared/logo";
 
 interface NavSidebarProps {
   tree: NavPage[];
   linkPrefix?: string;
   isAdmin?: boolean;
+  onOpenFolderModal?: (folder?: FavoriteFolder) => void;
+  onOpenNoteModal?: (itemId: string, currentTitle: string, currentNote?: string) => void;
+  onContextMenuFolder?: (e: React.MouseEvent, folder: FavoriteFolder) => void;
+  onContextMenuFavItem?: (e: React.MouseEvent, item: FavoriteItem) => void;
 }
 
 type ThemeMode = "light" | "dark" | "system";
 type FontSizeMode = "sm" | "md" | "lg";
+type SidebarTab = "tree" | "favorites";
 
 const THEME_STORAGE_KEY = "lambdaidx-theme";
 const FONT_SIZE_STORAGE_KEY = "lambdaidx-font-size";
@@ -39,11 +47,21 @@ function applyFontSizeToDocument(mode: FontSizeMode) {
   document.documentElement.dataset.fontSize = mode;
 }
 
-export function NavSidebar({ tree, linkPrefix = "/p", isAdmin = false }: NavSidebarProps) {
+export function NavSidebar({
+  tree,
+  linkPrefix = "/p",
+  isAdmin = false,
+  onOpenFolderModal = () => {},
+  onOpenNoteModal = () => {},
+  onContextMenuFolder = () => {},
+  onContextMenuFavItem = () => {},
+}: NavSidebarProps) {
   const { isSidebarOpen, toggleSidebar, toggleCommandPalette } = useNavigation();
+  const { items } = useFavorites();
   const router = useRouter();
   const [theme, setTheme] = useState<ThemeMode>("dark");
   const [fontSize, setFontSize] = useState<FontSizeMode>("md");
+  const [sidebarTab, setSidebarTab] = useState<SidebarTab>("tree");
   const [isAccessibilityOpen, setIsAccessibilityOpen] = useState(false);
   const dialogRef = useRef<PageActionDialogHandle>(null);
   const [, setRefreshTrigger] = useState(0);
@@ -115,7 +133,7 @@ export function NavSidebar({ tree, linkPrefix = "/p", isAdmin = false }: NavSide
         </div>
 
         {/* Search Bar Placeholder */}
-        <div className="px-4 py-4">
+        <div className="px-4 pt-4 pb-2">
           <button
             type="button"
             onClick={toggleCommandPalette}
@@ -151,30 +169,78 @@ export function NavSidebar({ tree, linkPrefix = "/p", isAdmin = false }: NavSide
           </button>
         </div>
 
-        {/* Navigation Tree + Accessibility Settings - Scrollable */}
-        <div className="flex-1 overflow-y-auto px-4 py-2 custom-scrollbar flex flex-col">
-          <div className="mb-4">
-            <div className="flex items-center justify-between mb-2 px-2">
-              <h3 className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Knowledge Tree</h3>
-              {isAdmin && (
-                <button 
-                  onClick={() => dialogRef.current?.openAddDialog("")}
-                  className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-md text-zinc-400 hover:text-black dark:hover:text-white transition-colors"
-                  title="Create new root science"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                </button>
+        {/* Segmented Mode Switcher Tab Bar */}
+        <div className="px-4 pb-2">
+          <div className="flex items-center p-1 bg-zinc-100 dark:bg-zinc-900/90 border border-zinc-200/80 dark:border-zinc-800 rounded-xl text-xs font-semibold">
+            <button
+              type="button"
+              onClick={() => setSidebarTab("tree")}
+              className={cn(
+                "flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg transition-all cursor-pointer",
+                sidebarTab === "tree"
+                  ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-xs"
+                  : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200"
               )}
-            </div>
-            <NavTree 
-              items={tree} 
-              linkPrefix={linkPrefix} 
-              isAdmin={isAdmin}
-              onAddPage={(parentId) => dialogRef.current?.openAddDialog(parentId)}
-              onEditPage={(pageId, currentTitle) => dialogRef.current?.openEditDialog(pageId, currentTitle)}
-              onDeletePage={(pageId) => dialogRef.current?.openDeleteDialog(pageId)}
-            />
+            >
+              <FolderTree className="w-3.5 h-3.5" />
+              <span>Conocimiento</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setSidebarTab("favorites")}
+              className={cn(
+                "flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg transition-all cursor-pointer relative",
+                sidebarTab === "favorites"
+                  ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-xs"
+                  : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200"
+              )}
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+              <span>Estudio</span>
+              {items.length > 0 && (
+                <span className="px-1.5 py-0.2 text-[9px] font-bold rounded-full bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300">
+                  {items.length}
+                </span>
+              )}
+            </button>
           </div>
+        </div>
+
+        {/* Scrollable Main Sidebar Content */}
+        <div className="flex-1 overflow-y-auto px-4 py-2 custom-scrollbar flex flex-col">
+          {sidebarTab === "favorites" ? (
+            /* Study Workspace Mode */
+            <NavFavoritesSection
+              onOpenFolderModal={onOpenFolderModal}
+              onOpenNoteModal={onOpenNoteModal}
+              onContextMenuFolder={onContextMenuFolder}
+              onContextMenuFavItem={onContextMenuFavItem}
+            />
+          ) : (
+            /* Knowledge Tree Mode */
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-2 px-2">
+                <h3 className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Knowledge Tree</h3>
+                {isAdmin && (
+                  <button 
+                    onClick={() => dialogRef.current?.openAddDialog("")}
+                    className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-md text-zinc-400 hover:text-black dark:hover:text-white transition-colors"
+                    title="Create new root science"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+              <NavTree 
+                items={tree} 
+                linkPrefix={linkPrefix} 
+                isAdmin={isAdmin}
+                onAddPage={(parentId) => dialogRef.current?.openAddDialog(parentId)}
+                onEditPage={(pageId, currentTitle) => dialogRef.current?.openEditDialog(pageId, currentTitle)}
+                onDeletePage={(pageId) => dialogRef.current?.openDeleteDialog(pageId)}
+              />
+            </div>
+          )}
 
           {/* Accessibility Settings */}
           <div className="p-4 border-t border-zinc-100 dark:border-zinc-900 space-y-4 mt-auto">
