@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Search, PanelLeftClose, Layers, Moon, Sun, Monitor, Type, ChevronUp, ChevronDown, Plus, FolderTree, Sparkles } from "lucide-react";
+import { Search, PanelLeftClose, Layers, Moon, Sun, Monitor, Type, ChevronUp, ChevronDown, Plus, FolderTree, Bookmark } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useNavigation } from "@/hooks/use-navigation";
@@ -195,7 +195,7 @@ export function NavSidebar({
                   : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200"
               )}
             >
-              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+              <Bookmark className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
               <span>Estudio</span>
               {items.length > 0 && (
                 <span className="px-1.5 py-0.2 text-[9px] font-bold rounded-full bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300">

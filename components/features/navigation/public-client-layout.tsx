@@ -103,7 +103,29 @@ function InnerPublicLayout({ children, tree }: PublicClientLayoutProps) {
 
       {/* Navigation - Mobile */}
       <div className="fixed top-0 left-0 right-0 z-40 md:hidden">
-        <MobileNav tree={tree} />
+        <MobileNav
+          tree={tree}
+          onOpenFolderModal={handleOpenFolderModal}
+          onOpenNoteModal={handleOpenNoteModal}
+          onContextMenuFolder={(e, folder) => {
+            setContextMenu({
+              isOpen: true,
+              x: e.clientX,
+              y: e.clientY,
+              type: "folder",
+              targetFolder: folder,
+            });
+          }}
+          onContextMenuFavItem={(e, item) => {
+            setContextMenu({
+              isOpen: true,
+              x: e.clientX,
+              y: e.clientY,
+              type: "item",
+              targetItem: item,
+            });
+          }}
+        />
       </div>
 
       {/* Main Content Area */}

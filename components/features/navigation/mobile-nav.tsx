@@ -1,11 +1,14 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Menu, X, Layers, Search, Moon, Sun, Monitor, Type, ChevronDown, ChevronUp } from "lucide-react";
+import { Menu, X, Layers, Search, Moon, Sun, Monitor, Type, ChevronDown, ChevronUp, FolderTree, Bookmark } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { NavTree } from "./nav-tree";
+import { NavFavoritesSection } from "./nav-favorites-section";
 import { NavPage } from "@/types";
+import { FavoriteFolder, FavoriteItem } from "@/types/favorites";
 import { useNavigation } from "@/hooks/use-navigation";
+import { useFavorites } from "@/hooks/use-favorites";
 import { cn } from "@/lib/utils";
 import { useFocusTrap } from "@/hooks/use-focus-trap";
 import { Logo } from "@/components/shared/logo";
@@ -14,10 +17,15 @@ interface MobileNavProps {
   tree: NavPage[];
   linkPrefix?: string;
   isAdmin?: boolean;
+  onOpenFolderModal?: (folder?: FavoriteFolder) => void;
+  onOpenNoteModal?: (itemId: string, currentTitle: string, currentNote?: string) => void;
+  onContextMenuFolder?: (e: React.MouseEvent, folder: FavoriteFolder) => void;
+  onContextMenuFavItem?: (e: React.MouseEvent, item: FavoriteItem) => void;
 }
 
 type ThemeMode = "light" | "dark" | "system";
 type FontSizeMode = "sm" | "md" | "lg";
+type MobileTab = "tree" | "favorites";
 
 const THEME_STORAGE_KEY = "lambdaidx-theme";
 const FONT_SIZE_STORAGE_KEY = "lambdaidx-font-size";
@@ -37,12 +45,22 @@ function applyFontSizeToDocument(mode: FontSizeMode) {
   document.documentElement.dataset.fontSize = mode;
 }
 
-export function MobileNav({ tree, linkPrefix = "/p", isAdmin = false }: MobileNavProps) {
+export function MobileNav({
+  tree,
+  linkPrefix = "/p",
+  isAdmin = false,
+  onOpenFolderModal = () => {},
+  onOpenNoteModal = () => {},
+  onContextMenuFolder = () => {},
+  onContextMenuFavItem = () => {},
+}: MobileNavProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [theme, setTheme] = useState<ThemeMode>("dark");
   const [fontSize, setFontSize] = useState<FontSizeMode>("md");
+  const [mobileTab, setMobileTab] = useState<MobileTab>("tree");
   const [isAccessibilityOpen, setIsAccessibilityOpen] = useState(false);
   const { toggleCommandPalette } = useNavigation();
+  const { items } = useFavorites();
   const focusTrapRef = useFocusTrap<HTMLDivElement>(isOpen);
 
   useEffect(() => {
@@ -86,7 +104,7 @@ export function MobileNav({ tree, linkPrefix = "/p", isAdmin = false }: MobileNa
   };
 
   return (
-    <div className="md:hidden">
+    <div className="md:hidden select-none">
       {/* Basic Mobile Header */}
       <header className="h-16 flex items-center justify-between px-6 bg-white dark:bg-black border-b border-zinc-200 dark:border-zinc-800">
         <Logo size={24} />
@@ -94,7 +112,7 @@ export function MobileNav({ tree, linkPrefix = "/p", isAdmin = false }: MobileNa
           onClick={() => setIsOpen(true)}
           className="p-2 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
         >
-          <Menu className="w-6 h-6" />
+          <Menu className="w-6 h-6 text-zinc-800 dark:text-zinc-200" />
         </button>
       </header>
 
@@ -107,7 +125,7 @@ export function MobileNav({ tree, linkPrefix = "/p", isAdmin = false }: MobileNa
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsOpen(false)}
-              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[90]"
+              className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[90]"
             />
             <motion.div
               initial={{ x: "-100%" }}
@@ -115,19 +133,19 @@ export function MobileNav({ tree, linkPrefix = "/p", isAdmin = false }: MobileNa
               exit={{ x: "-100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
               ref={focusTrapRef}
-              className="fixed inset-y-0 left-0 w-80 bg-white dark:bg-black z-[100] p-6 shadow-2xl flex flex-col"
+              className="fixed inset-y-0 left-0 w-80 bg-white dark:bg-zinc-950 z-[100] p-6 shadow-2xl flex flex-col border-r border-zinc-200 dark:border-zinc-800"
             >
-              <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center justify-between mb-6">
                 <Logo size={28} />
                 <button
                   onClick={() => setIsOpen(false)}
-                  className="p-1.5 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                  className="p-1.5 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 dark:text-zinc-400"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
-              <div className="mb-6">
+              <div className="mb-4">
                 <button
                   type="button"
                   onClick={() => {
@@ -142,9 +160,59 @@ export function MobileNav({ tree, linkPrefix = "/p", isAdmin = false }: MobileNa
                 </button>
               </div>
 
+              {/* Segmented Mode Switcher Tab Bar */}
+              <div className="mb-4">
+                <div className="flex items-center p-1 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl text-xs font-semibold">
+                  <button
+                    type="button"
+                    onClick={() => setMobileTab("tree")}
+                    className={cn(
+                      "flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg transition-all cursor-pointer",
+                      mobileTab === "tree"
+                        ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-xs"
+                        : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200"
+                    )}
+                  >
+                    <FolderTree className="w-3.5 h-3.5" />
+                    <span>Conocimiento</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMobileTab("favorites")}
+                    className={cn(
+                      "flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg transition-all cursor-pointer relative",
+                      mobileTab === "favorites"
+                        ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-xs"
+                        : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200"
+                    )}
+                  >
+                    <Bookmark className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
+                    <span>Estudio</span>
+                    {items.length > 0 && (
+                      <span className="px-1.5 py-0.2 text-[9px] font-bold rounded-full bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300">
+                        {items.length}
+                      </span>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Mobile Main Content */}
               <div className="flex-1 overflow-y-auto no-scrollbar">
-                 <h3 className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-4">Knowledge Tree</h3>
-                 <NavTree items={tree} linkPrefix={linkPrefix} isAdmin={isAdmin} />
+                {mobileTab === "favorites" ? (
+                  <NavFavoritesSection
+                    onOpenFolderModal={onOpenFolderModal}
+                    onOpenNoteModal={onOpenNoteModal}
+                    onContextMenuFolder={onContextMenuFolder}
+                    onContextMenuFavItem={onContextMenuFavItem}
+                    onItemClick={() => setIsOpen(false)}
+                  />
+                ) : (
+                  <div>
+                    <h3 className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-4">Knowledge Tree</h3>
+                    <NavTree items={tree} linkPrefix={linkPrefix} isAdmin={isAdmin} />
+                  </div>
+                )}
               </div>
 
               <div className="pt-4 mt-4 border-t border-zinc-200 dark:border-zinc-800 space-y-4">
