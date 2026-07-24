@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -11,10 +11,14 @@ import {
   FileText,
   StickyNote,
   GripVertical,
+  Search,
+  ArrowUpDown,
+  X,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useFavorites } from "@/hooks/use-favorites";
-import { FavoriteFolder, FavoriteItem, PresetColor } from "@/types/favorites";
+import { FavoriteFolder, FavoriteItem, PresetColor, SortCriterion } from "@/types/favorites";
 import { getFolderIconComponent } from "./nav-favorites-rail";
 
 const COLOR_BADGE_MAP: Record<PresetColor, string> = {
@@ -33,7 +37,7 @@ interface NavFavoritesSectionProps {
   onOpenNoteModal: (itemId: string, currentTitle: string, currentNote?: string) => void;
   onContextMenuFolder: (e: React.MouseEvent, folder: FavoriteFolder) => void;
   onContextMenuFavItem: (e: React.MouseEvent, item: FavoriteItem) => void;
-  onItemClick?: () => void; // Optional callback for mobile nav auto-close
+  onItemClick?: () => void;
 }
 
 export function NavFavoritesSection({
@@ -44,12 +48,25 @@ export function NavFavoritesSection({
   onItemClick,
 }: NavFavoritesSectionProps) {
   const pathname = usePathname();
-  const { folders, items, moveFavorite } = useFavorites();
+  const {
+    folders,
+    items,
+    moveFavorite,
+    reorderItems,
+    reorderFolders,
+    sortCriterion,
+    setSortCriterion,
+  } = useFavorites();
+
   const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({
     root: true,
   });
 
-  // Drag and Drop state
+  // Search & Filter State
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSortMenuOpen, setIsSortMenuOpen] = useState(false);
+
+  // Drag and Drop State
   const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
   const [dragOverFolderId, setDragOverFolderId] = useState<string | null>(null);
 
@@ -89,36 +106,170 @@ export function NavFavoritesSection({
     }
   };
 
-  // Group items by folder
-  const rootItems = items.filter((item) => !item.folderId);
+  // Sorting function
+  const sortItemsList = (itemList: FavoriteItem[]) => {
+    const sorted = [...itemList];
+    if (sortCriterion === "recent") {
+      return sorted.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    }
+    if (sortCriterion === "alpha") {
+      return sorted.sort((a, b) => a.title.localeCompare(b.title));
+    }
+    // Custom sort order
+    return sorted.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+  };
+
+  const sortFoldersList = (folderList: FavoriteFolder[]) => {
+    const sorted = [...folderList];
+    if (sortCriterion === "recent") {
+      return sorted.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    }
+    if (sortCriterion === "alpha") {
+      return sorted.sort((a, b) => a.name.localeCompare(b.name));
+    }
+    return sorted.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+  };
+
+  // Filtered and sorted data
+  const filteredItems = useMemo(() => {
+    if (!searchQuery.trim()) return items;
+    const query = searchQuery.toLowerCase();
+    return items.filter(
+      (item: FavoriteItem) =>
+        item.title.toLowerCase().includes(query) ||
+        item.path.toLowerCase().includes(query) ||
+        (item.note && item.note.toLowerCase().includes(query))
+    );
+  }, [items, searchQuery]);
+
+  const sortedFolders = useMemo(() => sortFoldersList(folders), [folders, sortCriterion]);
+  const rootItems = useMemo(
+    () => sortItemsList(filteredItems.filter((item: FavoriteItem) => !item.folderId)),
+    [filteredItems, sortCriterion]
+  );
 
   return (
-    <div className="mb-6 select-none">
+    <div className="mb-6 select-none space-y-3">
       {/* Section Header */}
-      <div className="flex items-center justify-between mb-2 px-2">
+      <div className="flex items-center justify-between px-2">
         <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-          <Bookmark className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500" />
+          <Bookmark className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
           <span>Espacio de Estudio</span>
         </div>
 
-        <button
-          onClick={() => onOpenFolderModal()}
-          className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 rounded-md text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors cursor-pointer"
-          title="Nueva carpeta de estudio"
-        >
-          <Plus className="w-3.5 h-3.5" />
-        </button>
+        <div className="flex items-center gap-1">
+          {/* Sort Selector Button */}
+          <button
+            onClick={() => setIsSortMenuOpen((prev) => !prev)}
+            className={cn(
+              "p-1 rounded-md transition-colors cursor-pointer",
+              isSortMenuOpen || sortCriterion !== "custom"
+                ? "bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400"
+                : "text-zinc-400 dark:text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 hover:text-zinc-900 dark:hover:text-white"
+            )}
+            title="Ordenar favoritos"
+          >
+            <ArrowUpDown className="w-3.5 h-3.5" />
+          </button>
+
+          {/* New Folder Button */}
+          <button
+            onClick={() => onOpenFolderModal()}
+            className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800/80 rounded-md text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors cursor-pointer"
+            title="Nueva carpeta de estudio"
+          >
+            <Plus className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
+
+      {/* Sort Menu Drawer Dropdown */}
+      {isSortMenuOpen && (
+        <div className="p-1.5 bg-zinc-50 dark:bg-zinc-900/90 border border-zinc-200 dark:border-zinc-800 rounded-xl space-y-1 text-xs">
+          <div className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 px-2 py-0.5">
+            Criterio de orden
+          </div>
+          <button
+            onClick={() => {
+              setSortCriterion("custom");
+              setIsSortMenuOpen(false);
+            }}
+            className={cn(
+              "w-full text-left px-2.5 py-1 rounded-lg text-xs transition-colors flex items-center justify-between",
+              sortCriterion === "custom"
+                ? "bg-white dark:bg-zinc-800 font-semibold text-indigo-600 dark:text-indigo-400 shadow-2xs"
+                : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/50"
+            )}
+          >
+            <span>Personalizado (Drag & Drop)</span>
+          </button>
+          <button
+            onClick={() => {
+              setSortCriterion("recent");
+              setIsSortMenuOpen(false);
+            }}
+            className={cn(
+              "w-full text-left px-2.5 py-1 rounded-lg text-xs transition-colors flex items-center justify-between",
+              sortCriterion === "recent"
+                ? "bg-white dark:bg-zinc-800 font-semibold text-indigo-600 dark:text-indigo-400 shadow-2xs"
+                : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/50"
+            )}
+          >
+            <span>Más recientes primero</span>
+          </button>
+          <button
+            onClick={() => {
+              setSortCriterion("alpha");
+              setIsSortMenuOpen(false);
+            }}
+            className={cn(
+              "w-full text-left px-2.5 py-1 rounded-lg text-xs transition-colors flex items-center justify-between",
+              sortCriterion === "alpha"
+                ? "bg-white dark:bg-zinc-800 font-semibold text-indigo-600 dark:text-indigo-400 shadow-2xs"
+                : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/50"
+            )}
+          >
+            <span>Alfabético (A - Z)</span>
+          </button>
+        </div>
+      )}
+
+      {/* Internal Search Filter */}
+      {(items.length > 0 || searchQuery) && (
+        <div className="relative px-1">
+          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400 dark:text-zinc-500" />
+          <input
+            type="text"
+            placeholder="Filtrar páginas o notas..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-8 pr-7 py-1.5 text-xs bg-zinc-100 dark:bg-zinc-900/80 border border-zinc-200/80 dark:border-zinc-800 rounded-xl text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-hidden focus:ring-1 focus:ring-indigo-500"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Folders & Items Tree */}
       <div className="space-y-0.5">
         {/* Custom Folders */}
-        {folders.map((folder) => {
+        {sortedFolders.map((folder: FavoriteFolder) => {
           const isExpanded = !!expandedFolders[folder.id];
-          const folderItems = items.filter((i) => i.folderId === folder.id);
+          const folderItems = sortItemsList(filteredItems.filter((i: FavoriteItem) => i.folderId === folder.id));
           const IconComp = getFolderIconComponent(folder.icon);
           const badgeColor = COLOR_BADGE_MAP[(folder.color as PresetColor) || "indigo"];
           const isDropTarget = dragOverFolderId === folder.id;
+
+          // If searching and folder has no matching items, skip folder rendering
+          if (searchQuery.trim() && folderItems.length === 0 && !folder.name.toLowerCase().includes(searchQuery.toLowerCase())) {
+            return null;
+          }
 
           return (
             <div key={folder.id} className="space-y-0.5">
@@ -164,7 +315,7 @@ export function NavFavoritesSection({
                 <div className="pl-6 space-y-0.5 border-l border-zinc-100 dark:border-zinc-800/80 ml-3.5 my-0.5">
                   {folderItems.length === 0 ? (
                     <div className="py-1 px-2 text-[11px] text-zinc-400 dark:text-zinc-600 italic">
-                      Carpeta vacía (arrastra aquí)
+                      {searchQuery ? "Sin resultados" : "Carpeta vacía (arrastra aquí)"}
                     </div>
                   ) : (
                     folderItems.map((item) => {
@@ -229,7 +380,7 @@ export function NavFavoritesSection({
           >
             {folders.length > 0 && (
               <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 flex items-center gap-1">
-                <Bookmark className="w-3 h-3" />
+                <Bookmark className="w-3 h-3 text-indigo-500" />
                 <span>Favoritos Generales</span>
               </div>
             )}
@@ -288,10 +439,12 @@ export function NavFavoritesSection({
         {folders.length === 0 && rootItems.length === 0 && (
           <div className="px-2 py-4 rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800 text-center bg-zinc-50/50 dark:bg-zinc-950/40">
             <p className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
-              No tienes páginas guardadas aún.
+              {searchQuery ? "Sin resultados de búsqueda." : "No tienes páginas guardadas aún."}
             </p>
             <p className="text-[10px] text-zinc-400 dark:text-zinc-500 mt-1">
-              Guarda tus lecturas presionando el botón &quot;Guardar&quot; en la cabecera de los artículos.
+              {searchQuery
+                ? "Prueba con otra palabra clave."
+                : "Guarda tus lecturas presionando el botón \"Guardar\" en la cabecera de los artículos."}
             </p>
           </div>
         )}

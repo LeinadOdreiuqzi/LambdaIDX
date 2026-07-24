@@ -171,7 +171,7 @@ export function FavoritesContextMenu({
                   >
                     Sin carpeta (Raíz)
                   </button>
-                  {folders.map((f) => (
+                  {folders.map((f: FavoriteFolder) => (
                     <button
                       key={f.id}
                       onClick={() => {

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
-import { FavoriteFolder, FavoriteItem } from "@/types/favorites";
+import { FavoriteFolder, FavoriteItem, SortCriterion } from "@/types/favorites";
 
 const STORAGE_KEY = "lambdaidx-study-workspace-v1";
 const SYNC_EVENT = "lambdaidx-favorites-change";
@@ -13,16 +13,21 @@ interface FavoritesContextType {
   activeFolderId: string | null; // null means "All" or "Unsorted"
   setActiveFolderId: (folderId: string | null) => void;
 
+  sortCriterion: SortCriterion;
+  setSortCriterion: (criterion: SortCriterion) => void;
+
   // Folder Actions
   addFolder: (name: string, icon?: string, color?: string) => FavoriteFolder;
-  updateFolder: (id: string, updates: Partial<Pick<FavoriteFolder, "name" | "icon" | "color">>) => void;
+  updateFolder: (id: string, updates: Partial<Pick<FavoriteFolder, "name" | "icon" | "color" | "sortOrder">>) => void;
   deleteFolder: (id: string) => void;
+  reorderFolders: (orderedFolderIds: string[]) => void;
 
   // Item Actions
   addFavorite: (item: Omit<FavoriteItem, "id" | "createdAt">) => FavoriteItem;
-  updateFavorite: (id: string, updates: Partial<Pick<FavoriteItem, "title" | "note" | "folderId">>) => void;
+  updateFavorite: (id: string, updates: Partial<Pick<FavoriteItem, "title" | "note" | "folderId" | "sortOrder">>) => void;
   removeFavorite: (idOrPath: string) => void;
   moveFavorite: (itemId: string, targetFolderId: string | null) => void;
+  reorderItems: (orderedItemIds: string[]) => void;
 
   // Helpers
   isFavorite: (path: string) => boolean;
@@ -38,6 +43,7 @@ const DEFAULT_FOLDERS: FavoriteFolder[] = [
     name: "General Study",
     icon: "brain",
     color: "indigo",
+    sortOrder: 0,
     createdAt: new Date().toISOString(),
   },
 ];
@@ -47,6 +53,14 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<FavoriteItem[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const [activeFolderId, setActiveFolderId] = useState<string | null>(null);
+  const [sortCriterion, setSortCriterionState] = useState<SortCriterion>("custom");
+
+  const setSortCriterion = useCallback((criterion: SortCriterion) => {
+    setSortCriterionState(criterion);
+    try {
+      localStorage.setItem(STORAGE_KEY + "-sort", criterion);
+    } catch (e) {}
+  }, []);
 
   // Read state from localStorage
   const loadData = useCallback(() => {
@@ -59,6 +73,11 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
       } else {
         setFolders(DEFAULT_FOLDERS);
         setItems([]);
+      }
+
+      const savedSort = localStorage.getItem(STORAGE_KEY + "-sort") as SortCriterion;
+      if (savedSort === "recent" || savedSort === "alpha" || savedSort === "custom") {
+        setSortCriterionState(savedSort);
       }
     } catch (e) {
       console.error("Failed to load favorites from localStorage", e);
@@ -100,6 +119,7 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
         name: name.trim() || "Nueva Carpeta",
         icon,
         color,
+        sortOrder: folders.length,
         createdAt: new Date().toISOString(),
       };
       const updatedFolders = [...folders, newFolder];
@@ -111,8 +131,8 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
   );
 
   const updateFolder = useCallback(
-    (id: string, updates: Partial<Pick<FavoriteFolder, "name" | "icon" | "color">>) => {
-      const updatedFolders = folders.map((f) => (f.id === id ? { ...f, ...updates } : f));
+    (id: string, updates: Partial<Pick<FavoriteFolder, "name" | "icon" | "color" | "sortOrder">>) => {
+      const updatedFolders = folders.map((f: FavoriteFolder) => (f.id === id ? { ...f, ...updates } : f));
       setFolders(updatedFolders);
       saveData(updatedFolders, items);
     },
@@ -121,9 +141,8 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
 
   const deleteFolder = useCallback(
     (id: string) => {
-      const updatedFolders = folders.filter((f) => f.id !== id);
-      // Items inside deleted folder move to root (folderId = null)
-      const updatedItems = items.map((item) => (item.folderId === id ? { ...item, folderId: null } : item));
+      const updatedFolders = folders.filter((f: FavoriteFolder) => f.id !== id);
+      const updatedItems = items.map((item: FavoriteItem) => (item.folderId === id ? { ...item, folderId: null } : item));
       setFolders(updatedFolders);
       setItems(updatedItems);
       if (activeFolderId === id) setActiveFolderId(null);
@@ -132,20 +151,32 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
     [folders, items, activeFolderId, saveData]
   );
 
+  const reorderFolders = useCallback(
+    (orderedFolderIds: string[]) => {
+      const updatedFolders = folders.map((folder: FavoriteFolder) => {
+        const idx = orderedFolderIds.indexOf(folder.id);
+        return idx !== -1 ? { ...folder, sortOrder: idx } : folder;
+      });
+      setFolders(updatedFolders);
+      saveData(updatedFolders, items);
+    },
+    [folders, items, saveData]
+  );
+
   // Item CRUD
   const addFavorite = useCallback(
     (itemData: Omit<FavoriteItem, "id" | "createdAt">): FavoriteItem => {
       const newItem: FavoriteItem = {
         ...itemData,
         id: `fav-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+        sortOrder: items.length,
         createdAt: new Date().toISOString(),
       };
 
-      // Prevent duplicate paths
-      const existing = items.find((i) => i.path === itemData.path);
+      const existing = items.find((i: FavoriteItem) => i.path === itemData.path);
       let updatedItems: FavoriteItem[];
       if (existing) {
-        updatedItems = items.map((i) => (i.path === itemData.path ? { ...i, ...itemData } : i));
+        updatedItems = items.map((i: FavoriteItem) => (i.path === itemData.path ? { ...i, ...itemData } : i));
       } else {
         updatedItems = [...items, newItem];
       }
@@ -158,8 +189,8 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
   );
 
   const updateFavorite = useCallback(
-    (id: string, updates: Partial<Pick<FavoriteItem, "title" | "note" | "folderId">>) => {
-      const updatedItems = items.map((i) => (i.id === id ? { ...i, ...updates } : i));
+    (id: string, updates: Partial<Pick<FavoriteItem, "title" | "note" | "folderId" | "sortOrder">>) => {
+      const updatedItems = items.map((i: FavoriteItem) => (i.id === id ? { ...i, ...updates } : i));
       setItems(updatedItems);
       saveData(folders, updatedItems);
     },
@@ -168,7 +199,7 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
 
   const removeFavorite = useCallback(
     (idOrPath: string) => {
-      const updatedItems = items.filter((i) => i.id !== idOrPath && i.path !== idOrPath);
+      const updatedItems = items.filter((i: FavoriteItem) => i.id !== idOrPath && i.path !== idOrPath);
       setItems(updatedItems);
       saveData(folders, updatedItems);
     },
@@ -177,7 +208,19 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
 
   const moveFavorite = useCallback(
     (itemId: string, targetFolderId: string | null) => {
-      const updatedItems = items.map((i) => (i.id === itemId ? { ...i, folderId: targetFolderId } : i));
+      const updatedItems = items.map((i: FavoriteItem) => (i.id === itemId ? { ...i, folderId: targetFolderId } : i));
+      setItems(updatedItems);
+      saveData(folders, updatedItems);
+    },
+    [folders, items, saveData]
+  );
+
+  const reorderItems = useCallback(
+    (orderedItemIds: string[]) => {
+      const updatedItems = items.map((item: FavoriteItem) => {
+        const idx = orderedItemIds.indexOf(item.id);
+        return idx !== -1 ? { ...item, sortOrder: idx } : item;
+      });
       setItems(updatedItems);
       saveData(folders, updatedItems);
     },
@@ -187,21 +230,21 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
   // Helpers
   const isFavorite = useCallback(
     (path: string) => {
-      return items.some((i) => i.path === path);
+      return items.some((i: FavoriteItem) => i.path === path);
     },
     [items]
   );
 
   const getFavoriteByPath = useCallback(
     (path: string) => {
-      return items.find((i) => i.path === path);
+      return items.find((i: FavoriteItem) => i.path === path);
     },
     [items]
   );
 
   const toggleFavorite = useCallback(
     (page: { title: string; path: string; slug: string }, folderId: string | null = null): boolean => {
-      const existing = items.find((i) => i.path === page.path);
+      const existing = items.find((i: FavoriteItem) => i.path === page.path);
       if (existing) {
         removeFavorite(existing.id);
         return false;
@@ -226,13 +269,17 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
         isLoaded,
         activeFolderId,
         setActiveFolderId,
+        sortCriterion,
+        setSortCriterion,
         addFolder,
         updateFolder,
         deleteFolder,
+        reorderFolders,
         addFavorite,
         updateFavorite,
         removeFavorite,
         moveFavorite,
+        reorderItems,
         isFavorite,
         getFavoriteByPath,
         toggleFavorite,

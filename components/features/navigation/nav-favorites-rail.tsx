@@ -128,7 +128,7 @@ export function NavFavoritesRail({
   const isCurrentPinned = isFavorite(pathname);
 
   // Filter items based on activeFolderId and search
-  const filteredItems = items.filter((item) => {
+  const filteredItems = items.filter((item: FavoriteItem) => {
     const matchesFolder =
       activeFolderId === null
         ? true
@@ -144,7 +144,7 @@ export function NavFavoritesRail({
     return matchesFolder && matchesSearch;
   });
 
-  const activeFolder = folders.find((f) => f.id === activeFolderId);
+  const activeFolder = folders.find((f: FavoriteFolder) => f.id === activeFolderId);
 
   const handleFolderClick = (folderId: string | null) => {
     if (activeFolderId === folderId && isDrawerOpen) {
@@ -195,10 +195,10 @@ export function NavFavoritesRail({
 
         {/* List of Custom Folders */}
         <div className="flex-1 w-full flex flex-col items-center space-y-2.5">
-          {folders.map((folder) => {
+          {folders.map((folder: FavoriteFolder) => {
             const IconComp = getFolderIconComponent(folder.icon);
             const colorTheme = COLOR_MAP[(folder.color as PresetColor) || "indigo"];
-            const folderItemCount = items.filter((i) => i.folderId === folder.id).length;
+            const folderItemCount = items.filter((i: FavoriteItem) => i.folderId === folder.id).length;
             const isActive = isDrawerOpen && activeFolderId === folder.id;
 
             return (
@@ -344,7 +344,7 @@ export function NavFavoritesRail({
                   </p>
                 </div>
               ) : (
-                filteredItems.map((item) => {
+                filteredItems.map((item: FavoriteItem) => {
                   const isActivePath = pathname === item.path;
 
                   return (
