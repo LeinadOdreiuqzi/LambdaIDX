@@ -169,47 +169,49 @@ export function NavSidebar({
           </button>
         </div>
 
-        {/* Segmented Mode Switcher Tab Bar */}
-        <div className="px-4 pb-2">
-          <div className="flex items-center p-1 bg-zinc-100 dark:bg-zinc-900/90 border border-zinc-200/80 dark:border-zinc-800 rounded-xl text-xs font-semibold">
-            <button
-              type="button"
-              onClick={() => setSidebarTab("tree")}
-              className={cn(
-                "flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg transition-all cursor-pointer",
-                sidebarTab === "tree"
-                  ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-xs"
-                  : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200"
-              )}
-            >
-              <FolderTree className="w-3.5 h-3.5" />
-              <span>Conocimiento</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setSidebarTab("favorites")}
-              className={cn(
-                "flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg transition-all cursor-pointer relative",
-                sidebarTab === "favorites"
-                  ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-xs"
-                  : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200"
-              )}
-            >
-              <Bookmark className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
-              <span>Estudio</span>
-              {items.length > 0 && (
-                <span className="px-1.5 py-0.2 text-[9px] font-bold rounded-full bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300">
-                  {items.length}
-                </span>
-              )}
-            </button>
+        {/* Segmented Mode Switcher Tab Bar (Public Only) */}
+        {!isAdmin && (
+          <div className="px-4 pb-2">
+            <div className="flex items-center p-1 bg-zinc-100 dark:bg-zinc-900/90 border border-zinc-200/80 dark:border-zinc-800 rounded-xl text-xs font-semibold">
+              <button
+                type="button"
+                onClick={() => setSidebarTab("tree")}
+                className={cn(
+                  "flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg transition-all cursor-pointer",
+                  sidebarTab === "tree"
+                    ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-xs"
+                    : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200"
+                )}
+              >
+                <FolderTree className="w-3.5 h-3.5" />
+                <span>Conocimiento</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setSidebarTab("favorites")}
+                className={cn(
+                  "flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg transition-all cursor-pointer relative",
+                  sidebarTab === "favorites"
+                    ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-xs"
+                    : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200"
+                )}
+              >
+                <Bookmark className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400" />
+                <span>Estudio</span>
+                {items.length > 0 && (
+                  <span className="px-1.5 py-0.2 text-[9px] font-bold rounded-full bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300">
+                    {items.length}
+                  </span>
+                )}
+              </button>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Scrollable Main Sidebar Content */}
         <div className="flex-1 overflow-y-auto px-4 py-2 custom-scrollbar flex flex-col">
-          {sidebarTab === "favorites" ? (
-            /* Study Workspace Mode */
+          {!isAdmin && sidebarTab === "favorites" ? (
+            /* Study Workspace Mode (Public Readers Only) */
             <NavFavoritesSection
               onOpenFolderModal={onOpenFolderModal}
               onOpenNoteModal={onOpenNoteModal}
