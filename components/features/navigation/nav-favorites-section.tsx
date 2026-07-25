@@ -257,7 +257,7 @@ export function NavFavoritesSection({
       )}
 
       {/* Folders & Items Tree */}
-      <div className="space-y-0.5">
+      <div className="space-y-0.5" role="tree" aria-label="Espacio de estudio">
         {/* Custom Folders */}
         {sortedFolders.map((folder: FavoriteFolder) => {
           const isExpanded = !!expandedFolders[folder.id];
@@ -272,9 +272,18 @@ export function NavFavoritesSection({
           }
 
           return (
-            <div key={folder.id} className="space-y-0.5">
+            <div key={folder.id} className="space-y-0.5" role="treeitem" aria-expanded={isExpanded}>
               {/* Folder Row (Drop Zone) */}
               <div
+                tabIndex={0}
+                role="button"
+                aria-label={`Carpeta ${folder.name}`}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    toggleFolderExpand(folder.id);
+                  }
+                }}
                 onContextMenu={(e) => {
                   e.preventDefault();
                   onContextMenuFolder(e, folder);
@@ -284,7 +293,7 @@ export function NavFavoritesSection({
                 onDragLeave={handleDragLeaveFolder}
                 onDrop={(e) => handleDropOnFolder(e, folder.id)}
                 className={cn(
-                  "group flex items-center justify-between px-2 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer border border-transparent",
+                  "group flex items-center justify-between px-2 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer border border-transparent focus:outline-hidden focus:ring-1 focus:ring-indigo-500",
                   isDropTarget
                     ? "bg-indigo-50 dark:bg-indigo-950/70 border-indigo-400 dark:border-indigo-600 text-indigo-900 dark:text-indigo-200"
                     : "text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900/90 dark:hover:text-white"

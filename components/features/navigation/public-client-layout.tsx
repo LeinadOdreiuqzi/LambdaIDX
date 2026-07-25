@@ -11,7 +11,7 @@ import { NavPage } from "@/types";
 import { motion, AnimatePresence } from "framer-motion";
 import { PanelLeftOpen } from "lucide-react";
 
-import { FavoritesProvider } from "@/hooks/use-favorites";
+import { FavoritesProvider, useFavorites } from "@/hooks/use-favorites";
 import { FavoritesContextMenu } from "@/components/features/navigation/favorites-context-menu";
 import { FolderModal, ResearchNoteModal } from "@/components/features/navigation/favorites-dialogs";
 import { ContextMenuState, FavoriteFolder, FavoriteItem } from "@/types/favorites";
@@ -48,6 +48,8 @@ function InnerPublicLayout({ children, tree }: PublicClientLayoutProps) {
     itemTitle: "",
   });
 
+  const { toggleFavorite } = useFavorites();
+
   // Auto-collapse sidebar on root landing page for full-width layout
   React.useEffect(() => {
     if (pathname === "/") {
@@ -57,6 +59,21 @@ function InnerPublicLayout({ children, tree }: PublicClientLayoutProps) {
       }
     }
   }, [pathname, setIsSidebarOpen]);
+
+  // Global Keyboard Shortcut: Ctrl + Shift + S or Cmd + Shift + S to bookmark page
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === "S" || e.key === "s")) {
+        e.preventDefault();
+        const currentTitle = document.title || pathname;
+        const slug = pathname.split("/").filter(Boolean).pop() || "";
+        toggleFavorite({ title: currentTitle, path: pathname, slug });
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [pathname, toggleFavorite]);
 
   const handleOpenFolderModal = useCallback((folder?: FavoriteFolder) => {
     setFolderToEdit(folder || null);
