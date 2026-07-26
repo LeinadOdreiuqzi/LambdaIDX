@@ -363,7 +363,7 @@ export function NavFavoritesSection({
                                 e.stopPropagation();
                                 onOpenNoteModal(item.id, item.title, item.note);
                               }}
-                              title={item.note}
+                              title={item.note.replace(/<[^>]*>/g, "")}
                               className="p-0.5 text-amber-500 hover:text-amber-600 dark:text-amber-400 shrink-0"
                             >
                               <StickyNote className="w-3 h-3" />
@@ -431,7 +431,7 @@ export function NavFavoritesSection({
                           e.stopPropagation();
                           onOpenNoteModal(item.id, item.title, item.note);
                         }}
-                        title={item.note}
+                        title={item.note.replace(/<[^>]*>/g, "")}
                         className="p-0.5 text-amber-500 hover:text-amber-600 dark:text-amber-400 shrink-0"
                       >
                         <StickyNote className="w-3 h-3" />

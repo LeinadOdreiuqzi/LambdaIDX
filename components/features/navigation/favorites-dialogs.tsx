@@ -5,6 +5,7 @@ import { X, Check } from "lucide-react";
 import { useFavorites } from "@/hooks/use-favorites";
 import { FavoriteFolder, PresetColor, PresetIcon } from "@/types/favorites";
 import { getFolderIconComponent } from "./nav-favorites-rail";
+import { MiniNoteEditor } from "./mini-note-editor";
 
 const PRESET_ICONS: PresetIcon[] = [
   "folder",
@@ -203,14 +204,17 @@ export function ResearchNoteModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-      <div className="w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl overflow-hidden">
+      <div className="w-full max-w-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl overflow-hidden">
         <div className="p-4 border-b border-zinc-100 dark:border-zinc-800 flex items-center justify-between">
-          <h3 className="text-sm font-bold text-zinc-900 dark:text-white truncate">
-            Nota de Estudio: {itemTitle}
-          </h3>
+          <div className="flex items-center gap-2 overflow-hidden">
+            <span className="w-2 h-2 rounded-full bg-amber-500" />
+            <h3 className="text-sm font-bold text-zinc-900 dark:text-white truncate">
+              Nota de Estudio: {itemTitle}
+            </h3>
+          </div>
           <button
             onClick={onClose}
-            className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800"
+            className="p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -218,30 +222,23 @@ export function ResearchNoteModal({
 
         <form onSubmit={handleSubmit} className="p-5 space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">
-              Anotación rápida de investigación
+            <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-2">
+              Anotaciones e hipótesis de investigación (Markdown)
             </label>
-            <textarea
-              rows={4}
-              autoFocus
-              placeholder="Agrega un recordatorio de estudio, hipótesis o nota importante..."
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              className="w-full px-3.5 py-2 text-xs bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl text-zinc-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
-            />
+            <MiniNoteEditor value={note} onChange={setNote} />
           </div>
 
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-end gap-2 pt-1">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl"
+              className="px-4 py-2 text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl cursor-pointer"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="px-4 py-2 text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white rounded-xl shadow-xs transition-colors"
+              className="px-5 py-2 text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white rounded-xl shadow-xs transition-colors cursor-pointer"
             >
               Guardar Nota
             </button>
