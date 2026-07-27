@@ -42,6 +42,8 @@ export interface PageContent {
   path: string;
   parentId?: string | null;
   status?: string;
+  createdAt?: Date | string | null;
+  updatedAt?: Date | string | null;
 }
 
 export interface BreadcrumbItem {
