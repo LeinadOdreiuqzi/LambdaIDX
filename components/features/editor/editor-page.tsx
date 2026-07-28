@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { RichTextEditor } from "./rich-text-editor";
 import { usePageEditor } from "@/hooks/use-page-editor";
 import { cn } from "@/lib/utils";
-import { Loader2, CheckCircle2, Save } from "lucide-react";
+import { Loader2, CheckCircle2, Save, Link2 } from "lucide-react";
+import { TopicRelationsEditor } from "./topic-relations-editor";
 
 interface EditorPageProps {
   pageId?: string;
@@ -38,6 +39,7 @@ export function EditorPage({ pageId, onPublish, className }: EditorPageProps) {
   const [isCreatingChild, setIsCreatingChild] = useState(false);
   const [childTitle, setChildTitle] = useState("");
   const [showMetadata, setShowMetadata] = useState(false);
+  const [showRelations, setShowRelations] = useState(false);
   const [metaTitle, setMetaTitle] = useState("");
   const [metaDescription, setMetaDescription] = useState("");
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -231,8 +233,21 @@ export function EditorPage({ pageId, onPublish, className }: EditorPageProps) {
             )}
 
             <button
+              onClick={() => setShowRelations(!showRelations)}
+              className={cn(
+                "inline-flex items-center justify-center gap-1.5 rounded-md border px-4 py-2 text-sm font-medium transition-colors cursor-pointer",
+                showRelations
+                  ? "border-blue-500 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400"
+                  : "border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white hover:bg-zinc-50 dark:hover:bg-zinc-800"
+              )}
+            >
+              <Link2 className="w-4 h-4 text-blue-500" />
+              <span>{showRelations ? "Hide" : ""} Relations</span>
+            </button>
+
+            <button
               onClick={() => setShowMetadata(!showMetadata)}
-              className="inline-flex items-center justify-center rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-2 text-sm font-medium text-zinc-900 dark:text-white hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
+              className="inline-flex items-center justify-center rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-2 text-sm font-medium text-zinc-900 dark:text-white hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
             >
               {showMetadata ? "Hide" : "SEO"} Settings
             </button>
@@ -279,7 +294,7 @@ export function EditorPage({ pageId, onPublish, className }: EditorPageProps) {
                   Create Child Page
                 </h2>
                 <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                  Add a sub-topic under "<strong>{state.title}</strong>"
+                  Add a sub-topic under &quot;<strong>{state.title}</strong>&quot;
                 </p>
                 <div className="flex gap-2">
                   <input
@@ -354,6 +369,13 @@ export function EditorPage({ pageId, onPublish, className }: EditorPageProps) {
                 >
                   Save SEO Settings
                 </button>
+              </div>
+            )}
+
+            {/* Topic Relations & Resources Panel */}
+            {showRelations && (
+              <div className="mx-6 mb-6">
+                <TopicRelationsEditor />
               </div>
             )}
 

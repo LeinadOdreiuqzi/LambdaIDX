@@ -7,6 +7,8 @@ import { motion, useMotionTemplate, useMotionValue } from "framer-motion";
 export function IndustrialOverlay() {
   const pathname = usePathname();
   const isContentPage = pathname.startsWith("/p/");
+  const isAdminPage = pathname.startsWith("/admin");
+  const isCleanPage = isContentPage || isAdminPage;
 
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
@@ -23,14 +25,14 @@ export function IndustrialOverlay() {
 
   return (
     <>
-      {/* Background Layer: Industrial Grid — hidden on content pages for reading focus */}
+      {/* Background Layer: Industrial Grid — hidden on content/admin pages for focus */}
       <div
         className="fixed inset-0 grid-pattern pointer-events-none z-0 transition-opacity duration-700"
-        style={{ opacity: isContentPage ? 0 : 0.4 }}
+        style={{ opacity: isCleanPage ? 0 : 0.4 }}
       />
       <div
         className="fixed inset-0 bg-gradient-to-b from-transparent via-black/5 to-black/10 dark:via-black/50 dark:to-black pointer-events-none z-0 transition-opacity duration-700"
-        style={{ opacity: isContentPage ? 0 : 1 }}
+        style={{ opacity: isCleanPage ? 0 : 1 }}
       />
 
       {/* Interactive mouse gradient - Moved after backgrounds to ensure visibility */}
