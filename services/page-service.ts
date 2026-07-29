@@ -1,5 +1,5 @@
 import prisma from "@/lib/prisma";
-import { Prisma } from "@prisma/client";
+import { Prisma, RelationType, ResourceType } from "@prisma/client";
 import { buildPublicPageHref } from "@/lib/page-paths";
 import { NavPage } from "@/types";
 
@@ -978,6 +978,279 @@ export class PageService {
     } catch (error) {
       console.error(`❌ Failed to update page hierarchy ${id}:`, error);
       return null;
+    }
+  }
+
+  // ======================================================
+  // PAGE RELATIONS & RESOURCES METHODS
+  // ======================================================
+
+  /**
+   * Fetches all relations, tags, and resources for a given page ID
+   */
+  static async getRelationsAndResources(pageId: string) {
+    try {
+      if (!process.env.DATABASE_URL) {
+        return { relations: [], tags: [], resources: [] };
+      }
+
+      const [relations, pageTags, resources] = await Promise.all([
+        prisma.pageRelation.findMany({
+          where: { sourceId: pageId },
+          include: {
+            target: {
+              select: {
+                id: true,
+                title: true,
+                slug: true,
+              },
+            },
+          },
+        }),
+        prisma.pageTag.findMany({
+          where: { pageId },
+          include: {
+            tag: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+              },
+            },
+          },
+        }),
+        prisma.pageResource.findMany({
+          where: { pageId },
+          select: {
+            id: true,
+            title: true,
+            url: true,
+            type: true,
+            description: true,
+          },
+        }),
+      ]);
+
+      return {
+        relations: relations.map((r) => ({
+          id: r.target.id,
+          title: r.target.title,
+          slug: r.target.slug,
+          type: r.type,
+          relationId: r.id,
+        })),
+        tags: pageTags.map((pt) => pt.tag.name),
+        resources,
+      };
+    } catch (error) {
+      console.error(`❌ Failed to fetch relations & resources for page ${pageId}:`, error);
+      return { relations: [], tags: [], resources: [] };
+    }
+  }
+
+  /**
+   * Creates or updates a relationship between two pages
+   */
+  static async addPageRelation(
+    sourceId: string,
+    targetId: string,
+    type: RelationType = "RELATED"
+  ) {
+    try {
+      if (!process.env.DATABASE_URL) throw new Error("Database not configured");
+
+      if (sourceId === targetId) {
+        throw new Error("A page cannot be related to itself.");
+      }
+
+      const relation = await prisma.pageRelation.upsert({
+        where: {
+          sourceId_targetId_type: {
+            sourceId,
+            targetId,
+            type,
+          },
+        },
+        create: {
+          sourceId,
+          targetId,
+          type,
+        },
+        update: {},
+      });
+
+      return relation;
+    } catch (error) {
+      console.error("❌ Failed to add page relation:", error);
+      return null;
+    }
+  }
+
+  /**
+   * Removes a relationship between two pages
+   */
+  static async removePageRelation(sourceId: string, targetId: string, type: RelationType) {
+    try {
+      if (!process.env.DATABASE_URL) throw new Error("Database not configured");
+
+      await prisma.pageRelation.deleteMany({
+        where: {
+          sourceId,
+          targetId,
+          type,
+        },
+      });
+
+      return true;
+    } catch (error) {
+      console.error("❌ Failed to remove page relation:", error);
+      return false;
+    }
+  }
+
+  /**
+   * Adds a tag to a page (creates tag if it does not exist)
+   */
+  static async addPageTag(pageId: string, tagName: string) {
+    try {
+      if (!process.env.DATABASE_URL) throw new Error("Database not configured");
+
+      const cleanName = tagName.trim();
+      const slug = cleanName
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9\s-]/g, "")
+        .replace(/\s+/g, "-");
+
+      const tag = await prisma.tag.upsert({
+        where: { slug },
+        create: { name: cleanName, slug },
+        update: {},
+      });
+
+      await prisma.pageTag.upsert({
+        where: {
+          pageId_tagId: {
+            pageId,
+            tagId: tag.id,
+          },
+        },
+        create: { pageId, tagId: tag.id },
+        update: {},
+      });
+
+      return tag;
+    } catch (error) {
+      console.error("❌ Failed to add page tag:", error);
+      return null;
+    }
+  }
+
+  /**
+   * Removes a tag from a page
+   */
+  static async removePageTag(pageId: string, tagName: string) {
+    try {
+      if (!process.env.DATABASE_URL) throw new Error("Database not configured");
+
+      const slug = tagName
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9\s-]/g, "")
+        .replace(/\s+/g, "-");
+
+      const tag = await prisma.tag.findUnique({ where: { slug } });
+      if (!tag) return false;
+
+      await prisma.pageTag.deleteMany({
+        where: { pageId, tagId: tag.id },
+      });
+
+      return true;
+    } catch (error) {
+      console.error("❌ Failed to remove page tag:", error);
+      return false;
+    }
+  }
+
+  /**
+   * Adds an external resource to a page
+   */
+  static async addPageResource(
+    pageId: string,
+    data: { title: string; url: string; type: ResourceType; description?: string }
+  ) {
+    try {
+      if (!process.env.DATABASE_URL) throw new Error("Database not configured");
+
+      const resource = await prisma.pageResource.create({
+        data: {
+          pageId,
+          title: data.title,
+          url: data.url,
+          type: data.type,
+          description: data.description,
+        },
+      });
+
+      return resource;
+    } catch (error) {
+      console.error("❌ Failed to add page resource:", error);
+      return null;
+    }
+  }
+
+  /**
+   * Removes an external resource from a page
+   */
+  static async removePageResource(resourceId: string) {
+    try {
+      if (!process.env.DATABASE_URL) throw new Error("Database not configured");
+
+      await prisma.pageResource.delete({
+        where: { id: resourceId },
+      });
+
+      return true;
+    } catch (error) {
+      console.error("❌ Failed to remove page resource:", error);
+      return false;
+    }
+  }
+
+  /**
+   * Searches pages for relation autocompletion
+   */
+  static async searchPagesForRelating(query: string, excludePageId?: string) {
+    try {
+      if (!process.env.DATABASE_URL) return [];
+
+      const cleanQuery = query.trim();
+      if (!cleanQuery) return [];
+
+      const pages = await prisma.page.findMany({
+        where: {
+          id: excludePageId ? { not: excludePageId } : undefined,
+          OR: [
+            { title: { contains: cleanQuery, mode: "insensitive" } },
+            { slug: { contains: cleanQuery, mode: "insensitive" } },
+          ],
+        },
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+        },
+        take: 8,
+      });
+
+      return pages;
+    } catch (error) {
+      console.error("❌ Failed to search pages for relating:", error);
+      return [];
     }
   }
 
