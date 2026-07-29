@@ -240,7 +240,7 @@ export class PageService {
 
       return rootNodes;
     } catch (error) {
-      console.warn("❌ Prisma fetch failed, using mock data:", error);
+      console.warn("Prisma fetch failed, using mock data:", error);
       return this.getMockHierarchy();
     }
   }
@@ -268,7 +268,7 @@ export class PageService {
         status: page.status,
       };
     } catch (error) {
-      console.error(`❌ Failed to fetch page ${slug}:`, error);
+      console.error(`Failed to fetch page ${slug}:`, error);
       return null;
     }
   }
@@ -361,7 +361,7 @@ export class PageService {
         status: page.status,
       };
     } catch (error) {
-      console.error(`❌ Failed to fetch page by nested slugs [${slugs.join("/")}]:`, error);
+      console.error(`Failed to fetch page by nested slugs [${slugs.join("/")}]:`, error);
       return null;
     }
   }
@@ -424,7 +424,7 @@ export class PageService {
         ),
       }));
     } catch (error) {
-      console.error(`❌ Failed to fetch breadcrumbs for path ${page.path}:`, error);
+      console.error(`Failed to fetch breadcrumbs for path ${page.path}:`, error);
       return [];
     }
   }
@@ -604,7 +604,7 @@ export class PageService {
         status: page.status,
       };
     } catch (error) {
-      console.error(`❌ Failed to fetch page ${id}:`, error);
+      console.error(`Failed to fetch page ${id}:`, error);
       return null;
     }
   }
@@ -706,7 +706,7 @@ export class PageService {
         status: page.status,
       };
     } catch (error) {
-      console.error("❌ Failed to create page:", error);
+      console.error("Failed to create page:", error);
       return null;
     }
   }
@@ -744,7 +744,7 @@ export class PageService {
         status: page.status,
       };
     } catch (error) {
-      console.error(`❌ Failed to update page ${id}:`, error);
+      console.error(`Failed to update page ${id}:`, error);
       return null;
     }
   }
@@ -778,7 +778,7 @@ export class PageService {
         status: page.status,
       };
     } catch (error) {
-      console.error(`❌ Failed to publish page ${id}:`, error);
+      console.error(`Failed to publish page ${id}:`, error);
       return null;
     }
   }
@@ -824,7 +824,7 @@ export class PageService {
         status: page.status,
       };
     } catch (error) {
-      console.error(`❌ Failed to update page metadata ${id}:`, error);
+      console.error(`Failed to update page metadata ${id}:`, error);
       return null;
     }
   }
@@ -879,7 +879,7 @@ export class PageService {
 
       return true;
     } catch (error) {
-      console.error(`❌ Failed to delete page ${id}:`, error);
+      console.error(`Failed to delete page ${id}:`, error);
       return false;
     }
   }
@@ -976,7 +976,7 @@ export class PageService {
         };
       });
     } catch (error) {
-      console.error(`❌ Failed to update page hierarchy ${id}:`, error);
+      console.error(`Failed to update page hierarchy ${id}:`, error);
       return null;
     }
   }
@@ -1043,7 +1043,7 @@ export class PageService {
         resources,
       };
     } catch (error) {
-      console.error(`❌ Failed to fetch relations & resources for page ${pageId}:`, error);
+      console.error(`Failed to fetch relations & resources for page ${pageId}:`, error);
       return { relations: [], tags: [], resources: [] };
     }
   }
@@ -1081,7 +1081,7 @@ export class PageService {
 
       return relation;
     } catch (error) {
-      console.error("❌ Failed to add page relation:", error);
+      console.error("Failed to add page relation:", error);
       return null;
     }
   }
@@ -1103,7 +1103,7 @@ export class PageService {
 
       return true;
     } catch (error) {
-      console.error("❌ Failed to remove page relation:", error);
+      console.error("Failed to remove page relation:", error);
       return false;
     }
   }
@@ -1142,7 +1142,7 @@ export class PageService {
 
       return tag;
     } catch (error) {
-      console.error("❌ Failed to add page tag:", error);
+      console.error("Failed to add page tag:", error);
       return null;
     }
   }
@@ -1171,7 +1171,7 @@ export class PageService {
 
       return true;
     } catch (error) {
-      console.error("❌ Failed to remove page tag:", error);
+      console.error("Failed to remove page tag:", error);
       return false;
     }
   }
@@ -1198,7 +1198,7 @@ export class PageService {
 
       return resource;
     } catch (error) {
-      console.error("❌ Failed to add page resource:", error);
+      console.error("Failed to add page resource:", error);
       return null;
     }
   }
@@ -1216,7 +1216,7 @@ export class PageService {
 
       return true;
     } catch (error) {
-      console.error("❌ Failed to remove page resource:", error);
+      console.error("Failed to remove page resource:", error);
       return false;
     }
   }
@@ -1249,7 +1249,7 @@ export class PageService {
 
       return pages;
     } catch (error) {
-      console.error("❌ Failed to search pages for relating:", error);
+      console.error("Failed to search pages for relating:", error);
       return [];
     }
   }

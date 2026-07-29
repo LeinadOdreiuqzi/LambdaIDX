@@ -9,7 +9,7 @@ export async function seedHierarchicalContent() {
     // Clear existing data
     await prisma.page.deleteMany({});
 
-    console.log("🌱 Seeding hierarchical content...");
+    console.log("Seeding hierarchical content...");
 
     // ═══════════════════════════════════════════════════════════════
     // ROOT: Las Ciencias Conocidas
@@ -576,10 +576,10 @@ export async function seedHierarchicalContent() {
       },
     });
 
-    console.log("✅ Seed completed successfully!");
-    console.log(`✓ Root science: ${rootScience.title}`);
-    console.log(`✓ Physics and ${4} sub-topics created`);
-    console.log(`✓ Total hierarchical depth: 3 levels`);
+    console.log("Seed completed successfully!");
+    console.log(`Root science: ${rootScience.title}`);
+    console.log(`Physics and ${4} sub-topics created`);
+    console.log(`Total hierarchical depth: 3 levels`);
 
     return {
       rootScience,
@@ -591,7 +591,7 @@ export async function seedHierarchicalContent() {
       dynamics,
     };
   } catch (error) {
-    console.error("❌ Seed error:", error);
+    console.error("Seed error:", error);
     throw error;
   }
 }

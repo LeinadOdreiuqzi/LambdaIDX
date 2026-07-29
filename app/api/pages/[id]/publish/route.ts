@@ -39,7 +39,7 @@ export async function POST(
       message: `Page "${page.title}" published successfully`,
     });
   } catch (error) {
-    console.error("❌ POST /api/pages/[id]/publish error:", error);
+    console.error("POST /api/pages/[id]/publish error:", error);
     return NextResponse.json(
       { success: false, error: "Failed to publish page" },
       { status: 500 }

@@ -36,7 +36,7 @@ export async function GET(
       data: page,
     });
   } catch (error) {
-    console.error("❌ GET /api/pages/[id] error:", error);
+    console.error("GET /api/pages/[id] error:", error);
     return NextResponse.json(
       { success: false, error: "Failed to fetch page" },
       { status: 500 }
@@ -124,7 +124,7 @@ export async function PUT(
       { status: 400 }
     );
   } catch (error) {
-    console.error("❌ PUT /api/pages/[id] error:", error);
+    console.error("PUT /api/pages/[id] error:", error);
     return NextResponse.json(
       { success: false, error: "Failed to update page" },
       { status: 500 }
@@ -167,7 +167,7 @@ export async function DELETE(
       message: "Page deleted successfully",
     });
   } catch (error) {
-    console.error("❌ DELETE /api/pages/[id] error:", error);
+    console.error("DELETE /api/pages/[id] error:", error);
     return NextResponse.json(
       { success: false, error: "Failed to delete page" },
       { status: 500 }

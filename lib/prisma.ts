@@ -6,17 +6,17 @@ const prismaClientSingleton = () => {
   const connectionString = process.env.DATABASE_URL;
   
   if (!connectionString) {
-    console.warn("⚠️ DATABASE_URL is not defined. Prisma is running in disconnected mode.");
+    console.warn("DATABASE_URL is not defined. Prisma is running in disconnected mode.");
     // Devolver un Proxy para evitar fallas en el acceso a la propiedad durante el desarrollo
     return new Proxy({}, {
       get: (_, prop) => {
         return new Proxy(() => {}, {
           get: () => () => {
-            console.error(`❌ Prisma tried to access "${String(prop)}" in disconnected mode.`);
+            console.error(`Prisma tried to access "${String(prop)}" in disconnected mode.`);
             return null;
           },
           apply: () => {
-            console.error(`❌ Prisma tried to call "${String(prop)}" in disconnected mode.`);
+            console.error(`Prisma tried to call "${String(prop)}" in disconnected mode.`);
             return null;
           }
         });

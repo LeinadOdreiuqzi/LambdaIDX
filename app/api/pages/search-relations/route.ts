@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
       data: pages,
     });
   } catch (error) {
-    console.error("❌ GET /api/pages/search-relations error:", error);
+    console.error("GET /api/pages/search-relations error:", error);
     return NextResponse.json(
       { success: false, error: "Failed to search pages" },
       { status: 500 }

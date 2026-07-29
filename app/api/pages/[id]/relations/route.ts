@@ -28,7 +28,7 @@ export async function GET(
       data,
     });
   } catch (error) {
-    console.error("❌ GET /api/pages/[id]/relations error:", error);
+    console.error("GET /api/pages/[id]/relations error:", error);
     return NextResponse.json(
       { success: false, error: "Failed to fetch relations" },
       { status: 500 }
@@ -123,7 +123,7 @@ export async function POST(
         return NextResponse.json({ success: false, error: "Invalid action" }, { status: 400 });
     }
   } catch (error) {
-    console.error("❌ POST /api/pages/[id]/relations error:", error);
+    console.error("POST /api/pages/[id]/relations error:", error);
     return NextResponse.json(
       { success: false, error: "Failed to process relation mutation" },
       { status: 500 }

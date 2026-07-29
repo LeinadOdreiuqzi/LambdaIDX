@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
       data: hierarchy,
     });
   } catch (error) {
-    console.error("❌ GET /api/pages error:", error);
+    console.error("GET /api/pages error:", error);
     return NextResponse.json(
       { success: false, error: "Failed to fetch pages" },
       { status: 500 }
@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
-    console.error("❌ POST /api/pages error:", error);
+    console.error("POST /api/pages error:", error);
     return NextResponse.json(
       { success: false, error: "Failed to create page" },
       { status: 500 }
