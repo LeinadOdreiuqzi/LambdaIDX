@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { RichTextEditor } from "./rich-text-editor";
+import { RichTextEditor, type RichTextEditorHandle } from "./rich-text-editor";
 import { usePageEditor } from "@/hooks/use-page-editor";
 import { cn } from "@/lib/utils";
 import { Loader2, CheckCircle2, Save, Link2 } from "lucide-react";
@@ -23,6 +23,12 @@ export function EditorPage({ pageId, onPublish, className }: EditorPageProps) {
     savePage,
     updateMetadata,
     publishPage,
+    addRelation,
+    removeRelation,
+    addTag,
+    removeTag,
+    addResource,
+    removeResource,
   } = usePageEditor({
     onSaveSuccess: () => {
       router.refresh();
@@ -43,23 +49,21 @@ export function EditorPage({ pageId, onPublish, className }: EditorPageProps) {
   const [metaTitle, setMetaTitle] = useState("");
   const [metaDescription, setMetaDescription] = useState("");
   const [loadError, setLoadError] = useState<string | null>(null);
-  const editorRef = useRef<any>(null);
+  const editorRef = useRef<RichTextEditorHandle | null>(null);
 
   // Load page if ID is provided
   useEffect(() => {
-    if (pageId) {
-      setLoadError(null);
-      loadPage(pageId).catch(() => {
+    if (!pageId) return;
+    let isSubscribed = true;
+    loadPage(pageId).catch(() => {
+      if (isSubscribed) {
         setLoadError("Page not found or could not be loaded.");
-      });
-    }
+      }
+    });
+    return () => {
+      isSubscribed = false;
+    };
   }, [pageId, loadPage]);
-
-  // Sync metadata when page loads
-  useEffect(() => {
-    setMetaTitle(state.title);
-    setMetaDescription("");
-  }, [state.title]);
 
   const handleCreatePage = async () => {
     setIsCreating(true);
@@ -375,7 +379,18 @@ export function EditorPage({ pageId, onPublish, className }: EditorPageProps) {
             {/* Topic Relations & Resources Panel */}
             {showRelations && (
               <div className="mx-6 mb-6">
-                <TopicRelationsEditor />
+                <TopicRelationsEditor
+                  currentPageId={state.id || undefined}
+                  relations={state.relations}
+                  tags={state.tags}
+                  resources={state.resources}
+                  onAddRelation={(rel) => state.id && addRelation(rel.id, rel.type)}
+                  onRemoveRelation={(targetId, type) => state.id && removeRelation(targetId, type)}
+                  onAddTag={(tag) => state.id && addTag(tag)}
+                  onRemoveTag={(tag) => state.id && removeTag(tag)}
+                  onAddResource={(res) => state.id && addResource(res)}
+                  onRemoveResource={(resId) => state.id && removeResource(resId)}
+                />
               </div>
             )}
 

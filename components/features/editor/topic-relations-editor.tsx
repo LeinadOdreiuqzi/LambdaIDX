@@ -36,6 +36,7 @@ export interface SelectedResource {
 }
 
 interface TopicRelationsEditorProps {
+  currentPageId?: string;
   relations?: SelectedPageRelation[];
   tags?: string[];
   resources?: SelectedResource[];
@@ -56,6 +57,7 @@ const RELATION_TYPE_LABELS: Record<RelationTypeOption, { label: string; icon: Re
 };
 
 export function TopicRelationsEditor({
+  currentPageId,
   relations = [],
   tags = [],
   resources = [],
@@ -67,14 +69,42 @@ export function TopicRelationsEditor({
   onRemoveResource,
   className,
 }: TopicRelationsEditorProps) {
-  // Local states for component interaction
-  const [localRelations, setLocalRelations] = useState<SelectedPageRelation[]>(relations);
-  const [localTags, setLocalTags] = useState<string[]>(tags);
-  const [localResources, setLocalResources] = useState<SelectedResource[]>(resources);
-
-  // Form inputs
+  // Search & Autocomplete State
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<{ id: string; title: string; slug: string }[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   const [selectedRelationType, setSelectedRelationType] = useState<RelationTypeOption>("RELATED");
+
+  // Fetch search suggestions
+  React.useEffect(() => {
+    if (searchQuery.trim().length < 2) return;
+
+    let isSubscribed = true;
+    const timer = setTimeout(async () => {
+      setIsSearching(true);
+      try {
+        const url = `/api/pages/search-relations?q=${encodeURIComponent(searchQuery.trim())}${
+          currentPageId ? `&excludeId=${currentPageId}` : ""
+        }`;
+        const res = await fetch(url);
+        if (res.ok && isSubscribed) {
+          const { data } = await res.json();
+          setSearchResults(data || []);
+        }
+      } catch (err) {
+        console.error("Search relations error:", err);
+      } finally {
+        if (isSubscribed) {
+          setIsSearching(false);
+        }
+      }
+    }, 300);
+
+    return () => {
+      isSubscribed = false;
+      clearTimeout(timer);
+    };
+  }, [searchQuery, currentPageId]);
 
   const [newTagInput, setNewTagInput] = useState("");
 
@@ -82,48 +112,44 @@ export function TopicRelationsEditor({
   const [resUrl, setResUrl] = useState("");
   const [resType, setResType] = useState<ResourceTypeOption>("WEBSITE");
 
+  const handleSelectRelationTarget = (page: { id: string; title: string; slug: string }) => {
+    const newRel: SelectedPageRelation = {
+      id: page.id,
+      title: page.title,
+      slug: page.slug,
+      type: selectedRelationType,
+    };
+    onAddRelation?.(newRel);
+    setSearchQuery("");
+    setSearchResults([]);
+  };
+
   const handleRemoveRelation = (id: string, type: RelationTypeOption) => {
-    const updated = localRelations.filter(r => !(r.id === id && r.type === type));
-    setLocalRelations(updated);
     onRemoveRelation?.(id, type);
   };
 
   const handleAddTagSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const tag = newTagInput.trim().toLowerCase().replace(/[^a-z0-9\s-]/g, "");
-    if (tag && !localTags.includes(tag)) {
-      const updated = [...localTags, tag];
-      setLocalTags(updated);
+    if (tag && !tags.includes(tag)) {
       onAddTag?.(tag);
     }
     setNewTagInput("");
   };
 
   const handleRemoveTag = (tagToRemove: string) => {
-    const updated = localTags.filter(t => t !== tagToRemove);
-    setLocalTags(updated);
     onRemoveTag?.(tagToRemove);
   };
 
   const handleAddResourceSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!resTitle.trim() || !resUrl.trim()) return;
-    const newRes: SelectedResource = {
-      id: `temp-${Date.now()}`,
-      title: resTitle.trim(),
-      url: resUrl.trim(),
-      type: resType,
-    };
-    const updated = [...localResources, newRes];
-    setLocalResources(updated);
-    onAddResource?.({ title: newRes.title, url: newRes.url, type: newRes.type });
+    onAddResource?.({ title: resTitle.trim(), url: resUrl.trim(), type: resType });
     setResTitle("");
     setResUrl("");
   };
 
   const handleRemoveResource = (id: string) => {
-    const updated = localResources.filter(r => r.id !== id);
-    setLocalResources(updated);
     onRemoveResource?.(id);
   };
 
@@ -159,6 +185,29 @@ export function TopicRelationsEditor({
               placeholder="Buscar título de página para vincular..."
               className="w-full pl-9 pr-3 py-2 text-xs rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+
+            {/* Dropdown Suggestions */}
+            {searchQuery.trim().length >= 2 && (
+              <div className="absolute left-0 right-0 top-full mt-1 z-50 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-lg overflow-hidden max-h-48 overflow-y-auto">
+                {isSearching ? (
+                  <div className="p-3 text-xs text-zinc-400 italic text-center">Buscando páginas...</div>
+                ) : searchResults.length === 0 ? (
+                  <div className="p-3 text-xs text-zinc-400 italic text-center">No se encontraron páginas con ese término</div>
+                ) : (
+                  searchResults.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => handleSelectRelationTarget(item)}
+                      className="w-full px-3 py-2 text-left text-xs hover:bg-zinc-100 dark:hover:bg-zinc-800 flex items-center justify-between transition-colors border-b border-zinc-100 dark:border-zinc-800/50 last:border-0 cursor-pointer"
+                    >
+                      <span className="font-medium text-zinc-900 dark:text-white truncate">{item.title}</span>
+                      <span className="text-[10px] text-zinc-400 font-mono">/{item.slug}</span>
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
           </div>
 
           <select
@@ -175,13 +224,13 @@ export function TopicRelationsEditor({
 
         {/* List of Connected Relations */}
         <div className="space-y-2 pt-1">
-          {localRelations.length === 0 ? (
+          {relations.length === 0 ? (
             <p className="text-xs italic text-zinc-400 dark:text-zinc-500 py-2">
               No hay páginas vinculadas aún.
             </p>
           ) : (
             <div className="flex flex-wrap gap-2">
-              {localRelations.map((rel) => {
+              {relations.map((rel) => {
                 const config = RELATION_TYPE_LABELS[rel.type] || RELATION_TYPE_LABELS.RELATED;
                 const IconComponent = config.icon;
                 return (
@@ -238,12 +287,12 @@ export function TopicRelationsEditor({
         </form>
 
         <div className="flex flex-wrap gap-1.5 pt-1">
-          {localTags.length === 0 ? (
+          {tags.length === 0 ? (
             <p className="text-xs italic text-zinc-400 dark:text-zinc-500">
               Sin etiquetas asignadas.
             </p>
           ) : (
-            localTags.map((tag) => (
+            tags.map((tag) => (
               <span
                 key={tag}
                 className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700"
@@ -313,12 +362,12 @@ export function TopicRelationsEditor({
         </form>
 
         <div className="space-y-2 pt-1">
-          {localResources.length === 0 ? (
+          {resources.length === 0 ? (
             <p className="text-xs italic text-zinc-400 dark:text-zinc-500">
               No se han agregado enlaces externos.
             </p>
           ) : (
-            localResources.map((res) => (
+            resources.map((res) => (
               <div
                 key={res.id}
                 className="flex items-center justify-between p-2.5 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50/60 dark:bg-zinc-950/40 text-xs"

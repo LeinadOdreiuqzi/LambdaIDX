@@ -41,7 +41,7 @@ interface RichTextEditorProps {
   disableAutoSave?: boolean;
 }
 
-interface RichTextEditorHandle {
+export interface RichTextEditorHandle {
   getEditor: () => Editor | null;
 }
 

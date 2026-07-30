@@ -1,6 +1,21 @@
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
 
+export interface PageEditorRelation {
+  id: string;
+  title: string;
+  slug: string;
+  type: "RELATED" | "PREREQUISITE" | "NEXT_STEP" | "REFERENCE";
+}
+
+export interface PageEditorResource {
+  id: string;
+  title: string;
+  url: string;
+  type: "WEBSITE" | "PDF" | "VIDEO" | "BOOK" | "TOOL" | "ARTICLE";
+  description?: string;
+}
+
 export interface PageEditorState {
   id: string | null;
   title: string;
@@ -10,6 +25,9 @@ export interface PageEditorState {
   status: string;
   isSaving: boolean;
   isPublishing: boolean;
+  relations: PageEditorRelation[];
+  tags: string[];
+  resources: PageEditorResource[];
 }
 
 interface UsePageEditorOptions {
@@ -27,7 +45,32 @@ export function usePageEditor(options?: UsePageEditorOptions) {
     status: "DRAFT",
     isSaving: false,
     isPublishing: false,
+    relations: [],
+    tags: [],
+    resources: [],
   });
+
+  /**
+   * Fetch relations, tags, and resources
+   */
+  const loadRelations = useCallback(async (pageId: string) => {
+    try {
+      const response = await fetch(`/api/pages/${pageId}/relations`);
+      if (response.ok) {
+        const { data } = await response.json();
+        if (data) {
+          setState(prev => ({
+            ...prev,
+            relations: data.relations || [],
+            tags: data.tags || [],
+            resources: data.resources || [],
+          }));
+        }
+      }
+    } catch (error) {
+      console.error("Failed to load relations:", error);
+    }
+  }, []);
 
   /**
    * Load page from API
@@ -44,7 +87,8 @@ export function usePageEditor(options?: UsePageEditorOptions) {
 
       const { data } = await response.json();
 
-      setState({
+      setState(prev => ({
+        ...prev,
         id: data.id,
         title: data.title,
         slug: data.slug,
@@ -53,7 +97,10 @@ export function usePageEditor(options?: UsePageEditorOptions) {
         status: data.status,
         isSaving: false,
         isPublishing: false,
-      });
+      }));
+
+      // Concurrently load page relations, tags & resources
+      await loadRelations(pageId);
 
       return data;
     } catch (error) {
@@ -61,7 +108,7 @@ export function usePageEditor(options?: UsePageEditorOptions) {
       toast.error("Failed to load page");
       throw error;
     }
-  }, []);
+  }, [loadRelations]);
 
   /**
    * Create new page
@@ -87,7 +134,8 @@ export function usePageEditor(options?: UsePageEditorOptions) {
 
         const { data: page } = await response.json();
 
-        setState({
+        setState(prev => ({
+          ...prev,
           id: page.id,
           title: page.title,
           slug: page.slug,
@@ -96,7 +144,10 @@ export function usePageEditor(options?: UsePageEditorOptions) {
           status: page.status,
           isSaving: false,
           isPublishing: false,
-        });
+          relations: [],
+          tags: [],
+          resources: [],
+        }));
 
         toast.success("Page created successfully");
         options?.onSaveSuccess?.(state);
@@ -278,6 +329,9 @@ export function usePageEditor(options?: UsePageEditorOptions) {
         status: "DRAFT",
         isSaving: false,
         isPublishing: false,
+        relations: [],
+        tags: [],
+        resources: [],
       });
 
       toast.success("Page deleted successfully");
@@ -289,14 +343,171 @@ export function usePageEditor(options?: UsePageEditorOptions) {
     }
   }, [state.id]);
 
+  /**
+   * Relation Mutations
+   */
+  const addRelation = useCallback(
+    async (targetId: string, type: PageEditorRelation["type"]) => {
+      if (!state.id) return;
+      try {
+        const response = await fetch(`/api/pages/${state.id}/relations`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "add_relation",
+            payload: { targetId, type },
+          }),
+        });
+
+        if (response.ok) {
+          toast.success("Relación agregada exitosamente");
+          await loadRelations(state.id);
+        } else {
+          toast.error("No se pudo agregar la relación");
+        }
+      } catch (err) {
+        console.error("Add relation error:", err);
+        toast.error("Error al agregar relación");
+      }
+    },
+    [state.id, loadRelations]
+  );
+
+  const removeRelation = useCallback(
+    async (targetId: string, type: PageEditorRelation["type"]) => {
+      if (!state.id) return;
+      try {
+        const response = await fetch(`/api/pages/${state.id}/relations`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "remove_relation",
+            payload: { targetId, type },
+          }),
+        });
+
+        if (response.ok) {
+          toast.success("Relación eliminada");
+          await loadRelations(state.id);
+        }
+      } catch (err) {
+        console.error("Remove relation error:", err);
+      }
+    },
+    [state.id, loadRelations]
+  );
+
+  const addTag = useCallback(
+    async (tag: string) => {
+      if (!state.id) return;
+      try {
+        const response = await fetch(`/api/pages/${state.id}/relations`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "add_tag",
+            payload: { tag },
+          }),
+        });
+
+        if (response.ok) {
+          toast.success(`Etiqueta #${tag} agregada`);
+          await loadRelations(state.id);
+        }
+      } catch (err) {
+        console.error("Add tag error:", err);
+      }
+    },
+    [state.id, loadRelations]
+  );
+
+  const removeTag = useCallback(
+    async (tag: string) => {
+      if (!state.id) return;
+      try {
+        const response = await fetch(`/api/pages/${state.id}/relations`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "remove_tag",
+            payload: { tag },
+          }),
+        });
+
+        if (response.ok) {
+          toast.success(`Etiqueta #${tag} eliminada`);
+          await loadRelations(state.id);
+        }
+      } catch (err) {
+        console.error("Remove tag error:", err);
+      }
+    },
+    [state.id, loadRelations]
+  );
+
+  const addResource = useCallback(
+    async (resource: { title: string; url: string; type: PageEditorResource["type"] }) => {
+      if (!state.id) return;
+      try {
+        const response = await fetch(`/api/pages/${state.id}/relations`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "add_resource",
+            payload: resource,
+          }),
+        });
+
+        if (response.ok) {
+          toast.success("Recurso externo agregado");
+          await loadRelations(state.id);
+        }
+      } catch (err) {
+        console.error("Add resource error:", err);
+      }
+    },
+    [state.id, loadRelations]
+  );
+
+  const removeResource = useCallback(
+    async (resourceId: string) => {
+      if (!state.id) return;
+      try {
+        const response = await fetch(`/api/pages/${state.id}/relations`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "remove_resource",
+            payload: { resourceId },
+          }),
+        });
+
+        if (response.ok) {
+          toast.success("Recurso eliminado");
+          await loadRelations(state.id);
+        }
+      } catch (err) {
+        console.error("Remove resource error:", err);
+      }
+    },
+    [state.id, loadRelations]
+  );
+
   return {
     state,
     setState,
     loadPage,
+    loadRelations,
     createPage,
     savePage,
     updateMetadata,
     publishPage,
     deletePage,
+    addRelation,
+    removeRelation,
+    addTag,
+    removeTag,
+    addResource,
+    removeResource,
   };
 }
