@@ -19,6 +19,9 @@ interface ArticleViewProps {
   content: string;
   contentJson?: Record<string, unknown>;
   breadcrumbs: { title: string; slug: string; href: string }[];
+  relations?: { title: string; slug: string; href?: string; type?: string }[];
+  tags?: string[];
+  resources?: { title: string; url: string; type: string; description?: string | null }[];
 }
 
 function splitContentIntoPages(contentJson?: Record<string, unknown>): Record<string, unknown>[] {
@@ -27,17 +30,18 @@ function splitContentIntoPages(contentJson?: Record<string, unknown>): Record<st
   }
 
   const pages: Record<string, unknown>[] = [];
-  let currentContent: any[] = [];
+  let currentContent: Record<string, unknown>[] = [];
 
-  contentJson.content.forEach((node: any) => {
-    if (node.type === "pageBreak") {
+  contentJson.content.forEach((node: unknown) => {
+    const nodeObj = node as Record<string, unknown>;
+    if (nodeObj && nodeObj.type === "pageBreak") {
       pages.push({
         ...contentJson,
         content: currentContent,
       });
       currentContent = [];
-    } else {
-      currentContent.push(node);
+    } else if (nodeObj) {
+      currentContent.push(nodeObj);
     }
   });
 
@@ -49,7 +53,15 @@ function splitContentIntoPages(contentJson?: Record<string, unknown>): Record<st
   return pages;
 }
 
-export function ArticleView({ title, content, contentJson, breadcrumbs }: ArticleViewProps) {
+export function ArticleView({
+  title,
+  content,
+  contentJson,
+  breadcrumbs,
+  relations,
+  tags,
+  resources,
+}: ArticleViewProps) {
   const { isRightSidebarOpen, toggleRightSidebar } = useNavigation();
   const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
 
@@ -236,7 +248,11 @@ export function ArticleView({ title, content, contentJson, breadcrumbs }: Articl
           >
             <TableOfContents />
             <div className="mt-8 pt-8 border-t border-zinc-200/50 dark:border-zinc-800/50">
-              <RelationalPanel />
+              <RelationalPanel
+                relatedPages={relations}
+                tags={tags}
+                resources={resources}
+              />
             </div>
           </motion.div>
         )}

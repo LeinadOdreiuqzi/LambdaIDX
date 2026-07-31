@@ -44,6 +44,9 @@ export interface PageContent {
   status?: string;
   createdAt?: Date | string | null;
   updatedAt?: Date | string | null;
+  relations?: { id: string; title: string; slug: string; type: string }[];
+  tags?: string[];
+  resources?: { title: string; url: string; type: string; description?: string | null }[];
 }
 
 export interface BreadcrumbItem {
@@ -257,6 +260,8 @@ export class PageService {
 
       if (!page) return null;
 
+      const relData = await this.getRelationsAndResources(page.id);
+
       return {
         id: page.id,
         title: page.title,
@@ -266,6 +271,9 @@ export class PageService {
         path: page.path,
         parentId: page.parentId,
         status: page.status,
+        relations: relData.relations,
+        tags: relData.tags,
+        resources: relData.resources,
       };
     } catch (error) {
       console.error(`Failed to fetch page ${slug}:`, error);
@@ -325,6 +333,8 @@ export class PageService {
         slug: normalizeSlug(b.slug),
       }));
 
+      const relData = await this.getRelationsAndResources(page.id);
+
       if (normalizedBreadcrumbs.length !== normalizedSlugs.length) {
         if (normalizedBreadcrumbs.length > normalizedSlugs.length) {
           const lastBreadcrumb = normalizedBreadcrumbs[normalizedBreadcrumbs.length - 1];
@@ -338,6 +348,9 @@ export class PageService {
               path: page.path,
               parentId: page.parentId,
               status: page.status,
+              relations: relData.relations,
+              tags: relData.tags,
+              resources: relData.resources,
             };
           }
         }
@@ -359,6 +372,9 @@ export class PageService {
         path: page.path,
         parentId: page.parentId,
         status: page.status,
+        relations: relData.relations,
+        tags: relData.tags,
+        resources: relData.resources,
       };
     } catch (error) {
       console.error(`Failed to fetch page by nested slugs [${slugs.join("/")}]:`, error);

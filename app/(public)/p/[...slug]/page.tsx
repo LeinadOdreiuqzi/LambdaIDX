@@ -101,6 +101,9 @@ export default async function KnowledgePage({ params }: PageProps) {
           content=""
           contentJson={page.contentJson as Record<string, unknown>}
           breadcrumbs={breadcrumbs}
+          relations={page.relations}
+          tags={page.tags}
+          resources={page.resources}
         />
       </Suspense>
     </div>
