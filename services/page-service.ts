@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import { Prisma, RelationType, ResourceType } from "@prisma/client";
 import { buildPublicPageHref } from "@/lib/page-paths";
 import { NavPage } from "@/types";
+import { CacheService, RELATIONS_TTL } from "./cache-service";
 
 /**
  * Generates a subtle, short numeric ID (e.g., "8472")
@@ -250,6 +251,10 @@ export class PageService {
 
   static async getPageBySlug(slug: string): Promise<PageContent | null> {
     try {
+      const cacheKey = CacheService.keys.page(slug);
+      const cached = await CacheService.get<PageContent>(cacheKey);
+      if (cached) return cached;
+
       if (!process.env.DATABASE_URL) {
         return null;
       }
@@ -262,7 +267,7 @@ export class PageService {
 
       const relData = await this.getRelationsAndResources(page.id);
 
-      return {
+      const result: PageContent = {
         id: page.id,
         title: page.title,
         slug: page.slug,
@@ -275,6 +280,9 @@ export class PageService {
         tags: relData.tags,
         resources: relData.resources,
       };
+
+      await CacheService.set(cacheKey, result);
+      return result;
     } catch (error) {
       console.error(`Failed to fetch page ${slug}:`, error);
       return null;
@@ -288,6 +296,10 @@ export class PageService {
   static async getPageByNestedSlugs(slugs: string[]): Promise<PageContent | null> {
     try {
       if (!slugs || slugs.length === 0) return null;
+
+      const cacheKey = CacheService.keys.page(slugs.join("/"));
+      const cached = await CacheService.get<PageContent>(cacheKey);
+      if (cached) return cached;
 
       if (!process.env.DATABASE_URL) {
         return null;
@@ -335,35 +347,7 @@ export class PageService {
 
       const relData = await this.getRelationsAndResources(page.id);
 
-      if (normalizedBreadcrumbs.length !== normalizedSlugs.length) {
-        if (normalizedBreadcrumbs.length > normalizedSlugs.length) {
-          const lastBreadcrumb = normalizedBreadcrumbs[normalizedBreadcrumbs.length - 1];
-          if (lastBreadcrumb.slug === normalizedSlugs[normalizedSlugs.length - 1]) {
-            return {
-              id: page.id,
-              title: page.title,
-              slug: page.slug,
-              contentJson: page.contentJson,
-              excerpt: page.excerpt,
-              path: page.path,
-              parentId: page.parentId,
-              status: page.status,
-              relations: relData.relations,
-              tags: relData.tags,
-              resources: relData.resources,
-            };
-          }
-        }
-        return null;
-      }
-
-      for (let i = 0; i < normalizedSlugs.length; i++) {
-        if (normalizedBreadcrumbs[i].slug !== normalizedSlugs[i]) {
-          return null;
-        }
-      }
-
-      return {
+      const pageResult: PageContent = {
         id: page.id,
         title: page.title,
         slug: page.slug,
@@ -376,6 +360,26 @@ export class PageService {
         tags: relData.tags,
         resources: relData.resources,
       };
+
+      if (normalizedBreadcrumbs.length !== normalizedSlugs.length) {
+        if (normalizedBreadcrumbs.length > normalizedSlugs.length) {
+          const lastBreadcrumb = normalizedBreadcrumbs[normalizedBreadcrumbs.length - 1];
+          if (lastBreadcrumb.slug === normalizedSlugs[normalizedSlugs.length - 1]) {
+            await CacheService.set(cacheKey, pageResult);
+            return pageResult;
+          }
+        }
+        return null;
+      }
+
+      for (let i = 0; i < normalizedSlugs.length; i++) {
+        if (normalizedBreadcrumbs[i].slug !== normalizedSlugs[i]) {
+          return null;
+        }
+      }
+
+      await CacheService.set(cacheKey, pageResult);
+      return pageResult;
     } catch (error) {
       console.error(`Failed to fetch page by nested slugs [${slugs.join("/")}]:`, error);
       return null;
@@ -387,6 +391,10 @@ export class PageService {
    */
   static async getBreadcrumbs(page: { path: string; id: string }): Promise<BreadcrumbItem[]> {
     try {
+      const cacheKey = CacheService.keys.breadcrumbs(page.path || page.id);
+      const cached = await CacheService.get<BreadcrumbItem[]>(cacheKey);
+      if (cached) return cached;
+
       if (!process.env.DATABASE_URL) {
         return [];
       }
@@ -404,13 +412,15 @@ export class PageService {
         });
 
         if (pageData) {
-          return [
+          const res = [
             {
               title: pageData.title,
               slug: pageData.slug,
               href: buildPublicPageHref([pageData.slug]),
             },
           ];
+          await CacheService.set(cacheKey, res);
+          return res;
         }
         return [];
       }
@@ -433,12 +443,15 @@ export class PageService {
         .filter((b): b is typeof b & { title: string; slug: string } => !!b)
         .map(b => ({ title: b.title, slug: b.slug }));
 
-      return orderedBreadcrumbs.map((breadcrumb, index) => ({
+      const result = orderedBreadcrumbs.map((breadcrumb, index) => ({
         ...breadcrumb,
         href: buildPublicPageHref(
           orderedBreadcrumbs.slice(0, index + 1).map((item) => item.slug)
         ),
       }));
+
+      await CacheService.set(cacheKey, result);
+      return result;
     } catch (error) {
       console.error(`Failed to fetch breadcrumbs for path ${page.path}:`, error);
       return [];
@@ -1006,6 +1019,14 @@ export class PageService {
    */
   static async getRelationsAndResources(pageId: string) {
     try {
+      const cacheKey = CacheService.keys.relations(pageId);
+      const cached = await CacheService.get<{
+        relations: { id: string; title: string; slug: string; type: string; relationId: string }[];
+        tags: string[];
+        resources: { id: string; title: string; url: string; type: ResourceType; description: string | null }[];
+      }>(cacheKey);
+      if (cached) return cached;
+
       if (!process.env.DATABASE_URL) {
         return { relations: [], tags: [], resources: [] };
       }
@@ -1047,7 +1068,7 @@ export class PageService {
         }),
       ]);
 
-      return {
+      const result = {
         relations: relations.map((r) => ({
           id: r.target.id,
           title: r.target.title,
@@ -1058,6 +1079,9 @@ export class PageService {
         tags: pageTags.map((pt) => pt.tag.name),
         resources,
       };
+
+      await CacheService.set(cacheKey, result, RELATIONS_TTL);
+      return result;
     } catch (error) {
       console.error(`Failed to fetch relations & resources for page ${pageId}:`, error);
       return { relations: [], tags: [], resources: [] };
