@@ -762,6 +762,8 @@ export class PageService {
         },
       });
 
+      await CacheService.invalidatePageCaches(page.id, page.slug, page.path);
+
       return {
         id: page.id,
         title: page.title,
@@ -795,6 +797,8 @@ export class PageService {
           updatedAt: new Date(),
         },
       });
+
+      await CacheService.invalidatePageCaches(page.id, page.slug, page.path);
 
       return {
         id: page.id,
@@ -841,6 +845,8 @@ export class PageService {
           updatedAt: new Date(),
         },
       });
+
+      await CacheService.invalidatePageCaches(page.id, page.slug, page.path);
 
       return {
         id: page.id,
@@ -906,6 +912,10 @@ export class PageService {
         });
       });
 
+      await CacheService.invalidatePageCaches(id);
+      await CacheService.delPattern("page:slug:*");
+      await CacheService.delPattern("breadcrumbs:path:*");
+
       return true;
     } catch (error) {
       console.error(`Failed to delete page ${id}:`, error);
@@ -927,7 +937,7 @@ export class PageService {
         throw new Error("Database not configured");
       }
 
-      return await prisma.$transaction(async (tx) => {
+      const res = await prisma.$transaction(async (tx) => {
         const page = await tx.page.findUnique({
           where: { id },
           select: { id: true, path: true, depth: true, parentId: true }
@@ -1004,6 +1014,14 @@ export class PageService {
           status: updatedPage.status,
         };
       });
+
+      if (res) {
+        await CacheService.del(CacheService.keys.hierarchy());
+        await CacheService.delPattern("page:slug:*");
+        await CacheService.delPattern("breadcrumbs:path:*");
+      }
+
+      return res;
     } catch (error) {
       console.error(`Failed to update page hierarchy ${id}:`, error);
       return null;
@@ -1119,6 +1137,9 @@ export class PageService {
         update: {},
       });
 
+      await CacheService.invalidatePageCaches(sourceId);
+      await CacheService.invalidatePageCaches(targetId);
+
       return relation;
     } catch (error) {
       console.error("Failed to add page relation:", error);
@@ -1140,6 +1161,9 @@ export class PageService {
           type,
         },
       });
+
+      await CacheService.invalidatePageCaches(sourceId);
+      await CacheService.invalidatePageCaches(targetId);
 
       return true;
     } catch (error) {
@@ -1180,6 +1204,8 @@ export class PageService {
         update: {},
       });
 
+      await CacheService.invalidatePageCaches(pageId);
+
       return tag;
     } catch (error) {
       console.error("Failed to add page tag:", error);
@@ -1209,6 +1235,8 @@ export class PageService {
         where: { pageId, tagId: tag.id },
       });
 
+      await CacheService.invalidatePageCaches(pageId);
+
       return true;
     } catch (error) {
       console.error("Failed to remove page tag:", error);
@@ -1236,6 +1264,8 @@ export class PageService {
         },
       });
 
+      await CacheService.invalidatePageCaches(pageId);
+
       return resource;
     } catch (error) {
       console.error("Failed to add page resource:", error);
@@ -1250,9 +1280,18 @@ export class PageService {
     try {
       if (!process.env.DATABASE_URL) throw new Error("Database not configured");
 
+      const resource = await prisma.pageResource.findUnique({
+        where: { id: resourceId },
+        select: { pageId: true },
+      });
+
       await prisma.pageResource.delete({
         where: { id: resourceId },
       });
+
+      if (resource?.pageId) {
+        await CacheService.invalidatePageCaches(resource.pageId);
+      }
 
       return true;
     } catch (error) {
