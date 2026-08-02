@@ -1,5 +1,7 @@
 import Redis from "ioredis";
 
+let hasLoggedRefusal = false;
+
 const redisSingleton = () => {
   const url = process.env.REDIS_URL;
 
@@ -12,9 +14,26 @@ const redisSingleton = () => {
     maxRetriesPerRequest: 1,
     enableOfflineQueue: false,
     keyPrefix: process.env.REDIS_KEY_PREFIX || "lambdaidx:",
+    retryStrategy(times) {
+      if (times > 3) {
+        if (!hasLoggedRefusal && process.env.NODE_ENV !== "production") {
+          console.warn("⚠️ Redis no está activo localmente. Operando en modo directo a PostgreSQL.");
+          hasLoggedRefusal = true;
+        }
+        return null; // Detener reintentos automáticos para evitar spam en consola
+      }
+      return Math.min(times * 200, 1000);
+    },
   });
 
-  client.on("error", (error) => {
+  client.on("error", (error: { code?: string; message?: string }) => {
+    if (error?.code === "ECONNREFUSED") {
+      if (!hasLoggedRefusal && process.env.NODE_ENV !== "production") {
+        console.warn("⚠️ Redis client connection refused. Modo PostgreSQL activo.");
+        hasLoggedRefusal = true;
+      }
+      return;
+    }
     console.error("Redis client error:", error);
   });
 
@@ -38,11 +57,19 @@ export async function getRedisClient() {
     return null;
   }
 
-  if (redis.status === "wait") {
-    await redis.connect();
+  if (redis.status === "end" || redis.status === "close") {
+    return null;
   }
 
-  return redis;
+  if (redis.status === "wait") {
+    try {
+      await redis.connect();
+    } catch {
+      return null;
+    }
+  }
+
+  return redis.status === "ready" || redis.status === "connecting" ? redis : null;
 }
 
 if (process.env.NODE_ENV !== "production") {
