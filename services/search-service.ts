@@ -182,40 +182,93 @@ export class SearchService {
       };
     }
 
-    const pages = await prisma.page.findMany({
-      where: {
-        status: PageStatus.PUBLISHED,
-        OR: [
-          { title: { contains: query, mode: "insensitive" } },
-          { excerpt: { contains: query, mode: "insensitive" } },
-        ],
-      },
-      select: {
-        id: true,
-        title: true,
-        slug: true,
-        path: true,
-        excerpt: true,
-        contentJson: true,
-        depth: true,
-        updatedAt: true,
-        publishedAt: true,
-      },
-      orderBy: [{ depth: "asc" }, { updatedAt: "desc" }],
-      take: limit,
-    });
+    try {
+      const cleanQuery = query.trim();
+      const prefixQuery = `${cleanQuery}%`;
+      const containsQuery = `%${cleanQuery}%`;
 
-    const hits = pages.map((page) => this.toSearchDocument(page));
+      // Optimized PostgreSQL query: ranks exact title prefix matches first, then partial matches, sorted by hierarchy depth
+      const rawPages = await prisma.$queryRaw<
+        Array<{
+          id: string;
+          title: string;
+          slug: string;
+          path: string;
+          excerpt: string | null;
+          contentJson: unknown;
+          depth: number;
+          updatedAt: Date;
+          publishedAt: Date | null;
+        }>
+      >`
+        SELECT id, title, slug, path, excerpt, "contentJson", depth, "updatedAt", "publishedAt"
+        FROM "Page"
+        WHERE status = 'PUBLISHED'
+          AND (
+            title ILIKE ${containsQuery}
+            OR excerpt ILIKE ${containsQuery}
+            OR ("searchVector" IS NOT NULL AND "searchVector" ILIKE ${containsQuery})
+          )
+        ORDER BY
+          CASE 
+            WHEN title ILIKE ${prefixQuery} THEN 0
+            WHEN title ILIKE ${containsQuery} THEN 1
+            ELSE 2
+          END,
+          depth ASC,
+          "updatedAt" DESC
+        LIMIT ${limit}
+      `;
 
-    return {
-      hits,
-      query,
-      limit,
-      estimatedTotalHits: hits.length,
-      processingTimeMs: Date.now() - startedAt,
-      source: "database",
-      cached: false,
-    };
+      const hits = rawPages.map((page) => this.toSearchDocument(page));
+
+      return {
+        hits,
+        query,
+        limit,
+        estimatedTotalHits: hits.length,
+        processingTimeMs: Date.now() - startedAt,
+        source: "database",
+        cached: false,
+      };
+    } catch (error) {
+      console.warn("Optimized DB search failed, falling back to standard OR query:", error);
+
+      const pages = await prisma.page.findMany({
+        where: {
+          status: PageStatus.PUBLISHED,
+          OR: [
+            { title: { contains: query, mode: "insensitive" } },
+            { excerpt: { contains: query, mode: "insensitive" } },
+          ],
+        },
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          path: true,
+          excerpt: true,
+          contentJson: true,
+          depth: true,
+          updatedAt: true,
+          publishedAt: true,
+        },
+        orderBy: [{ depth: "asc" }, { updatedAt: "desc" }],
+        take: limit,
+      });
+
+      const hits = pages.map((page) => this.toSearchDocument(page));
+
+      return {
+        hits,
+        query,
+        limit,
+        estimatedTotalHits: hits.length,
+        processingTimeMs: Date.now() - startedAt,
+        source: "database",
+        cached: false,
+      };
+    }
   }
 
   private static toSearchDocument(page: {
