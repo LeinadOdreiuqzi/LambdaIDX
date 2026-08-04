@@ -84,7 +84,7 @@ export async function PUT(
         );
       }
 
-      revalidatePath("/", "layout");
+      revalidatePath(`/p/${updated.slug}`);
 
       return NextResponse.json({
         success: true,
@@ -111,7 +111,7 @@ export async function PUT(
         );
       }
 
-      revalidatePath("/", "layout");
+      revalidatePath(`/p/${updated.slug}`);
 
       return NextResponse.json({
         success: true,
@@ -160,6 +160,7 @@ export async function DELETE(
       );
     }
 
+    revalidatePath("/p");
     revalidatePath("/", "layout");
 
     return NextResponse.json({
