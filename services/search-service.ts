@@ -85,7 +85,10 @@ export class SearchService {
       );
     }
 
-    await this.logSearch(query, searchResult.estimatedTotalHits);
+    // Inyección de logs desacoplada en segundo plano (non-blocking fire-and-forget)
+    void this.logSearch(query, searchResult.estimatedTotalHits).catch((err) => {
+      console.warn("Background search logging failed:", err);
+    });
 
     return searchResult;
   }
