@@ -27,7 +27,7 @@ export class CacheService {
 
       return JSON.parse(cachedData) as T;
     } catch (error) {
-      console.warn(`⚠️ Cache GET error for key [${key}]:`, error);
+      console.warn(`Cache GET error for key [${key}]:`, error);
       return null;
     }
   }
@@ -48,7 +48,7 @@ export class CacheService {
       }
       return true;
     } catch (error) {
-      console.warn(`⚠️ Cache SET error for key [${key}]:`, error);
+      console.warn(`Cache SET error for key [${key}]:`, error);
       return false;
     }
   }
@@ -64,30 +64,59 @@ export class CacheService {
       await redis.del(key);
       return true;
     } catch (error) {
-      console.warn(`⚠️ Cache DEL error for key [${key}]:`, error);
+      console.warn(`Cache DEL error for key [${key}]:`, error);
       return false;
     }
   }
 
   /**
-   * Removes multiple keys matching a pattern (e.g. "page:*")
+   * Removes multiple keys matching a pattern using non-blocking SCAN stream (e.g. "page:*")
    */
   static async delPattern(pattern: string): Promise<boolean> {
     try {
       const redis = await getRedisClient();
       if (!redis) return false;
 
-      // Note: ioredis automatically prefixes keys if keyPrefix is configured
-      const keys = await redis.keys(pattern);
-      if (keys && keys.length > 0) {
-        // Strip out the prefix if present because redis.del() automatically re-applies keyPrefix
-        const prefix = process.env.REDIS_KEY_PREFIX || "lambdaidx:";
-        const rawKeys = keys.map((k) => (k.startsWith(prefix) ? k.slice(prefix.length) : k));
-        await redis.del(...rawKeys);
-      }
-      return true;
+      const prefix = process.env.REDIS_KEY_PREFIX || "lambdaidx:";
+      const matchPattern = pattern.startsWith(prefix) ? pattern : `${prefix}${pattern}`;
+      const stream = redis.scanStream({
+        match: matchPattern,
+        count: 100,
+      });
+
+      return new Promise<boolean>((resolve) => {
+        const keysToDelete: string[] = [];
+
+        stream.on("data", (resultKeys: string[]) => {
+          for (const key of resultKeys) {
+            const rawKey = key.startsWith(prefix) ? key.slice(prefix.length) : key;
+            keysToDelete.push(rawKey);
+          }
+        });
+
+        stream.on("end", async () => {
+          try {
+            if (keysToDelete.length > 0) {
+              const chunkSize = 500;
+              for (let i = 0; i < keysToDelete.length; i += chunkSize) {
+                const chunk = keysToDelete.slice(i, i + chunkSize);
+                await redis.del(...chunk);
+              }
+            }
+            resolve(true);
+          } catch (delError) {
+            console.warn(`Cache DEL error during scanStream end for [${pattern}]:`, delError);
+            resolve(false);
+          }
+        });
+
+        stream.on("error", (streamError) => {
+          console.warn(`Cache SCAN stream error for [${pattern}]:`, streamError);
+          resolve(false);
+        });
+      });
     } catch (error) {
-      console.warn(`⚠️ Cache DEL pattern error for [${pattern}]:`, error);
+      console.warn(`Cache DEL pattern error for [${pattern}]:`, error);
       return false;
     }
   }
@@ -105,7 +134,7 @@ export class CacheService {
         this.delPattern("page:slug:*"),
       ]);
     } catch (error) {
-      console.warn(`⚠️ Error invalidating page caches for page [${pageId}]:`, error);
+      console.warn(`Error invalidating page caches for page [${pageId}]:`, error);
     }
   }
 }
