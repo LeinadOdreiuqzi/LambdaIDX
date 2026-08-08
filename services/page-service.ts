@@ -181,7 +181,7 @@ export class PageService {
     try {
       // Check if DB is configured (basic check)
       if (!process.env.DATABASE_URL) {
-        return [];
+        return this.getMockHierarchy();
       }
 
       const whereClause = includeAll ? {} : { status: "PUBLISHED" as const };
@@ -204,7 +204,7 @@ export class PageService {
         ],
       });
 
-      if (pages.length === 0) return [];
+      if (pages.length === 0) return this.getMockHierarchy();
 
       const pageMap: Record<string, NavPage> = {};
       const rootNodes: NavPage[] = [];
@@ -236,14 +236,14 @@ export class PageService {
       if (cached) return cached;
 
       if (!process.env.DATABASE_URL) {
-        return null;
+        return this.getMockPage(slug);
       }
 
       const page = await prisma.page.findUnique({
         where: { slug, status: "PUBLISHED" },
       });
 
-      if (!page) return null;
+      if (!page) return this.getMockPage(slug);
 
       const relData = await this.getRelationsAndResources(page.id);
 
@@ -265,7 +265,7 @@ export class PageService {
       return result;
     } catch (error) {
       console.error(`Failed to fetch page ${slug}:`, error);
-      return null;
+      return this.getMockPage(slug);
     }
   }
 
@@ -281,10 +281,6 @@ export class PageService {
       const cached = await CacheService.get<PageContent>(cacheKey);
       if (cached) return cached;
 
-      if (!process.env.DATABASE_URL) {
-        return null;
-      }
-
       const normalizeSlug = (slug: string): string => {
         return decodeURIComponent(slug)
           .toLowerCase()
@@ -296,9 +292,12 @@ export class PageService {
       };
 
       const normalizedSlugs = slugs.map(normalizeSlug);
-
       const targetSlug = slugs[slugs.length - 1];
       const normalizedTargetSlug = normalizedSlugs[normalizedSlugs.length - 1];
+
+      if (!process.env.DATABASE_URL) {
+        return this.getMockPage(targetSlug) || this.getMockPage(normalizedTargetSlug);
+      }
 
       let page = await prisma.page.findUnique({
         where: { slug: targetSlug, status: "PUBLISHED" },
@@ -316,7 +315,9 @@ export class PageService {
         });
       }
 
-      if (!page) return null;
+      if (!page) {
+        return this.getMockPage(targetSlug) || this.getMockPage(normalizedTargetSlug);
+      }
 
       const breadcrumbs = await this.getBreadcrumbs({ path: page.path, id: page.id });
 
@@ -440,6 +441,247 @@ export class PageService {
 
   private static getMockPage(slug: string): PageContent | null {
     const mockData: Record<string, PageContent> = {
+      "introduccion": {
+        id: "intro-1",
+        title: "1. Bienvenido a la Cartografía del Conocimiento",
+        slug: "introduccion",
+        excerpt: "Una guía interactiva sobre cómo navegar por el repositorio jerárquico de LambdaIDX.",
+        contentJson: {
+          type: "doc",
+          content: [
+            {
+              type: "heading",
+              attrs: { level: 2 },
+              content: [{ type: "text", text: "Bienvenido a la Cartografía del Conocimiento" }],
+            },
+            {
+              type: "paragraph",
+              content: [
+                {
+                  type: "text",
+                  text: "LambdaIDX es un archivo de conocimiento de próxima generación diseñado para estructurar y conectar las disciplinas científicas e investigativas.",
+                },
+              ],
+            },
+            {
+              type: "heading",
+              attrs: { level: 3 },
+              content: [{ type: "text", text: "¿Cómo explorar este repositorio?" }],
+            },
+            {
+              type: "paragraph",
+              content: [
+                {
+                  type: "text",
+                  text: "A diferencia de las wikis planas tradicionales, LambdaIDX organiza la información como un árbol multinivel interactivo:",
+                },
+              ],
+            },
+            {
+              type: "bulletList",
+              content: [
+                {
+                  type: "listItem",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [
+                        { type: "text", marks: [{ type: "bold" }], text: "Barra Lateral Izquierda: " },
+                        { type: "text", text: "Navega y despliega ramas de conceptos con un solo clic." },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  type: "listItem",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [
+                        { type: "text", marks: [{ type: "bold" }], text: "Panel Lateral Derecho: " },
+                        { type: "text", text: "Descubre las relaciones de temas (Prerrequisitos y Siguientes Pasos) en tiempo real." },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  type: "listItem",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [
+                        { type: "text", marks: [{ type: "bold" }], text: "Velocidad Industrial: " },
+                        { type: "text", text: "Transiciones sub-10ms optimizadas con memoria en caché Redis." },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+        path: "intro-1",
+        parentId: null,
+        status: "PUBLISHED",
+        relations: [
+          { id: "intro-2", title: "2. Relaciones entre Temas y Grafos", slug: "relaciones-y-grafos", type: "NEXT_STEP" },
+          { id: "science-root", title: "Las Ciencias Conocidas", slug: "las-ciencias-conocidas", type: "RELATED" },
+        ],
+        tags: ["Cartografia", "Guia", "Introduccion"],
+        resources: [
+          { title: "MDN Web Docs - Estructuras de Documentación", url: "https://developer.mozilla.org/es/docs/MDN/Community", type: "ARTICLE", description: "Estándar de documentación jerárquica" },
+        ],
+      },
+      "relaciones-y-grafos": {
+        id: "intro-2",
+        title: "2. Relaciones entre Temas y Grafos",
+        slug: "relaciones-y-grafos",
+        excerpt: "Descubre cómo interconectar conceptos mediante Prerrequisitos, Siguientes Pasos y Recursos.",
+        contentJson: {
+          type: "doc",
+          content: [
+            {
+              type: "heading",
+              attrs: { level: 2 },
+              content: [{ type: "text", text: "Relaciones entre Temas y Grafos" }],
+            },
+            {
+              type: "paragraph",
+              content: [
+                {
+                  type: "text",
+                  text: "En LambdaIDX, los temas no existen aislados. Cada concepto se vincula con otros nodos del sistema formando una red rica de aprendizaje.",
+                },
+              ],
+            },
+            {
+              type: "heading",
+              attrs: { level: 3 },
+              content: [{ type: "text", text: "Tipos de Relaciones" }],
+            },
+            {
+              type: "bulletList",
+              content: [
+                {
+                  type: "listItem",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [
+                        { type: "text", marks: [{ type: "bold" }], text: "Prerrequisitos: " },
+                        { type: "text", text: "Lecturas recomendadas antes de abordar el tema actual." },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  type: "listItem",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [
+                        { type: "text", marks: [{ type: "bold" }], text: "Siguiente Paso: " },
+                        { type: "text", text: "Contenidos avanzados para continuar la secuencia de investigación." },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  type: "listItem",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [
+                        { type: "text", marks: [{ type: "bold" }], text: "Recursos Externos: " },
+                        { type: "text", text: "Artículos, documentación oficial y herramientas complementarias." },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+        path: "intro-1/intro-2",
+        parentId: "intro-1",
+        status: "PUBLISHED",
+        relations: [
+          { id: "intro-1", title: "1. Bienvenido a la Cartografía del Conocimiento", slug: "introduccion", type: "PREREQUISITE" },
+          { id: "intro-3", title: "3. Búsqueda Instantánea y Herramientas", slug: "busqueda-y-herramientas", type: "NEXT_STEP" },
+        ],
+        tags: ["Relaciones", "Grafos", "Conexiones"],
+        resources: [
+          { title: "Documentación Oficial de Prisma ORM", url: "https://www.prisma.io/docs", type: "TOOL", description: "Ejemplo de relaciones relacionales" },
+        ],
+      },
+      "busqueda-y-herramientas": {
+        id: "intro-3",
+        title: "3. Búsqueda Instantánea y Herramientas",
+        slug: "busqueda-y-herramientas",
+        excerpt: "Maximiza tu eficiencia de investigación con atajos de teclado y el buscador en tiempo real.",
+        contentJson: {
+          type: "doc",
+          content: [
+            {
+              type: "heading",
+              attrs: { level: 2 },
+              content: [{ type: "text", text: "Búsqueda Instantánea y Herramientas de Lectura" }],
+            },
+            {
+              type: "paragraph",
+              content: [
+                {
+                  type: "text",
+                  text: "Diseñado para garantizar la máxima concentración durante tus sesiones de investigación.",
+                },
+              ],
+            },
+            {
+              type: "heading",
+              attrs: { level: 3 },
+              content: [{ type: "text", text: "Atajos Principales" }],
+            },
+            {
+              type: "bulletList",
+              content: [
+                {
+                  type: "listItem",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [
+                        { type: "text", marks: [{ type: "bold" }], text: "Búsqueda Rápida (Cmd+K / Ctrl+K): " },
+                        { type: "text", text: "Encuentra cualquier tema o subtema de inmediato." },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  type: "listItem",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [
+                        { type: "text", marks: [{ type: "bold" }], text: "Etiquetas (#Tags): " },
+                        { type: "text", text: "Filtrado transversal por conceptos comunes." },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+        path: "intro-1/intro-3",
+        parentId: "intro-1",
+        status: "PUBLISHED",
+        relations: [
+          { id: "intro-2", title: "2. Relaciones entre Temas y Grafos", slug: "relaciones-y-grafos", type: "PREREQUISITE" },
+          { id: "science-root", title: "Las Ciencias Conocidas", slug: "las-ciencias-conocidas", type: "NEXT_STEP" },
+        ],
+        tags: ["Busqueda", "Atajos", "Productividad"],
+        resources: [],
+      },
       "introduction": {
         id: "mock-1",
         title: "Introduction",
@@ -586,6 +828,8 @@ export class PageService {
       ),
     }));
   }
+
+
 
   /**
    * Fetches a single page by ID (for editing in backend)
@@ -1316,13 +1560,58 @@ export class PageService {
   private static getMockHierarchy(): NavPage[] {
     return [
       {
+        id: "intro-1",
+        title: "1. Bienvenido a la Cartografía del Conocimiento",
+        slug: "introduccion",
+        parentId: null,
+        path: "intro-1",
+        depth: 0,
+        sortOrder: -1,
+        status: "PUBLISHED",
+        children: [
+          {
+            id: "intro-2",
+            title: "2. Relaciones entre Temas y Grafos",
+            slug: "relaciones-y-grafos",
+            parentId: "intro-1",
+            path: "intro-1/intro-2",
+            depth: 1,
+            sortOrder: 0,
+            status: "PUBLISHED",
+            children: [],
+          },
+          {
+            id: "intro-3",
+            title: "3. Búsqueda Instantánea y Herramientas",
+            slug: "busqueda-y-herramientas",
+            parentId: "intro-1",
+            path: "intro-1/intro-3",
+            depth: 1,
+            sortOrder: 1,
+            status: "PUBLISHED",
+            children: [],
+          },
+        ],
+      },
+      {
+        id: "science-root",
+        title: "Las Ciencias Conocidas",
+        slug: "las-ciencias-conocidas",
+        parentId: null,
+        path: "science-root",
+        depth: 0,
+        sortOrder: 0,
+        status: "PUBLISHED",
+        children: [],
+      },
+      {
         id: "mock-1",
         title: "Introduction",
         slug: "introduction",
         parentId: null,
         path: "mock-1",
         depth: 0,
-        sortOrder: 0,
+        sortOrder: 1,
         status: 'PUBLISHED',
         children: [
           {
@@ -1345,7 +1634,7 @@ export class PageService {
         parentId: null,
         path: "mock-2",
         depth: 0,
-        sortOrder: 1,
+        sortOrder: 2,
         status: 'PUBLISHED',
         children: [
           {

@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 
 /**
  * Seed data: Hierarchical structure for knowledge base
@@ -111,7 +112,7 @@ export async function seedHierarchicalContent() {
               ],
             },
           ],
-        } as any,
+        } as Prisma.InputJsonValue,
       },
     });
 
@@ -203,7 +204,7 @@ export async function seedHierarchicalContent() {
               ],
             },
           ],
-        } as any,
+        } as Prisma.InputJsonValue,
       },
     });
 
@@ -312,7 +313,7 @@ export async function seedHierarchicalContent() {
               ],
             },
           ],
-        } as any,
+        } as Prisma.InputJsonValue,
       },
     });
 
@@ -394,7 +395,7 @@ export async function seedHierarchicalContent() {
               ],
             },
           ],
-        } as any,
+        } as Prisma.InputJsonValue,
       },
     });
 
@@ -431,7 +432,7 @@ export async function seedHierarchicalContent() {
               ],
             },
           ],
-        } as any,
+        } as Prisma.InputJsonValue,
       },
     });
 
@@ -537,7 +538,7 @@ export async function seedHierarchicalContent() {
               ],
             },
           ],
-        } as any,
+        } as Prisma.InputJsonValue,
       },
     });
 
@@ -572,17 +573,298 @@ export async function seedHierarchicalContent() {
               ],
             },
           ],
-        } as any,
+        } as Prisma.InputJsonValue,
       },
+    });
+
+    // ═══════════════════════════════════════════════════════════════
+    // INTRODUCCIÓN GUIADA (Cartografía del Conocimiento)
+    // ═══════════════════════════════════════════════════════════════
+    const intro1 = await prisma.page.create({
+      data: {
+        id: "intro-1",
+        title: "1. Bienvenido a la Cartografía del Conocimiento",
+        slug: "introduccion",
+        path: "intro-1",
+        depth: 0,
+        sortOrder: -1,
+        excerpt: "Una guía interactiva sobre cómo navegar por el repositorio jerárquico de LambdaIDX.",
+        metaTitle: "1. Bienvenido a la Cartografía - LambdaIDX",
+        metaDescription: "Aprende a navegar por la estructura jerárquica de LambdaIDX.",
+        status: "PUBLISHED",
+        contentJson: {
+          type: "doc",
+          content: [
+            {
+              type: "heading",
+              attrs: { level: 2 },
+              content: [{ type: "text", text: "Bienvenido a la Cartografía del Conocimiento" }],
+            },
+            {
+              type: "paragraph",
+              content: [
+                {
+                  type: "text",
+                  text: "LambdaIDX es un archivo de conocimiento de próxima generación diseñado para estructurar y conectar las disciplinas científicas e investigativas.",
+                },
+              ],
+            },
+            {
+              type: "heading",
+              attrs: { level: 3 },
+              content: [{ type: "text", text: "¿Cómo explorar este repositorio?" }],
+            },
+            {
+              type: "paragraph",
+              content: [
+                {
+                  type: "text",
+                  text: "A diferencia de las wikis planas tradicionales, LambdaIDX organiza la información como un árbol multinivel interactivo:",
+                },
+              ],
+            },
+            {
+              type: "bulletList",
+              content: [
+                {
+                  type: "listItem",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [
+                        { type: "text", marks: [{ type: "bold" }], text: "Barra Lateral Izquierda: " },
+                        { type: "text", text: "Navega y despliega ramas de conceptos con un solo clic." },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  type: "listItem",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [
+                        { type: "text", marks: [{ type: "bold" }], text: "Panel Lateral Derecho: " },
+                        { type: "text", text: "Descubre las relaciones de temas (Prerrequisitos y Siguientes Pasos) en tiempo real." },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  type: "listItem",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [
+                        { type: "text", marks: [{ type: "bold" }], text: "Velocidad Industrial: " },
+                        { type: "text", text: "Transiciones sub-10ms optimizadas con memoria en caché Redis." },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        } as Prisma.InputJsonValue,
+      },
+    });
+
+    const intro2 = await prisma.page.create({
+      data: {
+        id: "intro-2",
+        title: "2. Relaciones entre Temas y Grafos",
+        slug: "relaciones-y-grafos",
+        path: "intro-1/intro-2",
+        parentId: "intro-1",
+        depth: 1,
+        sortOrder: 0,
+        excerpt: "Descubre cómo interconectar conceptos mediante Prerrequisitos, Siguientes Pasos y Recursos.",
+        metaTitle: "2. Relaciones y Grafos - LambdaIDX",
+        metaDescription: "Conexión de conceptos en el panel lateral de Topic Relationships.",
+        status: "PUBLISHED",
+        contentJson: {
+          type: "doc",
+          content: [
+            {
+              type: "heading",
+              attrs: { level: 2 },
+              content: [{ type: "text", text: "Relaciones entre Temas y Grafos" }],
+            },
+            {
+              type: "paragraph",
+              content: [
+                {
+                  type: "text",
+                  text: "En LambdaIDX, los temas no existen aislados. Cada concepto se vincula con otros nodos del sistema formando una red rica de aprendizaje.",
+                },
+              ],
+            },
+            {
+              type: "heading",
+              attrs: { level: 3 },
+              content: [{ type: "text", text: "Tipos de Relaciones" }],
+            },
+            {
+              type: "bulletList",
+              content: [
+                {
+                  type: "listItem",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [
+                        { type: "text", marks: [{ type: "bold" }], text: "Prerrequisitos: " },
+                        { type: "text", text: "Lecturas recomendadas antes de abordar el tema actual." },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  type: "listItem",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [
+                        { type: "text", marks: [{ type: "bold" }], text: "Siguiente Paso: " },
+                        { type: "text", text: "Contenidos avanzados para continuar la secuencia de investigación." },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  type: "listItem",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [
+                        { type: "text", marks: [{ type: "bold" }], text: "Recursos Externos: " },
+                        { type: "text", text: "Artículos, documentación oficial y herramientas complementarias." },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        } as Prisma.InputJsonValue,
+      },
+    });
+
+    const intro3 = await prisma.page.create({
+      data: {
+        id: "intro-3",
+        title: "3. Búsqueda Instantánea y Herramientas",
+        slug: "busqueda-y-herramientas",
+        path: "intro-1/intro-3",
+        parentId: "intro-1",
+        depth: 1,
+        sortOrder: 1,
+        excerpt: "Maximiza tu eficiencia de investigación con atajos de teclado y el buscador en tiempo real.",
+        metaTitle: "3. Búsqueda e Herramientas - LambdaIDX",
+        metaDescription: "Atajos de teclado y búsqueda instantánea para alta densidad de investigación.",
+        status: "PUBLISHED",
+        contentJson: {
+          type: "doc",
+          content: [
+            {
+              type: "heading",
+              attrs: { level: 2 },
+              content: [{ type: "text", text: "Búsqueda Instantánea y Herramientas de Lectura" }],
+            },
+            {
+              type: "paragraph",
+              content: [
+                {
+                  type: "text",
+                  text: "Diseñado para garantizar la máxima concentración durante tus sesiones de investigación.",
+                },
+              ],
+            },
+            {
+              type: "heading",
+              attrs: { level: 3 },
+              content: [{ type: "text", text: "Atajos Principales" }],
+            },
+            {
+              type: "bulletList",
+              content: [
+                {
+                  type: "listItem",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [
+                        { type: "text", marks: [{ type: "bold" }], text: "Búsqueda Rápida (Cmd+K / Ctrl+K): " },
+                        { type: "text", text: "Encuentra cualquier tema o subtema de inmediato." },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  type: "listItem",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [
+                        { type: "text", marks: [{ type: "bold" }], text: "Etiquetas (#Tags): " },
+                        { type: "text", text: "Filtrado transversal por conceptos comunes." },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        } as Prisma.InputJsonValue,
+      },
+    });
+
+    // ═══════════════════════════════════════════════════════════════
+    // RELACIONES & RECURSOS INTRODUCTORIOS
+    // ═══════════════════════════════════════════════════════════════
+    await prisma.pageRelation.createMany({
+      data: [
+        { sourceId: "intro-1", targetId: "intro-2", type: "NEXT_STEP" },
+        { sourceId: "intro-1", targetId: "science-root", type: "RELATED" },
+        { sourceId: "intro-2", targetId: "intro-1", type: "PREREQUISITE" },
+        { sourceId: "intro-2", targetId: "intro-3", type: "NEXT_STEP" },
+        { sourceId: "intro-3", targetId: "intro-2", type: "PREREQUISITE" },
+        { sourceId: "intro-3", targetId: "science-root", type: "NEXT_STEP" },
+      ],
+      skipDuplicates: true,
+    });
+
+    await prisma.pageResource.createMany({
+      data: [
+        {
+          pageId: "intro-1",
+          title: "MDN Web Docs - Estructuras de Documentación",
+          url: "https://developer.mozilla.org/es/docs/MDN/Community",
+          type: "ARTICLE",
+          description: "Estándar de documentación jerárquica",
+        },
+        {
+          pageId: "intro-2",
+          title: "Documentación Oficial de Prisma ORM",
+          url: "https://www.prisma.io/docs",
+          type: "TOOL",
+          description: "Ejemplo de relaciones y esquemas relacionales",
+        },
+      ],
+      skipDuplicates: true,
     });
 
     console.log("Seed completed successfully!");
     console.log(`Root science: ${rootScience.title}`);
+    console.log(`Introduction guide pages (intro-1, intro-2, intro-3) created`);
     console.log(`Physics and ${4} sub-topics created`);
     console.log(`Total hierarchical depth: 3 levels`);
 
     return {
       rootScience,
+      intro1,
+      intro2,
+      intro3,
       physics,
       mechanics,
       thermodynamics,

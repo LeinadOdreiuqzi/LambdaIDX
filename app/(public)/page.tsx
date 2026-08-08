@@ -4,7 +4,6 @@ import React from "react";
 import Link from "next/link";
 import { ArrowRight, Layers, Cpu, Globe, Database, Activity, Code, Target } from "lucide-react";
 import { motion } from "framer-motion";
-import { cn } from "@/lib/utils";
 import { Logo } from "@/components/shared/logo";
 
 export default function Home() {
@@ -32,7 +31,7 @@ export default function Home() {
 
             <div className="flex flex-col items-center gap-4">
               <Link
-                href="/p/introduction"
+                href="/p/introduccion"
                 className="group relative px-16 py-7 bg-white dark:bg-zinc-200 text-black dark:text-black font-black uppercase tracking-widest text-lg overflow-hidden transition-all hover:pr-20 hover:scale-105 shadow-2xl shadow-white/20 dark:shadow-zinc-500/30"
               >
                 <span>Iniciar Cartografía</span>
@@ -132,7 +131,7 @@ export default function Home() {
             </div>
             <div className="p-8 font-mono text-sm leading-relaxed text-zinc-400">
               <p className="text-white">$ cat mision.txt</p>
-              <p className="mt-4 text-zinc-300">"LambdaIDX sirve como un repositorio vivo para la investigación y el estudio de todas las ciencias conocidas."</p>
+              <p className="mt-4 text-zinc-300">&quot;LambdaIDX sirve como un repositorio vivo para la investigación y el estudio de todas las ciencias conocidas.&quot;</p>
               <p className="mt-2">Mapeando eficientemente la complejidad del conocimiento científico a través de 5 ramas fundamentales centrales.</p>
               <p className="mt-4 text-green-500">✓ Archivo Científico Unificado en Línea</p>
               <p className="mt-1 text-green-500">✓ Entorno de Investigación de Alta Eficiencia</p>
@@ -151,7 +150,7 @@ export default function Home() {
               <Logo size={40} className="mb-6" />
             </Link>
             <p className="text-zinc-500 max-w-xs text-sm leading-relaxed italic">
-              "Porque la información sin estructura es solo ruido estático."
+              &quot;Porque la información sin estructura es solo ruido estático.&quot;
             </p>
           </div>
           <div className="grid grid-cols-2 gap-16">
