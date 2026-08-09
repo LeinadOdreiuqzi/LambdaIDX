@@ -510,8 +510,8 @@ export class PageService {
                     {
                       type: "paragraph",
                       content: [
-                        { type: "text", marks: [{ type: "bold" }], text: "Velocidad Industrial: " },
-                        { type: "text", text: "Transiciones sub-10ms optimizadas con memoria en caché Redis." },
+                        { type: "text", marks: [{ type: "bold" }], text: "Navegación Fluida: " },
+                        { type: "text", text: "Transiciones ultra-rápidas optimizadas para la lectura continua." },
                       ],
                     },
                   ],
@@ -736,77 +736,49 @@ export class PageService {
         parentId: null,
         status: "PUBLISHED",
       },
-      "what-is-lambdaidx": {
+      "introduccion-al-archivo": {
         id: "mock-1-1",
-        title: "What is LambdaIDX?",
-        slug: "what-is-lambdaidx",
+        title: "Introducción al Archivo",
+        slug: "introduccion-al-archivo",
         contentJson: {
           type: "doc",
           content: [
-            { type: "paragraph", content: [{ type: "text", text: "LambdaIDX is more than a wiki; it is a specialized engine for structured data relationships." }] },
-            { type: "heading", attrs: { level: 2 }, content: [{ type: "text", text: "Architectural Depth" }] },
-            { type: "paragraph", content: [{ type: "text", text: "Unlike flat wikis, we treat knowledge as a recursive tree. This allows for unparalleled organization." }] },
-            { type: "heading", attrs: { level: 2 }, content: [{ type: "text", text: "Technology Stack" }] },
-            { type: "paragraph", content: [{ type: "text", text: "Built with Next.js, TypeScript, and Prisma 7 for long-term scalability." }] }
+            { type: "paragraph", content: [{ type: "text", text: "LambdaIDX organiza el conocimiento científico en estructuras multinivel de alta densidad." }] },
+            { type: "heading", attrs: { level: 2 }, content: [{ type: "text", text: "Profundidad Jerárquica" }] },
+            { type: "paragraph", content: [{ type: "text", text: "A diferencia de los sistemas tradicionales, cada tema se ubica en su contexto exacto dentro del árbol del conocimiento." }] }
           ]
         },
-        path: "mock-1/mock-1-1",
-        parentId: "mock-1",
+        path: "intro-1/introduccion-al-archivo",
+        parentId: "intro-1",
         status: "PUBLISHED",
       },
-      "setup-guide": {
+      "metodologia-de-estudio": {
         id: "mock-2",
-        title: "Setup Guide",
-        slug: "setup-guide",
+        title: "Metodología de Estudio",
+        slug: "metodologia-de-estudio",
         contentJson: {
           type: "doc",
           content: [
-            { type: "paragraph", content: [{ type: "text", text: "Follow these steps to initialize your LambdaIDX environment." }] },
-            { type: "heading", attrs: { level: 2 }, content: [{ type: "text", text: "Environment" }] },
-            { type: "paragraph", content: [{ type: "text", text: "Ensure you have Node.js 18+ and a PostgreSQL instance ready." }] },
-            { type: "heading", attrs: { level: 2 }, content: [{ type: "text", text: "Initialization" }] },
-            {
-              type: "paragraph", content: [
-                { type: "text", text: "Run " },
-                { type: "text", marks: [{ type: "code" }], text: "npm install" },
-                { type: "text", text: " followed by " },
-                { type: "text", marks: [{ type: "code" }], text: "npx prisma generate" },
-                { type: "text", text: "." }
-              ]
-            }
+            { type: "paragraph", content: [{ type: "text", text: "Recomendaciones para maximizar la retención utilizando el mapa relacional de LambdaIDX." }] },
+            { type: "heading", attrs: { level: 2 }, content: [{ type: "text", text: "Secuencia Lógica" }] },
+            { type: "paragraph", content: [{ type: "text", text: "Revisa siempre las lecturas previas en la sección de Prerrequisitos antes de avanzar a conceptos de mayor complejidad." }] }
           ]
         },
-        path: "mock-2",
+        path: "metodologia-de-estudio",
         parentId: null,
         status: "PUBLISHED",
       },
-      "environment-variables": {
+      "recursos-complementarios": {
         id: "mock-2-1",
-        title: "Environment Variables",
-        slug: "environment-variables",
+        title: "Recursos Complementarios",
+        slug: "recursos-complementarios",
         contentJson: {
           type: "doc",
           content: [
-            { type: "paragraph", content: [{ type: "text", text: "Required secrets for your .env file." }] },
-            { type: "heading", attrs: { level: 2 }, content: [{ type: "text", text: "Database" }] },
-            { type: "codeBlock", attrs: { language: null }, content: [{ type: "text", text: 'DATABASE_URL="postgresql://..."' }] }
+            { type: "paragraph", content: [{ type: "text", text: "Fuentes científicas y documentación externa verificada por la comunidad." }] }
           ]
         },
-        path: "mock-2/mock-2-1",
-        parentId: "mock-2",
-        status: "PUBLISHED",
-      },
-      "database-config": {
-        id: "mock-2-2",
-        title: "Database Configuration",
-        slug: "database-config",
-        contentJson: {
-          type: "doc",
-          content: [
-            { type: "paragraph", content: [{ type: "text", text: "Advanced mapping and schemas for hierarchical nodes." }] }
-          ]
-        },
-        path: "mock-2/mock-2-2",
+        path: "metodologia-de-estudio/recursos-complementarios",
         parentId: "mock-2",
         status: "PUBLISHED",
       },
@@ -1629,33 +1601,22 @@ export class PageService {
       },
       {
         id: "mock-2",
-        title: "Setup Guide",
-        slug: "setup-guide",
+        title: "Metodología de Estudio",
+        slug: "metodologia-de-estudio",
         parentId: null,
-        path: "mock-2",
+        path: "metodologia-de-estudio",
         depth: 0,
-        sortOrder: 2,
+        sortOrder: 1,
         status: 'PUBLISHED',
         children: [
           {
             id: "mock-2-1",
-            title: "Environment Variables",
-            slug: "environment-variables",
+            title: "Recursos Complementarios",
+            slug: "recursos-complementarios",
             parentId: "mock-2",
-            path: "mock-2/mock-2-1",
+            path: "metodologia-de-estudio/recursos-complementarios",
             depth: 1,
             sortOrder: 0,
-            status: 'PUBLISHED',
-            children: [],
-          },
-          {
-            id: "mock-2-2",
-            title: "Database Configuration",
-            slug: "database-config",
-            parentId: "mock-2",
-            path: "mock-2/mock-2-2",
-            depth: 1,
-            sortOrder: 1,
             status: 'PUBLISHED',
             children: [],
           },

@@ -656,8 +656,8 @@ export async function seedHierarchicalContent() {
                     {
                       type: "paragraph",
                       content: [
-                        { type: "text", marks: [{ type: "bold" }], text: "Velocidad Industrial: " },
-                        { type: "text", text: "Transiciones sub-10ms optimizadas con memoria en caché Redis." },
+                        { type: "text", marks: [{ type: "bold" }], text: "Navegación Fluida: " },
+                        { type: "text", text: "Transiciones ultra-rápidas optimizadas para la lectura continua." },
                       ],
                     },
                   ],
