@@ -14,7 +14,8 @@ import { PanelLeftOpen } from "lucide-react";
 import { FavoritesProvider, useFavorites } from "@/hooks/use-favorites";
 import { FavoritesContextMenu } from "@/components/features/navigation/favorites-context-menu";
 import { FolderModal, ResearchNoteModal } from "@/components/features/navigation/favorites-dialogs";
-import { ContextMenuState, FavoriteFolder, FavoriteItem } from "@/types/favorites";
+import { ContextMenuState, FavoriteFolder } from "@/types/favorites";
+import { PublicFooter } from "@/components/shared/public-footer";
 
 interface PublicClientLayoutProps {
   children: React.ReactNode;
@@ -163,7 +164,7 @@ function InnerPublicLayout({ children, tree }: PublicClientLayoutProps) {
           </motion.div>
         )}
 
-        <div className="flex-1 pt-16 md:pt-0">
+        <div className="flex-1 pt-16 md:pt-0 flex flex-col justify-between">
           <AnimatePresence mode="wait">
             <motion.div
               key={pathname}
@@ -171,11 +172,13 @@ function InnerPublicLayout({ children, tree }: PublicClientLayoutProps) {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.15, ease: "linear" }}
-              className="w-full"
+              className="w-full flex-1"
             >
               {children}
             </motion.div>
           </AnimatePresence>
+
+          {pathname !== "/" && <PublicFooter />}
         </div>
       </main>
 
