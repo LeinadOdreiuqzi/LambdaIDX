@@ -38,6 +38,7 @@ export function ContentViewer({ contentJson }: ContentViewerProps) {
             class: 'bg-zinc-950 border border-zinc-800 rounded-xl p-6 font-mono text-sm overflow-x-auto text-zinc-100 my-10',
           },
         },
+        link: false,
       }),
       CustomImage.configure({
         HTMLAttributes: {

@@ -74,6 +74,7 @@ export const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorPro
             class: 'bg-zinc-950 border border-zinc-800 rounded-xl p-6 font-mono text-sm overflow-x-auto text-zinc-100 my-10',
           },
         },
+        link: false,
         dropcursor: false,
       }),
       CustomImage.configure({

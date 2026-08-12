@@ -69,7 +69,7 @@ export async function getRedisClient() {
     }
   }
 
-  return redis.status === "ready" || redis.status === "connecting" ? redis : null;
+  return redis.status === "ready" ? redis : null;
 }
 
 if (process.env.NODE_ENV !== "production") {
