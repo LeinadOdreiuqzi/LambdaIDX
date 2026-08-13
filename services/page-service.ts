@@ -1313,28 +1313,34 @@ export class PageService {
     try {
       if (!process.env.DATABASE_URL) throw new Error("Database not configured");
 
-      if (sourceId === targetId) {
-        throw new Error("A page cannot be related to itself.");
+      // Strict String Primitive Validation to prevent Prisma Object Query Injection
+      const cleanSourceId = typeof sourceId === "string" ? sourceId.trim() : String(sourceId || "").trim();
+      const cleanTargetId = typeof targetId === "string" ? targetId.trim() : String(targetId || "").trim();
+      const validTypes: RelationType[] = ["PREREQUISITE", "NEXT_STEP", "RELATED"];
+      const cleanType: RelationType = validTypes.includes(type) ? type : "RELATED";
+
+      if (!cleanSourceId || !cleanTargetId || cleanSourceId === cleanTargetId) {
+        throw new Error("A page cannot be related to itself or invalid target.");
       }
 
       const relation = await prisma.pageRelation.upsert({
         where: {
           sourceId_targetId_type: {
-            sourceId,
-            targetId,
-            type,
+            sourceId: cleanSourceId,
+            targetId: cleanTargetId,
+            type: cleanType,
           },
         },
         create: {
-          sourceId,
-          targetId,
-          type,
+          sourceId: cleanSourceId,
+          targetId: cleanTargetId,
+          type: cleanType,
         },
         update: {},
       });
 
-      await CacheService.invalidatePageCaches(sourceId);
-      await CacheService.invalidatePageCaches(targetId);
+      await CacheService.invalidatePageCaches(cleanSourceId);
+      await CacheService.invalidatePageCaches(cleanTargetId);
 
       return relation;
     } catch (error) {
@@ -1350,16 +1356,25 @@ export class PageService {
     try {
       if (!process.env.DATABASE_URL) throw new Error("Database not configured");
 
+      // Strict Primitive Sanitization against Object Query Injection (Aikido Security Audit)
+      const cleanSourceId = typeof sourceId === "string" ? sourceId.trim() : String(sourceId || "").trim();
+      const cleanTargetId = typeof targetId === "string" ? targetId.trim() : String(targetId || "").trim();
+      const validTypes: RelationType[] = ["PREREQUISITE", "NEXT_STEP", "RELATED"];
+
+      if (!cleanSourceId || !cleanTargetId || !validTypes.includes(type)) {
+        return false;
+      }
+
       await prisma.pageRelation.deleteMany({
         where: {
-          sourceId,
-          targetId,
-          type,
+          sourceId: cleanSourceId,
+          targetId: cleanTargetId,
+          type: type,
         },
       });
 
-      await CacheService.invalidatePageCaches(sourceId);
-      await CacheService.invalidatePageCaches(targetId);
+      await CacheService.invalidatePageCaches(cleanSourceId);
+      await CacheService.invalidatePageCaches(cleanTargetId);
 
       return true;
     } catch (error) {
@@ -1375,7 +1390,10 @@ export class PageService {
     try {
       if (!process.env.DATABASE_URL) throw new Error("Database not configured");
 
-      const cleanName = tagName.trim();
+      const cleanPageId = typeof pageId === "string" ? pageId.trim() : String(pageId || "").trim();
+      const cleanName = typeof tagName === "string" ? tagName.trim() : String(tagName || "").trim();
+      if (!cleanPageId || !cleanName) return null;
+
       const slug = cleanName
         .toLowerCase()
         .normalize("NFD")
@@ -1392,15 +1410,15 @@ export class PageService {
       await prisma.pageTag.upsert({
         where: {
           pageId_tagId: {
-            pageId,
+            pageId: cleanPageId,
             tagId: tag.id,
           },
         },
-        create: { pageId, tagId: tag.id },
+        create: { pageId: cleanPageId, tagId: tag.id },
         update: {},
       });
 
-      await CacheService.invalidatePageCaches(pageId);
+      await CacheService.invalidatePageCaches(cleanPageId);
 
       return tag;
     } catch (error) {
@@ -1416,8 +1434,11 @@ export class PageService {
     try {
       if (!process.env.DATABASE_URL) throw new Error("Database not configured");
 
-      const slug = tagName
-        .trim()
+      const cleanPageId = typeof pageId === "string" ? pageId.trim() : String(pageId || "").trim();
+      const cleanTagName = typeof tagName === "string" ? tagName.trim() : String(tagName || "").trim();
+      if (!cleanPageId || !cleanTagName) return false;
+
+      const slug = cleanTagName
         .toLowerCase()
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "")
@@ -1428,10 +1449,10 @@ export class PageService {
       if (!tag) return false;
 
       await prisma.pageTag.deleteMany({
-        where: { pageId, tagId: tag.id },
+        where: { pageId: cleanPageId, tagId: tag.id },
       });
 
-      await CacheService.invalidatePageCaches(pageId);
+      await CacheService.invalidatePageCaches(cleanPageId);
 
       return true;
     } catch (error) {
@@ -1450,9 +1471,12 @@ export class PageService {
     try {
       if (!process.env.DATABASE_URL) throw new Error("Database not configured");
 
+      const cleanPageId = typeof pageId === "string" ? pageId.trim() : String(pageId || "").trim();
+      if (!cleanPageId) return null;
+
       const resource = await prisma.pageResource.create({
         data: {
-          pageId,
+          pageId: cleanPageId,
           title: data.title,
           url: data.url,
           type: data.type,
@@ -1460,7 +1484,7 @@ export class PageService {
         },
       });
 
-      await CacheService.invalidatePageCaches(pageId);
+      await CacheService.invalidatePageCaches(cleanPageId);
 
       return resource;
     } catch (error) {
@@ -1476,13 +1500,16 @@ export class PageService {
     try {
       if (!process.env.DATABASE_URL) throw new Error("Database not configured");
 
+      const cleanResourceId = typeof resourceId === "string" ? resourceId.trim() : String(resourceId || "").trim();
+      if (!cleanResourceId) return false;
+
       const resource = await prisma.pageResource.findUnique({
-        where: { id: resourceId },
+        where: { id: cleanResourceId },
         select: { pageId: true },
       });
 
       await prisma.pageResource.delete({
-        where: { id: resourceId },
+        where: { id: cleanResourceId },
       });
 
       if (resource?.pageId) {
