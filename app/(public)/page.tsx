@@ -2,9 +2,10 @@
 
 import React from "react";
 import Link from "next/link";
-import { ArrowRight, Layers, Cpu, Globe, Database, Activity, Code, Target } from "lucide-react";
+import { ArrowRight, Layers, Cpu, Globe, Activity, Code, Target } from "lucide-react";
 import { motion } from "framer-motion";
 import { PublicFooter } from "@/components/shared/public-footer";
+import { InteractiveKnowledgeGraph } from "@/components/features/landing/interactive-knowledge-graph";
 
 export default function Home() {
   return (
@@ -48,18 +49,7 @@ export default function Home() {
           </motion.div>
 
           {/* Visual Knowledge Graph Hook */}
-          <div className="mt-32 w-full max-w-4xl aspect-[21/9] relative blueprint-border border rounded-2xl overflow-hidden group">
-            <div className="absolute inset-0 bg-zinc-950/50 group-hover:bg-transparent transition-colors duration-700" />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="flex flex-col items-center text-center">
-                <Database className="w-12 h-12 text-zinc-700 mb-4 animate-bounce" />
-                <span className="font-mono text-[10px] text-zinc-600 tracking-[0.3em] uppercase">Mapeando Nodos Académicos Jerárquicos...</span>
-              </div>
-            </div>
-            {/* Decorative blueprint lines */}
-            <div className="absolute top-0 bottom-0 left-1/2 w-px bg-zinc-900" />
-            <div className="absolute left-0 right-0 top-1/2 h-px bg-zinc-900" />
-          </div>
+          <InteractiveKnowledgeGraph />
         </section>
 
         {/* FEATURES - THE CORE PROMISE */}
