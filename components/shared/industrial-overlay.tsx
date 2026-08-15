@@ -1,27 +1,13 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React from "react";
 import { usePathname } from "next/navigation";
-import { motion, useMotionTemplate, useMotionValue } from "framer-motion";
 
 export function IndustrialOverlay() {
   const pathname = usePathname();
   const isContentPage = pathname.startsWith("/p/");
   const isAdminPage = pathname.startsWith("/admin");
   const isCleanPage = isContentPage || isAdminPage;
-
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      mouseX.set(e.clientX);
-      mouseY.set(e.clientY);
-    };
-
-    window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, [mouseX, mouseY]);
 
   return (
     <>

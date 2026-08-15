@@ -10,7 +10,7 @@ import type { NextRequest } from "next/server";
  * ACTUALMENTE DESACTIVADO - Para activar, eliminar el return inicial
  */
 
-export function middleware(request: NextRequest) {
+export function middleware(_request: NextRequest) {
   // === MIDDLEWARE DESACTIVADO ===
   // Para activar la protección de rutas, elimina este return
   return NextResponse.next();

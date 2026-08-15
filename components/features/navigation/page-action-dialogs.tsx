@@ -70,7 +70,12 @@ export const PageActionDialogs = React.forwardRef<PageActionDialogHandle, PageAc
           .replace(/[^a-z0-9\s-]/g, "")
           .replace(/\s+/g, "-")
           .trim();
-        const payload: any = {
+        const payload: {
+          title: string;
+          slug: string;
+          contentJson: unknown;
+          parentId?: string;
+        } = {
           title: title.trim(),
           slug,
           contentJson: { type: "doc", content: [] },
@@ -221,7 +226,11 @@ export const PageActionDialogs = React.forwardRef<PageActionDialogHandle, PageAc
                       placeholder="Enter page title..."
                       onKeyDown={(e) => {
                         if (e.key === "Enter" && !isLoading) {
-                          state.type === "add" ? handleAddPage() : handleEditPage();
+                          if (state.type === "add") {
+                            handleAddPage();
+                          } else {
+                            handleEditPage();
+                          }
                         }
                       }}
                       className="w-full rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-3 py-2 text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
