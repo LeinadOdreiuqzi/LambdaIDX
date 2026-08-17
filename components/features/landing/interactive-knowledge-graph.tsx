@@ -10,9 +10,12 @@ import {
   ExternalLink,
   ChevronRight,
   ChevronDown,
-  Move,
   Loader2,
   GitBranch,
+  Search,
+  X,
+  MapPin,
+  Maximize2,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -198,6 +201,10 @@ export function InteractiveKnowledgeGraph() {
   // Loading state for lazy fetching specific sub-branches
   const [loadingNodeId, setLoadingNodeId] = useState<string | null>(null);
 
+  // Quick Search State
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [isSearchFocused, setIsSearchFocused] = useState<boolean>(false);
+
   // Positions of all rendered nodes on the canvas: { [nodeId]: { x: number, y: number } }
   const [nodePositions, setNodePositions] = useState<Record<string, { x: number; y: number }>>(() => {
     const pos: Record<string, { x: number; y: number }> = {};
@@ -211,6 +218,7 @@ export function InteractiveKnowledgeGraph() {
   const nodePositionsRef = useRef(nodePositions);
   const zoomLevelRef = useRef(zoomLevel);
   const panOffsetRef = useRef(panOffset);
+  const searchTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     nodePositionsRef.current = nodePositions;
@@ -223,6 +231,12 @@ export function InteractiveKnowledgeGraph() {
   useEffect(() => {
     panOffsetRef.current = panOffset;
   }, [panOffset]);
+
+  useEffect(() => {
+    return () => {
+      if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    };
+  }, []);
 
   // Drag tracking state
   const dragInfoRef = useRef<{
@@ -296,10 +310,14 @@ export function InteractiveKnowledgeGraph() {
 
   // Sync with real DB hierarchy in the background
   useEffect(() => {
+    let isMounted = true;
+
     async function syncHierarchy() {
       try {
         const res = await fetch("/api/hierarchy/tree");
         const data = await res.json();
+
+        if (!isMounted) return;
 
         if (data.success && data.tree && data.tree.length > 0) {
           const rawTree = data.tree as NavPage[];
@@ -318,6 +336,8 @@ export function InteractiveKnowledgeGraph() {
           }
 
           const formatted: TreeNode[] = rawTree.map((root) => formatRawNode(root, null));
+          if (!isMounted) return;
+
           setTreeData(formatted);
 
           // Position root nodes
@@ -337,6 +357,10 @@ export function InteractiveKnowledgeGraph() {
     }
 
     syncHierarchy();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   // Quick lookup dictionary for all nodes in the tree
@@ -427,6 +451,24 @@ export function InteractiveKnowledgeGraph() {
 
     return path;
   }, [activeNodeId, nodeDict]);
+
+  // In-Graph Search Results Filter
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    const query = searchQuery.toLowerCase().trim();
+    const matches: TreeNode[] = [];
+
+    Object.values(nodeDict).forEach((node) => {
+      if (
+        node.title.toLowerCase().includes(query) ||
+        node.slug.toLowerCase().includes(query)
+      ) {
+        matches.push(node);
+      }
+    });
+
+    return matches.slice(0, 6);
+  }, [searchQuery, nodeDict]);
 
   // Toggle Node Expansion with Dynamic Anti-Collision Positioning
   const handleToggleExpand = useCallback(
@@ -529,6 +571,76 @@ export function InteractiveKnowledgeGraph() {
     [nodeDict, expandedNodeIds]
   );
 
+  // Select search match with auto-unfolding and camera pan
+  const handleSelectSearchResult = (node: TreeNode) => {
+    // 1. Gather all ancestor IDs to unfold full path
+    const ancestors: string[] = [];
+    let curr: TreeNode | undefined = node.parentId ? nodeDict[node.parentId] : undefined;
+    while (curr) {
+      ancestors.unshift(curr.id);
+      curr = curr.parentId ? nodeDict[curr.parentId] : undefined;
+    }
+
+    // 2. Expand all ancestors
+    setExpandedNodeIds((prev) => {
+      const next = new Set(prev);
+      ancestors.forEach((aId) => next.add(aId));
+      if (node.childCount > 0) next.add(node.id);
+      return next;
+    });
+
+    // 3. Ensure discipline filter is open to 'all' or matches root
+    if (ancestors.length > 0) {
+      setSelectedDiscipline("all");
+    }
+
+    setActiveNodeId(node.id);
+    setSearchQuery("");
+    setIsSearchFocused(false);
+
+    // 4. Center Camera on Node with smooth pan
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    searchTimerRef.current = setTimeout(() => {
+      const pos = nodePositionsRef.current[node.id] || { x: 80, y: 80 };
+      setPanOffset({
+        x: -(pos.x - 220),
+        y: -(pos.y - 180),
+      });
+      setZoomLevel(1.0);
+    }, 50);
+  };
+
+  // Smart Auto-Center / Fit Graph to Viewport
+  const handleAutoCenter = useCallback(() => {
+    const visiblePositions = visibleNodeList
+      .map((n) => nodePositionsRef.current[n.id])
+      .filter(Boolean);
+
+    if (visiblePositions.length === 0) return;
+
+    let minX = Infinity;
+    let maxX = -Infinity;
+    let minY = Infinity;
+    let maxY = -Infinity;
+
+    visiblePositions.forEach((pos) => {
+      minX = Math.min(minX, pos.x);
+      maxX = Math.max(maxX, pos.x + 220);
+      minY = Math.min(minY, pos.y);
+      maxY = Math.max(maxY, pos.y + 70);
+    });
+
+    const clusterCenterX = (minX + maxX) / 2;
+    const clusterCenterY = (minY + maxY) / 2;
+
+    // Viewport dimensions (typical container ~950x480)
+    const targetPanX = 450 - clusterCenterX;
+    const targetPanY = 220 - clusterCenterY;
+
+    setPanOffset({ x: targetPanX, y: targetPanY });
+    setZoomLevel(0.92);
+  }, [visibleNodeList]);
+
   // Handle header discipline filter select
   const handleSelectDiscipline = (discId: string) => {
     setSelectedDiscipline(discId);
@@ -597,15 +709,60 @@ export function InteractiveKnowledgeGraph() {
 
   return (
     <div className="w-full max-w-6xl mx-auto mt-20 blueprint-border border rounded-2xl overflow-hidden bg-zinc-950/95 shadow-2xl relative select-none">
-      {/* HEADER: Dynamic Discipline Filter Pills */}
-      <div className="p-3 border-b border-zinc-800/80 bg-zinc-900/60 backdrop-blur-md flex items-center justify-between gap-4 px-6">
-        <div className="flex items-center gap-2 text-zinc-500 font-mono text-[10px] uppercase tracking-widest hidden sm:flex">
-          <Move className="w-3.5 h-3.5 text-zinc-400" />
-          <span>Arrastre Ultra-Suave 60 FPS • Clic para desplegar • Doble clic para abrir</span>
+      {/* HEADER: Dynamic Discipline Filter Pills & Quick Search */}
+      <div className="p-3 border-b border-zinc-800/80 bg-zinc-900/60 backdrop-blur-md flex flex-wrap items-center justify-between gap-3 px-6">
+        {/* Left: Live In-Graph Search Bar */}
+        <div className="relative w-full sm:w-64">
+          <div className="flex items-center gap-2 bg-zinc-950/80 border border-zinc-800 focus-within:border-cyan-500/50 rounded-lg px-2.5 py-1.5 transition-colors">
+            <Search className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => setIsSearchFocused(true)}
+              placeholder="Buscar en el grafo..."
+              className="bg-transparent text-xs font-mono text-zinc-100 placeholder-zinc-500 focus:outline-none w-full"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="text-zinc-500 hover:text-zinc-300"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            )}
+          </div>
+
+          {/* Search Dropdown Floating Panel */}
+          {isSearchFocused && searchResults.length > 0 && (
+            <div className="absolute top-full mt-1.5 left-0 w-full sm:w-80 bg-zinc-900/95 backdrop-blur-md border border-zinc-800 rounded-xl shadow-2xl z-50 p-1.5 space-y-1">
+              <div className="px-2 py-1 text-[10px] font-mono text-zinc-500 uppercase tracking-wider flex items-center justify-between">
+                <span>Resultados ({searchResults.length})</span>
+                <span>Auto-Focus</span>
+              </div>
+              {searchResults.map((result) => (
+                <button
+                  key={result.id}
+                  onClick={() => handleSelectSearchResult(result)}
+                  className="w-full text-left px-2.5 py-2 rounded-lg hover:bg-zinc-800/90 text-xs transition-colors flex items-center justify-between gap-2 group"
+                >
+                  <div className="flex items-center gap-2 truncate">
+                    <MapPin className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                    <span className="font-bold text-zinc-200 group-hover:text-white truncate">
+                      {result.title}
+                    </span>
+                  </div>
+                  <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 shrink-0">
+                    {result.depth === 0 ? "Raíz" : `Nivel ${result.depth}`}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* Filter Buttons */}
-        <div className="flex items-center gap-1.5 overflow-x-auto py-1 max-w-full no-scrollbar mx-auto sm:mx-0">
+        {/* Right: Discipline Filter Pills */}
+        <div className="flex items-center gap-1.5 overflow-x-auto py-1 max-w-full no-scrollbar">
           {disciplinesList.map((disc) => {
             const isActive = selectedDiscipline === disc.id;
             return (
@@ -639,11 +796,19 @@ export function InteractiveKnowledgeGraph() {
         onPointerDown={handleCanvasPointerDown}
         className="relative aspect-[21/10] min-h-[500px] w-full overflow-hidden bg-[radial-gradient(#27272a_1px,transparent_1px)] [background-size:24px_24px] cursor-grab active:cursor-grabbing touch-none select-none"
       >
-        {/* Controls Overlay */}
+        {/* Top-Right Controls Overlay */}
         <div
           onClick={(e) => e.stopPropagation()}
-          className="absolute top-4 right-4 z-30 flex items-center gap-2 bg-zinc-900/80 backdrop-blur-md border border-zinc-800 p-1.5 rounded-xl shadow-lg"
+          className="absolute top-4 right-4 z-30 flex items-center gap-1.5 bg-zinc-900/80 backdrop-blur-md border border-zinc-800 p-1.5 rounded-xl shadow-lg"
         >
+          <button
+            onClick={handleAutoCenter}
+            title="Centrar y Ajustar Grafo al Lienzo"
+            className="p-2 text-zinc-400 hover:text-cyan-300 hover:bg-zinc-800 rounded-lg transition-colors"
+          >
+            <Maximize2 className="w-4 h-4" />
+          </button>
+          <div className="w-px h-4 bg-zinc-800" />
           <button
             onClick={() => setZoomLevel((prev) => Math.min(prev + 0.1, 1.3))}
             title="Aumentar Zoom"
@@ -658,7 +823,6 @@ export function InteractiveKnowledgeGraph() {
           >
             <ZoomOut className="w-4 h-4" />
           </button>
-          <div className="w-px h-4 bg-zinc-800" />
           <button
             onClick={handleResetView}
             title="Restablecer Vista y Colapsar Nodos"
@@ -759,7 +923,7 @@ export function InteractiveKnowledgeGraph() {
                   isDragging ? "cursor-grabbing z-50 shadow-2xl scale-[1.03] ring-2 ring-cyan-400 border-cyan-400" : "cursor-grab z-10 shadow-xl",
                   isRoot ? "min-w-[215px]" : "min-w-[185px]",
                   isActive && !isDragging
-                    ? "bg-zinc-900 border-zinc-200 ring-2 ring-cyan-500/30 shadow-cyan-500/10"
+                    ? "bg-zinc-900 border-zinc-200 ring-2 ring-cyan-500/40 shadow-cyan-500/10"
                     : !isDragging
                     ? "bg-zinc-950/95 border-zinc-800 hover:border-zinc-500 hover:bg-zinc-900/90"
                     : "",
