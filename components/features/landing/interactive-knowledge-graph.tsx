@@ -181,6 +181,9 @@ const INITIAL_TREE: TreeNode[] = [
 export function InteractiveKnowledgeGraph() {
   const router = useRouter();
 
+  // Viewport Container Reference
+  const viewportRef = useRef<HTMLDivElement>(null);
+
   // Selected discipline filter
   const [selectedDiscipline, setSelectedDiscipline] = useState<string>("all");
   const [activeNodeId, setActiveNodeId] = useState<string>("intro-1");
@@ -209,7 +212,7 @@ export function InteractiveKnowledgeGraph() {
   const [nodePositions, setNodePositions] = useState<Record<string, { x: number; y: number }>>(() => {
     const pos: Record<string, { x: number; y: number }> = {};
     INITIAL_TREE.forEach((root, idx) => {
-      pos[root.id] = { x: 80, y: 80 + idx * 130 };
+      pos[root.id] = { x: 60, y: 70 + idx * 130 };
     });
     return pos;
   });
@@ -238,7 +241,15 @@ export function InteractiveKnowledgeGraph() {
     };
   }, []);
 
-  // Drag tracking state
+  // Multi-Touch & Pointer Tracking State
+  const activePointersRef = useRef<Map<number, { x: number; y: number }>>(new Map());
+  const pinchStateRef = useRef<{
+    initialDistance: number;
+    initialZoom: number;
+    initialMidpoint: { x: number; y: number };
+    initialPan: { x: number; y: number };
+  } | null>(null);
+
   const dragInfoRef = useRef<{
     nodeId: string | null;
     isPanningCanvas: boolean;
@@ -257,9 +268,54 @@ export function InteractiveKnowledgeGraph() {
     hasMoved: false,
   });
 
-  // Global Window Pointer Move & Up listeners for 60fps buttery-smooth dragging
+  // Global Window Pointer Move & Up listeners for 60fps buttery-smooth dragging & pinch-to-zoom
   useEffect(() => {
     const handleGlobalPointerMove = (e: PointerEvent) => {
+      // Update pointer in active pointers map
+      if (activePointersRef.current.has(e.pointerId)) {
+        activePointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      }
+
+      // 1. MULTI-TOUCH PINCH-TO-ZOOM GESTURE (2 Pointers)
+      if (activePointersRef.current.size === 2) {
+        const pointers = Array.from(activePointersRef.current.values());
+        const p1 = pointers[0];
+        const p2 = pointers[1];
+        const currentDistance = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+
+        if (!pinchStateRef.current) {
+          pinchStateRef.current = {
+            initialDistance: currentDistance,
+            initialZoom: zoomLevelRef.current,
+            initialMidpoint: { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 },
+            initialPan: panOffsetRef.current,
+          };
+        } else {
+          const { initialDistance, initialZoom, initialMidpoint, initialPan } = pinchStateRef.current;
+          if (initialDistance > 0) {
+            const scaleFactor = currentDistance / initialDistance;
+            const newZoom = Math.max(0.5, Math.min(1.4, initialZoom * scaleFactor));
+            setZoomLevel(newZoom);
+
+            const currentMidpoint = { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
+            const panDx = currentMidpoint.x - initialMidpoint.x;
+            const panDy = currentMidpoint.y - initialMidpoint.y;
+
+            setPanOffset({
+              x: initialPan.x + panDx,
+              y: initialPan.y + panDy,
+            });
+          }
+        }
+        return;
+      }
+
+      // Reset pinch state if not 2 pointers
+      if (activePointersRef.current.size < 2) {
+        pinchStateRef.current = null;
+      }
+
+      // 2. SINGLE-POINTER DRAG OR PAN
       const drag = dragInfoRef.current;
       if (!drag.nodeId && !drag.isPanningCanvas) return;
 
@@ -270,7 +326,7 @@ export function InteractiveKnowledgeGraph() {
         drag.hasMoved = true;
       }
 
-      // 1. Dragging a node card
+      // Dragging a node card
       if (drag.nodeId) {
         const zoom = zoomLevelRef.current;
         const newX = drag.initX + dx / zoom;
@@ -282,7 +338,7 @@ export function InteractiveKnowledgeGraph() {
         }));
       }
 
-      // 2. Panning the canvas background
+      // Panning the canvas background
       if (drag.isPanningCanvas) {
         setPanOffset({
           x: drag.initX + dx,
@@ -291,7 +347,12 @@ export function InteractiveKnowledgeGraph() {
       }
     };
 
-    const handleGlobalPointerUp = () => {
+    const handleGlobalPointerUp = (e: PointerEvent) => {
+      activePointersRef.current.delete(e.pointerId);
+      if (activePointersRef.current.size < 2) {
+        pinchStateRef.current = null;
+      }
+
       if (dragInfoRef.current.nodeId || dragInfoRef.current.isPanningCanvas) {
         setDraggingNodeId(null);
         dragInfoRef.current.nodeId = null;
@@ -301,10 +362,39 @@ export function InteractiveKnowledgeGraph() {
 
     window.addEventListener("pointermove", handleGlobalPointerMove, { passive: true });
     window.addEventListener("pointerup", handleGlobalPointerUp);
+    window.addEventListener("pointercancel", handleGlobalPointerUp);
 
     return () => {
       window.removeEventListener("pointermove", handleGlobalPointerMove);
       window.removeEventListener("pointerup", handleGlobalPointerUp);
+      window.removeEventListener("pointercancel", handleGlobalPointerUp);
+    };
+  }, []);
+
+  // Trackpad & Mouse Wheel Zoom Handler
+  useEffect(() => {
+    const viewportEl = viewportRef.current;
+    if (!viewportEl) return;
+
+    const handleWheel = (e: WheelEvent) => {
+      // If Ctrl / Meta is pressed (Trackpad pinch gesture on macOS or Ctrl+Wheel on Windows)
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        const zoomDelta = -e.deltaY * 0.005;
+        setZoomLevel((prev) => Math.max(0.5, Math.min(1.4, prev + zoomDelta)));
+      } else {
+        // Pan canvas with 2-finger trackpad swipe or shift-wheel
+        e.preventDefault();
+        setPanOffset((prev) => ({
+          x: prev.x - e.deltaX * 0.8,
+          y: prev.y - e.deltaY * 0.8,
+        }));
+      }
+    };
+
+    viewportEl.addEventListener("wheel", handleWheel, { passive: false });
+    return () => {
+      viewportEl.removeEventListener("wheel", handleWheel);
     };
   }, []);
 
@@ -345,7 +435,7 @@ export function InteractiveKnowledgeGraph() {
             const next = { ...prev };
             formatted.forEach((root, idx) => {
               if (!next[root.id]) {
-                next[root.id] = { x: 80, y: 80 + idx * 130 };
+                next[root.id] = { x: 60, y: 70 + idx * 130 };
               }
             });
             return next;
@@ -472,7 +562,7 @@ export function InteractiveKnowledgeGraph() {
 
   // Toggle Node Expansion with Dynamic Anti-Collision Positioning
   const handleToggleExpand = useCallback(
-    async (nodeId: string, e?: React.MouseEvent) => {
+    async (nodeId: string, e?: React.MouseEvent | React.TouchEvent) => {
       if (e) e.stopPropagation();
       setActiveNodeId(nodeId);
 
@@ -531,7 +621,7 @@ export function InteractiveKnowledgeGraph() {
         }
 
         // Position children dynamically relative to parent's CURRENT coordinates
-        const currentParentPos = nodePositionsRef.current[nodeId] || { x: 80, y: 100 };
+        const currentParentPos = nodePositionsRef.current[nodeId] || { x: 60, y: 100 };
         const children = node.children;
 
         if (children && children.length > 0) {
@@ -601,10 +691,10 @@ export function InteractiveKnowledgeGraph() {
     // 4. Center Camera on Node with smooth pan
     if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
     searchTimerRef.current = setTimeout(() => {
-      const pos = nodePositionsRef.current[node.id] || { x: 80, y: 80 };
+      const pos = nodePositionsRef.current[node.id] || { x: 60, y: 80 };
       setPanOffset({
-        x: -(pos.x - 220),
-        y: -(pos.y - 180),
+        x: -(pos.x - 200),
+        y: -(pos.y - 170),
       });
       setZoomLevel(1.0);
     }, 50);
@@ -633,9 +723,11 @@ export function InteractiveKnowledgeGraph() {
     const clusterCenterX = (minX + maxX) / 2;
     const clusterCenterY = (minY + maxY) / 2;
 
-    // Viewport dimensions (typical container ~950x480)
-    const targetPanX = 450 - clusterCenterX;
-    const targetPanY = 220 - clusterCenterY;
+    const viewportW = viewportRef.current ? viewportRef.current.clientWidth : 900;
+    const viewportH = viewportRef.current ? viewportRef.current.clientHeight : 480;
+
+    const targetPanX = viewportW / 2 - clusterCenterX;
+    const targetPanY = viewportH / 2 - clusterCenterY;
 
     setPanOffset({ x: targetPanX, y: targetPanY });
     setZoomLevel(0.92);
@@ -652,7 +744,9 @@ export function InteractiveKnowledgeGraph() {
   // Start dragging a node card
   const handleNodePointerDown = (e: React.PointerEvent, nodeId: string) => {
     e.stopPropagation();
-    const currentPos = nodePositionsRef.current[nodeId] || { x: 80, y: 80 };
+    activePointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+    const currentPos = nodePositionsRef.current[nodeId] || { x: 60, y: 80 };
 
     dragInfoRef.current = {
       nodeId,
@@ -670,7 +764,8 @@ export function InteractiveKnowledgeGraph() {
 
   // Start panning the canvas background
   const handleCanvasPointerDown = (e: React.PointerEvent) => {
-    if (e.target !== e.currentTarget) return;
+    activePointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (e.target !== e.currentTarget && !viewportRef.current?.contains(e.target as Node)) return;
 
     dragInfoRef.current = {
       nodeId: null,
@@ -685,7 +780,7 @@ export function InteractiveKnowledgeGraph() {
 
   // Node Card Click Handler (Only toggles if user did NOT drag the card)
   const handleNodeClick = (e: React.MouseEvent, nodeId: string) => {
-    if (dragInfoRef.current.hasMoved) return; // Ignore clicks resulting from drags
+    if (dragInfoRef.current.hasMoved) return;
     handleToggleExpand(nodeId, e);
   };
 
@@ -699,7 +794,7 @@ export function InteractiveKnowledgeGraph() {
     // Reset initial root positions
     const initialPos: Record<string, { x: number; y: number }> = {};
     treeData.forEach((root, idx) => {
-      initialPos[root.id] = { x: 80, y: 80 + idx * 130 };
+      initialPos[root.id] = { x: 60, y: 70 + idx * 130 };
     });
     setNodePositions(initialPos);
     if (treeData.length > 0) {
@@ -708,9 +803,9 @@ export function InteractiveKnowledgeGraph() {
   }, [treeData]);
 
   return (
-    <div className="w-full max-w-6xl mx-auto mt-20 blueprint-border border rounded-2xl overflow-hidden bg-zinc-950/95 shadow-2xl relative select-none">
+    <div className="w-full max-w-6xl mx-auto mt-20 blueprint-border border rounded-2xl overflow-hidden bg-zinc-950/95 shadow-2xl relative select-none touch-none">
       {/* HEADER: Dynamic Discipline Filter Pills & Quick Search */}
-      <div className="p-3 border-b border-zinc-800/80 bg-zinc-900/60 backdrop-blur-md flex flex-wrap items-center justify-between gap-3 px-6">
+      <div className="p-3 border-b border-zinc-800/80 bg-zinc-900/60 backdrop-blur-md flex flex-wrap items-center justify-between gap-3 px-4 sm:px-6">
         {/* Left: Live In-Graph Search Bar */}
         <div className="relative w-full sm:w-64">
           <div className="flex items-center gap-2 bg-zinc-950/80 border border-zinc-800 focus-within:border-cyan-500/50 rounded-lg px-2.5 py-1.5 transition-colors">
@@ -726,9 +821,9 @@ export function InteractiveKnowledgeGraph() {
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery("")}
-                className="text-zinc-500 hover:text-zinc-300"
+                className="text-zinc-500 hover:text-zinc-300 p-0.5"
               >
-                <X className="w-3 h-3" />
+                <X className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
@@ -762,7 +857,7 @@ export function InteractiveKnowledgeGraph() {
         </div>
 
         {/* Right: Discipline Filter Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto py-1 max-w-full no-scrollbar">
+        <div className="flex items-center gap-1.5 overflow-x-auto py-1 max-w-full no-scrollbar -webkit-overflow-scrolling-touch">
           {disciplinesList.map((disc) => {
             const isActive = selectedDiscipline === disc.id;
             return (
@@ -770,7 +865,7 @@ export function InteractiveKnowledgeGraph() {
                 key={disc.id}
                 onClick={() => handleSelectDiscipline(disc.id)}
                 className={cn(
-                  "px-3 py-1.5 rounded-lg text-xs font-mono transition-all flex items-center gap-1.5 whitespace-nowrap",
+                  "px-3 py-1.5 rounded-lg text-xs font-mono transition-all flex items-center gap-1.5 whitespace-nowrap active:scale-95",
                   isActive
                     ? "bg-white text-black font-bold shadow-md shadow-white/10"
                     : "bg-zinc-900 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 border border-zinc-800"
@@ -791,20 +886,21 @@ export function InteractiveKnowledgeGraph() {
         </div>
       </div>
 
-      {/* CANVAS VIEWPORT */}
+      {/* CANVAS VIEWPORT (Touch & Multi-Touch Optimized) */}
       <div
+        ref={viewportRef}
         onPointerDown={handleCanvasPointerDown}
-        className="relative aspect-[21/10] min-h-[500px] w-full overflow-hidden bg-[radial-gradient(#27272a_1px,transparent_1px)] [background-size:24px_24px] cursor-grab active:cursor-grabbing touch-none select-none"
+        className="relative aspect-[21/10] min-h-[440px] sm:min-h-[500px] w-full overflow-hidden bg-[radial-gradient(#27272a_1px,transparent_1px)] [background-size:24px_24px] cursor-grab active:cursor-grabbing touch-none select-none"
       >
         {/* Top-Right Controls Overlay */}
         <div
           onClick={(e) => e.stopPropagation()}
-          className="absolute top-4 right-4 z-30 flex items-center gap-1.5 bg-zinc-900/80 backdrop-blur-md border border-zinc-800 p-1.5 rounded-xl shadow-lg"
+          className="absolute top-3 right-3 sm:top-4 sm:right-4 z-30 flex items-center gap-1.5 bg-zinc-900/80 backdrop-blur-md border border-zinc-800 p-1.5 rounded-xl shadow-lg"
         >
           <button
             onClick={handleAutoCenter}
             title="Centrar y Ajustar Grafo al Lienzo"
-            className="p-2 text-zinc-400 hover:text-cyan-300 hover:bg-zinc-800 rounded-lg transition-colors"
+            className="p-2 sm:p-2 text-zinc-400 hover:text-cyan-300 hover:bg-zinc-800 rounded-lg transition-colors active:scale-95"
           >
             <Maximize2 className="w-4 h-4" />
           </button>
@@ -812,21 +908,21 @@ export function InteractiveKnowledgeGraph() {
           <button
             onClick={() => setZoomLevel((prev) => Math.min(prev + 0.1, 1.3))}
             title="Aumentar Zoom"
-            className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors"
+            className="p-2 sm:p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors active:scale-95"
           >
             <ZoomIn className="w-4 h-4" />
           </button>
           <button
             onClick={() => setZoomLevel((prev) => Math.max(prev - 0.1, 0.65))}
             title="Reducir Zoom"
-            className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors"
+            className="p-2 sm:p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors active:scale-95"
           >
             <ZoomOut className="w-4 h-4" />
           </button>
           <button
             onClick={handleResetView}
             title="Restablecer Vista y Colapsar Nodos"
-            className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors"
+            className="p-2 sm:p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors active:scale-95"
           >
             <RotateCcw className="w-4 h-4" />
           </button>
@@ -905,7 +1001,7 @@ export function InteractiveKnowledgeGraph() {
             const isExpanded = expandedNodeIds.has(node.id);
             const isDragging = draggingNodeId === node.id;
             const isNodeLoading = loadingNodeId === node.id;
-            const pos = nodePositions[node.id] || { x: 80, y: 80 };
+            const pos = nodePositions[node.id] || { x: 60, y: 80 };
             const hasChildren = (node.children && node.children.length > 0) || node.childCount > 0;
 
             return (
@@ -921,7 +1017,7 @@ export function InteractiveKnowledgeGraph() {
                 className={cn(
                   "absolute top-0 left-0 p-3 rounded-xl border select-none backdrop-blur-md pointer-events-auto transition-[border-color,background-color,box-shadow]",
                   isDragging ? "cursor-grabbing z-50 shadow-2xl scale-[1.03] ring-2 ring-cyan-400 border-cyan-400" : "cursor-grab z-10 shadow-xl",
-                  isRoot ? "min-w-[215px]" : "min-w-[185px]",
+                  isRoot ? "min-w-[195px] sm:min-w-[215px]" : "min-w-[170px] sm:min-w-[185px]",
                   isActive && !isDragging
                     ? "bg-zinc-900 border-zinc-200 ring-2 ring-cyan-500/40 shadow-cyan-500/10"
                     : !isDragging
@@ -945,7 +1041,7 @@ export function InteractiveKnowledgeGraph() {
                       <Layers className="w-3.5 h-3.5" />
                     </div>
                     <div>
-                      <h4 className="font-bold text-xs text-zinc-100 whitespace-nowrap max-w-[130px] truncate">
+                      <h4 className="font-bold text-xs text-zinc-100 whitespace-nowrap max-w-[120px] sm:max-w-[130px] truncate">
                         {node.title}
                       </h4>
                       <span className="text-[9px] font-mono text-zinc-500 uppercase tracking-tighter block mt-0.5">
@@ -963,7 +1059,7 @@ export function InteractiveKnowledgeGraph() {
                         title={isExpanded ? "Colapsar temas" : "Desplegar temas"}
                         disabled={isNodeLoading}
                         className={cn(
-                          "px-2 py-0.5 rounded-md text-[10px] font-mono font-bold flex items-center gap-0.5 transition-colors border",
+                          "px-2 py-1 rounded-md text-[10px] font-mono font-bold flex items-center gap-0.5 transition-colors border active:scale-90",
                           isExpanded
                             ? "bg-zinc-800 text-zinc-200 border-zinc-700 hover:bg-zinc-700"
                             : "bg-cyan-500/10 text-cyan-400 border-cyan-500/20 hover:bg-cyan-500/20"
@@ -990,7 +1086,7 @@ export function InteractiveKnowledgeGraph() {
                       href={`/p/${node.slug}`}
                       onClick={(e) => e.stopPropagation()}
                       title="Abrir Documento"
-                      className="p-1 rounded-md text-zinc-500 hover:text-white hover:bg-zinc-800 transition-colors"
+                      className="p-1.5 rounded-md text-zinc-500 hover:text-white hover:bg-zinc-800 transition-colors active:scale-90"
                     >
                       {isRoot ? (
                         <ArrowUpRight className="w-3.5 h-3.5" />
@@ -1007,7 +1103,7 @@ export function InteractiveKnowledgeGraph() {
 
         {/* BOTTOM ACTIVE BREADCRUMB BAR (Interactive Topic Inspector) */}
         {activeBreadcrumbs.length > 0 && (
-          <div className="absolute bottom-3 left-4 z-30 flex items-center gap-1.5 bg-zinc-900/90 backdrop-blur-md border border-zinc-800/90 px-3 py-1.5 rounded-xl shadow-lg font-mono text-[10px] text-zinc-400 max-w-[80%] overflow-x-auto no-scrollbar">
+          <div className="absolute bottom-3 left-3 sm:left-4 z-30 flex items-center gap-1.5 bg-zinc-900/90 backdrop-blur-md border border-zinc-800/90 px-3 py-1.5 rounded-xl shadow-lg font-mono text-[10px] text-zinc-400 max-w-[85%] sm:max-w-[75%] overflow-x-auto no-scrollbar">
             <GitBranch className="w-3.5 h-3.5 text-cyan-400 shrink-0 mr-1" />
             <span className="text-zinc-500 uppercase tracking-wider shrink-0">Ruta:</span>
             {activeBreadcrumbs.map((crumb, idx) => {
@@ -1023,7 +1119,7 @@ export function InteractiveKnowledgeGraph() {
                       }
                     }}
                     className={cn(
-                      "hover:underline transition-colors shrink-0",
+                      "hover:underline transition-colors shrink-0 active:scale-95",
                       isLast ? "text-cyan-300 font-bold" : "text-zinc-400 hover:text-zinc-200"
                     )}
                   >
