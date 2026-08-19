@@ -42,11 +42,13 @@ export function verifyPassword(password: string, storedHash: string): boolean {
   }
 }
 
+export const SESSION_MAX_AGE_SECONDS = 60 * 60; // 1 hora (3600 segundos)
+
 /**
  * Genera un token de sesión firmado con HMAC SHA-256
  */
 export function createSessionToken(payload: Omit<SessionPayload, "exp">): string {
-  const exp = Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7; // 7 días de validez
+  const exp = Math.floor(Date.now() / 1000) + SESSION_MAX_AGE_SECONDS;
   const fullPayload: SessionPayload = { ...payload, exp };
 
   const encodedPayload = Buffer.from(JSON.stringify(fullPayload)).toString("base64url");

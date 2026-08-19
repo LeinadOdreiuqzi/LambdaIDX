@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { verifyPassword, createSessionToken, AUTH_COOKIE_NAME } from "@/lib/auth";
+import {
+  verifyPassword,
+  createSessionToken,
+  AUTH_COOKIE_NAME,
+  SESSION_MAX_AGE_SECONDS,
+} from "@/lib/auth";
 
 export async function POST(request: Request) {
   try {
@@ -61,7 +66,7 @@ export async function POST(request: Request) {
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       path: "/",
-      maxAge: 60 * 60 * 24 * 7, // 7 días
+      maxAge: SESSION_MAX_AGE_SECONDS, // 1 hora
     });
 
     return response;
