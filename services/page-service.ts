@@ -845,6 +845,7 @@ export class PageService {
     contentJson?: Record<string, unknown>;
     metaTitle?: string;
     metaDescription?: string;
+    status?: string;
   }): Promise<PageContent | null> {
     try {
       if (!process.env.DATABASE_URL) {
@@ -893,7 +894,7 @@ export class PageService {
           contentJson: toInputJsonValue(data.contentJson || { type: "doc", content: [] }),
           metaTitle: data.metaTitle || data.title,
           metaDescription: data.metaDescription || data.excerpt,
-          status: "DRAFT",
+          status: (data.status as "DRAFT" | "REVIEW" | "PUBLISHED" | "ARCHIVED") || "PUBLISHED",
         },
       });
 
@@ -919,6 +920,9 @@ export class PageService {
         });
         page.path = path;
       }
+
+      // Invalidate Redis hierarchy and page caches
+      await CacheService.invalidatePageCaches(page.id, page.slug, page.path);
 
       return {
         id: page.id,

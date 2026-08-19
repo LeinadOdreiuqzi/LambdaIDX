@@ -131,6 +131,8 @@ export class CacheService {
         slug ? this.del(this.keys.page(slug)) : Promise.resolve(),
         path ? this.del(this.keys.breadcrumbs(path)) : Promise.resolve(),
         this.del(this.keys.hierarchy()),
+        this.del("hierarchy:tree:full"),
+        this.delPattern("hierarchy:*"),
         this.delPattern("page:slug:*"),
       ]);
     } catch (error) {

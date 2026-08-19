@@ -52,6 +52,7 @@ export async function POST(request: NextRequest) {
     }
 
     revalidatePath("/", "layout");
+    revalidatePath("/p", "layout");
 
     return NextResponse.json(
       {
