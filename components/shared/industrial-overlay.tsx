@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 
 export function IndustrialOverlay() {
   const pathname = usePathname();
-  const isContentPage = pathname.startsWith("/p/");
+  const isContentPage = pathname.startsWith("/index/");
   const isAdminPage = pathname.startsWith("/admin");
   const isCleanPage = isContentPage || isAdminPage;
 

@@ -10,7 +10,7 @@ export interface FavoriteFolder {
 export interface FavoriteItem {
   id: string;
   title: string;
-  path: string; // e.g. "/p/introduction"
+  path: string; // e.g. "/index/introduction"
   slug: string; // e.g. "introduction"
   folderId?: string | null; // null/undefined if stored in root favorites
   note?: string; // Quick student study note

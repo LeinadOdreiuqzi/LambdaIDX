@@ -23,12 +23,12 @@ export function SpeculationRules() {
         prefetch: [
           {
             source: "list",
-            urls: ["/p/introduccion", "/p/las-ciencias-conocidas"],
+            urls: ["/index/introduccion", "/index/las-ciencias-conocidas"],
           },
           {
             source: "document",
             where: {
-              and: [{ href_matches: "/p/*" }],
+              and: [{ href_matches: "/index/*" }],
             },
             eagerness: "moderate",
           },
@@ -37,7 +37,7 @@ export function SpeculationRules() {
           {
             source: "document",
             where: {
-              and: [{ href_matches: "/p/*" }],
+              and: [{ href_matches: "/index/*" }],
             },
             eagerness: "conservative",
           },

@@ -35,9 +35,9 @@ export async function POST(
       );
     }
 
-    revalidatePath(`/p/${page.slug}`);
+    revalidatePath(`/index/${page.slug}`);
     revalidatePath("/", "layout");
-    revalidatePath("/p", "layout");
+    revalidatePath("/index", "layout");
 
     return NextResponse.json({
       success: true,

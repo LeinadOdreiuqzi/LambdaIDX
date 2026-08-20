@@ -32,7 +32,7 @@ export default function Home() {
 
             <div className="flex flex-col items-center gap-4">
               <Link
-                href="/p/introduccion"
+                href="/index/introduccion"
                 className="group relative px-16 py-7 bg-white dark:bg-zinc-200 text-black dark:text-black font-black uppercase tracking-widest text-lg overflow-hidden transition-all hover:pr-20 hover:scale-105 shadow-2xl shadow-white/20 dark:shadow-zinc-500/30"
               >
                 <span>Iniciar Cartografía</span>

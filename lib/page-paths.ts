@@ -5,6 +5,6 @@ export function buildPublicPageHref(slugSegments: string[]) {
     .map((segment) => encodeURIComponent(segment));
 
   return normalizedSegments.length > 0
-    ? `/p/${normalizedSegments.join("/")}`
-    : "/p";
+    ? `/index/${normalizedSegments.join("/")}`
+    : "/index";
 }

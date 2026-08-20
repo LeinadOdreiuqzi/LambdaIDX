@@ -50,9 +50,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority = Math.min(1.0, priority + 0.1);
       }
 
-      const pageUrl = page.path.startsWith("/p/")
+      const pageUrl = page.path.startsWith("/index/")
         ? `${BASE_URL}${page.path}`
-        : `${BASE_URL}/p/${page.slug}`;
+        : `${BASE_URL}/index/${page.slug}`;
 
       return {
         url: pageUrl,

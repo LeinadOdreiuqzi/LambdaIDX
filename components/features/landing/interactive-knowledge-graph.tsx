@@ -1167,7 +1167,7 @@ export function InteractiveKnowledgeGraph() {
                 aria-expanded={hasChildren ? isExpanded : undefined}
                 onPointerDown={(e) => handleNodePointerDown(e, node.id)}
                 onClick={(e) => handleNodeClick(e, node.id)}
-                onDoubleClick={() => router.push(`/p/${node.slug}`)}
+                onDoubleClick={() => router.push(`/index/${node.slug}`)}
                 style={{
                   transform: `translate3d(${pos.x}px, ${pos.y}px, 0px)`,
                   willChange: "transform",
@@ -1243,7 +1243,7 @@ export function InteractiveKnowledgeGraph() {
 
                     {/* Direct Link to Document */}
                     <Link
-                      href={`/p/${node.slug}`}
+                      href={`/index/${node.slug}`}
                       onClick={(e) => e.stopPropagation()}
                       title="Abrir Documento"
                       className="p-1.5 rounded-md text-zinc-500 hover:text-white hover:bg-zinc-800 transition-colors active:scale-90"

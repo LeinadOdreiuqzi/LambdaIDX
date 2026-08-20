@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     const excerpt =
       searchParams.get("excerpt") ||
       "Infraestructura de conocimiento jerarquico y lectura academica.";
-    const path = searchParams.get("path") || "/p";
+    const path = searchParams.get("path") || "/index";
 
     return new ImageResponse(
       (
