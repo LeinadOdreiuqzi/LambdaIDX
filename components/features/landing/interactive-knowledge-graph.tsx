@@ -16,6 +16,7 @@ import {
   X,
   MapPin,
   Maximize2,
+  Keyboard,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -37,7 +38,7 @@ const INITIAL_TREE: TreeNode[] = [
   {
     id: "intro-1",
     parentId: null,
-    title: "1. Introducción al Archivo",
+    title: "1. Introduccion al Archivo",
     slug: "introduccion",
     depth: 0,
     childCount: 2,
@@ -64,7 +65,7 @@ const INITIAL_TREE: TreeNode[] = [
       {
         id: "intro-3",
         parentId: "intro-1",
-        title: "Búsqueda Instantánea",
+        title: "Busqueda Instantanea",
         slug: "introduccion/busqueda-y-herramientas",
         depth: 1,
         childCount: 0,
@@ -75,7 +76,7 @@ const INITIAL_TREE: TreeNode[] = [
   {
     id: "physics",
     parentId: null,
-    title: "Física Fundamental",
+    title: "Fisica Fundamental",
     slug: "fisica",
     depth: 0,
     childCount: 2,
@@ -83,7 +84,7 @@ const INITIAL_TREE: TreeNode[] = [
       {
         id: "mechanics",
         parentId: "physics",
-        title: "Mecánica Clásica",
+        title: "Mecanica Clasica",
         slug: "fisica/mecanica-clasica",
         depth: 1,
         childCount: 2,
@@ -100,7 +101,7 @@ const INITIAL_TREE: TreeNode[] = [
           {
             id: "mechanics-2",
             parentId: "mechanics",
-            title: "Cinemática y Dinámica",
+            title: "Cinematica y Dinamica",
             slug: "fisica/mecanica-clasica/cinematica",
             depth: 2,
             childCount: 0,
@@ -111,7 +112,7 @@ const INITIAL_TREE: TreeNode[] = [
       {
         id: "quantum",
         parentId: "physics",
-        title: "Física Cuántica",
+        title: "Fisica Cuantica",
         slug: "fisica/fisica-cuantica",
         depth: 1,
         childCount: 1,
@@ -119,7 +120,7 @@ const INITIAL_TREE: TreeNode[] = [
           {
             id: "quantum-1",
             parentId: "quantum",
-            title: "Dualidad Onda-Partícula",
+            title: "Dualidad Onda-Particula",
             slug: "fisica/fisica-cuantica/dualidad",
             depth: 2,
             childCount: 0,
@@ -132,7 +133,7 @@ const INITIAL_TREE: TreeNode[] = [
   {
     id: "chemistry",
     parentId: null,
-    title: "Química y Estructura",
+    title: "Quimica y Estructura",
     slug: "quimica",
     depth: 0,
     childCount: 2,
@@ -140,7 +141,7 @@ const INITIAL_TREE: TreeNode[] = [
       {
         id: "organic",
         parentId: "chemistry",
-        title: "Química Orgánica",
+        title: "Quimica Organica",
         slug: "quimica/quimica-organica",
         depth: 1,
         childCount: 2,
@@ -157,7 +158,7 @@ const INITIAL_TREE: TreeNode[] = [
           {
             id: "organic-2",
             parentId: "organic",
-            title: "Reacciones Biológicas",
+            title: "Reacciones Biologicas",
             slug: "quimica/quimica-organica/reacciones",
             depth: 2,
             childCount: 0,
@@ -183,6 +184,7 @@ export function InteractiveKnowledgeGraph() {
 
   // Viewport Container Reference
   const viewportRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Selected discipline filter
   const [selectedDiscipline, setSelectedDiscipline] = useState<string>("all");
@@ -207,6 +209,7 @@ export function InteractiveKnowledgeGraph() {
   // Quick Search State
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isSearchFocused, setIsSearchFocused] = useState<boolean>(false);
+  const [showKeyboardHelp, setShowKeyboardHelp] = useState<boolean>(false);
 
   // Positions of all rendered nodes on the canvas: { [nodeId]: { x: number, y: number } }
   const [nodePositions, setNodePositions] = useState<Record<string, { x: number; y: number }>>(() => {
@@ -268,15 +271,14 @@ export function InteractiveKnowledgeGraph() {
     hasMoved: false,
   });
 
-  // Global Window Pointer Move & Up listeners for 60fps buttery-smooth dragging & pinch-to-zoom
+  // Global Window Pointer Move & Up listeners for 60fps smooth dragging & pinch-to-zoom
   useEffect(() => {
     const handleGlobalPointerMove = (e: PointerEvent) => {
-      // Update pointer in active pointers map
       if (activePointersRef.current.has(e.pointerId)) {
         activePointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
       }
 
-      // 1. MULTI-TOUCH PINCH-TO-ZOOM GESTURE (2 Pointers)
+      // Multi-Touch Pinch-to-Zoom Gesture (2 pointers)
       if (activePointersRef.current.size === 2) {
         const pointers = Array.from(activePointersRef.current.values());
         const p1 = pointers[0];
@@ -310,12 +312,11 @@ export function InteractiveKnowledgeGraph() {
         return;
       }
 
-      // Reset pinch state if not 2 pointers
       if (activePointersRef.current.size < 2) {
         pinchStateRef.current = null;
       }
 
-      // 2. SINGLE-POINTER DRAG OR PAN
+      // Single Pointer Drag or Pan
       const drag = dragInfoRef.current;
       if (!drag.nodeId && !drag.isPanningCanvas) return;
 
@@ -326,7 +327,7 @@ export function InteractiveKnowledgeGraph() {
         drag.hasMoved = true;
       }
 
-      // Dragging a node card
+      // Dragging node card
       if (drag.nodeId) {
         const zoom = zoomLevelRef.current;
         const newX = drag.initX + dx / zoom;
@@ -338,7 +339,7 @@ export function InteractiveKnowledgeGraph() {
         }));
       }
 
-      // Panning the canvas background
+      // Panning canvas background
       if (drag.isPanningCanvas) {
         setPanOffset({
           x: drag.initX + dx,
@@ -377,13 +378,11 @@ export function InteractiveKnowledgeGraph() {
     if (!viewportEl) return;
 
     const handleWheel = (e: WheelEvent) => {
-      // If Ctrl / Meta is pressed (Trackpad pinch gesture on macOS or Ctrl+Wheel on Windows)
       if (e.ctrlKey || e.metaKey) {
         e.preventDefault();
         const zoomDelta = -e.deltaY * 0.005;
         setZoomLevel((prev) => Math.max(0.5, Math.min(1.4, prev + zoomDelta)));
       } else {
-        // Pan canvas with 2-finger trackpad swipe or shift-wheel
         e.preventDefault();
         setPanOffset((prev) => ({
           x: prev.x - e.deltaX * 0.8,
@@ -430,7 +429,6 @@ export function InteractiveKnowledgeGraph() {
 
           setTreeData(formatted);
 
-          // Position root nodes
           setNodePositions((prev) => {
             const next = { ...prev };
             formatted.forEach((root, idx) => {
@@ -572,7 +570,6 @@ export function InteractiveKnowledgeGraph() {
       const isExpanding = !expandedNodeIds.has(nodeId);
 
       if (isExpanding) {
-        // If node has childCount > 0 but children array is empty, fetch lazily
         if (node.childCount > 0 && node.children.length === 0) {
           setLoadingNodeId(nodeId);
           try {
@@ -663,7 +660,6 @@ export function InteractiveKnowledgeGraph() {
 
   // Select search match with auto-unfolding and camera pan
   const handleSelectSearchResult = (node: TreeNode) => {
-    // 1. Gather all ancestor IDs to unfold full path
     const ancestors: string[] = [];
     let curr: TreeNode | undefined = node.parentId ? nodeDict[node.parentId] : undefined;
     while (curr) {
@@ -671,7 +667,6 @@ export function InteractiveKnowledgeGraph() {
       curr = curr.parentId ? nodeDict[curr.parentId] : undefined;
     }
 
-    // 2. Expand all ancestors
     setExpandedNodeIds((prev) => {
       const next = new Set(prev);
       ancestors.forEach((aId) => next.add(aId));
@@ -679,7 +674,6 @@ export function InteractiveKnowledgeGraph() {
       return next;
     });
 
-    // 3. Ensure discipline filter is open to 'all' or matches root
     if (ancestors.length > 0) {
       setSelectedDiscipline("all");
     }
@@ -688,7 +682,6 @@ export function InteractiveKnowledgeGraph() {
     setSearchQuery("");
     setIsSearchFocused(false);
 
-    // 4. Center Camera on Node with smooth pan
     if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
     searchTimerRef.current = setTimeout(() => {
       const pos = nodePositionsRef.current[node.id] || { x: 60, y: 80 };
@@ -778,7 +771,7 @@ export function InteractiveKnowledgeGraph() {
     };
   };
 
-  // Node Card Click Handler (Only toggles if user did NOT drag the card)
+  // Node Card Click Handler
   const handleNodeClick = (e: React.MouseEvent, nodeId: string) => {
     if (dragInfoRef.current.hasMoved) return;
     handleToggleExpand(nodeId, e);
@@ -791,7 +784,6 @@ export function InteractiveKnowledgeGraph() {
     setSelectedDiscipline("all");
     setExpandedNodeIds(new Set());
 
-    // Reset initial root positions
     const initialPos: Record<string, { x: number; y: number }> = {};
     treeData.forEach((root, idx) => {
       initialPos[root.id] = { x: 60, y: 70 + idx * 130 };
@@ -802,8 +794,109 @@ export function InteractiveKnowledgeGraph() {
     }
   }, [treeData]);
 
+  // Keyboard Navigation Engine
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (isSearchFocused) {
+        if (e.key === "Escape") {
+          setIsSearchFocused(false);
+          searchInputRef.current?.blur();
+        }
+        return;
+      }
+
+      if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+        setIsSearchFocused(true);
+        return;
+      }
+
+      switch (e.key) {
+        case "ArrowDown": {
+          e.preventDefault();
+          const currIdx = visibleNodeList.findIndex((n) => n.id === activeNodeId);
+          if (currIdx < visibleNodeList.length - 1) {
+            setActiveNodeId(visibleNodeList[currIdx + 1].id);
+          }
+          break;
+        }
+        case "ArrowUp": {
+          e.preventDefault();
+          const currIdx = visibleNodeList.findIndex((n) => n.id === activeNodeId);
+          if (currIdx > 0) {
+            setActiveNodeId(visibleNodeList[currIdx - 1].id);
+          }
+          break;
+        }
+        case "ArrowRight": {
+          e.preventDefault();
+          const currNode = nodeDict[activeNodeId];
+          if (currNode && currNode.childCount > 0) {
+            if (!expandedNodeIds.has(currNode.id)) {
+              handleToggleExpand(currNode.id);
+            } else if (currNode.children && currNode.children.length > 0) {
+              setActiveNodeId(currNode.children[0].id);
+            }
+          }
+          break;
+        }
+        case "ArrowLeft": {
+          e.preventDefault();
+          const currNode = nodeDict[activeNodeId];
+          if (currNode) {
+            if (expandedNodeIds.has(currNode.id)) {
+              handleToggleExpand(currNode.id);
+            } else if (currNode.parentId) {
+              setActiveNodeId(currNode.parentId);
+            }
+          }
+          break;
+        }
+        case " ":
+        case "Enter": {
+          e.preventDefault();
+          if (activeNodeId) {
+            handleToggleExpand(activeNodeId);
+          }
+          break;
+        }
+        case "+":
+        case "=": {
+          e.preventDefault();
+          setZoomLevel((prev) => Math.min(prev + 0.1, 1.3));
+          break;
+        }
+        case "-":
+        case "_": {
+          e.preventDefault();
+          setZoomLevel((prev) => Math.max(prev - 0.1, 0.65));
+          break;
+        }
+        case "0":
+        case "Home": {
+          e.preventDefault();
+          handleAutoCenter();
+          break;
+        }
+        case "Escape": {
+          setIsSearchFocused(false);
+          setShowKeyboardHelp(false);
+          break;
+        }
+      }
+    },
+    [isSearchFocused, visibleNodeList, activeNodeId, nodeDict, expandedNodeIds, handleToggleExpand, handleAutoCenter]
+  );
+
   return (
-    <div className="w-full max-w-6xl mx-auto mt-20 blueprint-border border rounded-2xl overflow-hidden bg-zinc-950/95 shadow-2xl relative select-none touch-none">
+    <div
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
+      role="region"
+      aria-label="Grafo de Conocimiento Interactivo"
+      className="w-full max-w-6xl mx-auto mt-20 blueprint-border border rounded-2xl overflow-hidden bg-zinc-950/95 shadow-2xl relative select-none touch-none focus:outline-none focus:ring-1 focus:ring-zinc-700"
+    >
       {/* HEADER: Dynamic Discipline Filter Pills & Quick Search */}
       <div className="p-3 border-b border-zinc-800/80 bg-zinc-900/60 backdrop-blur-md flex flex-wrap items-center justify-between gap-3 px-4 sm:px-6">
         {/* Left: Live In-Graph Search Bar */}
@@ -811,11 +904,12 @@ export function InteractiveKnowledgeGraph() {
           <div className="flex items-center gap-2 bg-zinc-950/80 border border-zinc-800 focus-within:border-cyan-500/50 rounded-lg px-2.5 py-1.5 transition-colors">
             <Search className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
             <input
+              ref={searchInputRef}
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onFocus={() => setIsSearchFocused(true)}
-              placeholder="Buscar en el grafo..."
+              placeholder="Buscar en el grafo (Ctrl+K)..."
               className="bg-transparent text-xs font-mono text-zinc-100 placeholder-zinc-500 focus:outline-none w-full"
             />
             {searchQuery && (
@@ -848,7 +942,7 @@ export function InteractiveKnowledgeGraph() {
                     </span>
                   </div>
                   <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 shrink-0">
-                    {result.depth === 0 ? "Raíz" : `Nivel ${result.depth}`}
+                    {result.depth === 0 ? "Raiz" : `Nivel ${result.depth}`}
                   </span>
                 </button>
               ))}
@@ -856,8 +950,13 @@ export function InteractiveKnowledgeGraph() {
           )}
         </div>
 
-        {/* Right: Discipline Filter Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto py-1 max-w-full no-scrollbar -webkit-overflow-scrolling-touch">
+        {/* Right: Discipline Filter Pills & Node Counter */}
+        <div className="flex items-center gap-2 overflow-x-auto py-1 max-w-full no-scrollbar -webkit-overflow-scrolling-touch">
+          <div className="hidden md:flex items-center gap-1 text-[10px] font-mono text-zinc-500 mr-1 shrink-0">
+            <span>Visibles:</span>
+            <span className="font-bold text-zinc-300">{visibleNodeList.length}</span>
+          </div>
+
           {disciplinesList.map((disc) => {
             const isActive = selectedDiscipline === disc.id;
             return (
@@ -886,10 +985,12 @@ export function InteractiveKnowledgeGraph() {
         </div>
       </div>
 
-      {/* CANVAS VIEWPORT (Touch & Multi-Touch Optimized) */}
+      {/* CANVAS VIEWPORT (Touch & Multi-Touch & Keyboard Optimized) */}
       <div
         ref={viewportRef}
         onPointerDown={handleCanvasPointerDown}
+        role="tree"
+        aria-label="Lienzo de navegacion jerarquica"
         className="relative aspect-[21/10] min-h-[440px] sm:min-h-[500px] w-full overflow-hidden bg-[radial-gradient(#27272a_1px,transparent_1px)] [background-size:24px_24px] cursor-grab active:cursor-grabbing touch-none select-none"
       >
         {/* Top-Right Controls Overlay */}
@@ -898,8 +999,20 @@ export function InteractiveKnowledgeGraph() {
           className="absolute top-3 right-3 sm:top-4 sm:right-4 z-30 flex items-center gap-1.5 bg-zinc-900/80 backdrop-blur-md border border-zinc-800 p-1.5 rounded-xl shadow-lg"
         >
           <button
+            onClick={() => setShowKeyboardHelp((prev) => !prev)}
+            title="Atajos de Teclado"
+            className={cn(
+              "p-2 sm:p-2 rounded-lg transition-colors active:scale-95",
+              showKeyboardHelp
+                ? "text-cyan-400 bg-cyan-500/10"
+                : "text-zinc-400 hover:text-white hover:bg-zinc-800"
+            )}
+          >
+            <Keyboard className="w-4 h-4" />
+          </button>
+          <button
             onClick={handleAutoCenter}
-            title="Centrar y Ajustar Grafo al Lienzo"
+            title="Centrar y Ajustar Grafo al Lienzo (0)"
             className="p-2 sm:p-2 text-zinc-400 hover:text-cyan-300 hover:bg-zinc-800 rounded-lg transition-colors active:scale-95"
           >
             <Maximize2 className="w-4 h-4" />
@@ -907,14 +1020,14 @@ export function InteractiveKnowledgeGraph() {
           <div className="w-px h-4 bg-zinc-800" />
           <button
             onClick={() => setZoomLevel((prev) => Math.min(prev + 0.1, 1.3))}
-            title="Aumentar Zoom"
+            title="Aumentar Zoom (+)"
             className="p-2 sm:p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors active:scale-95"
           >
             <ZoomIn className="w-4 h-4" />
           </button>
           <button
             onClick={() => setZoomLevel((prev) => Math.max(prev - 0.1, 0.65))}
-            title="Reducir Zoom"
+            title="Reducir Zoom (-)"
             className="p-2 sm:p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors active:scale-95"
           >
             <ZoomOut className="w-4 h-4" />
@@ -927,6 +1040,48 @@ export function InteractiveKnowledgeGraph() {
             <RotateCcw className="w-4 h-4" />
           </button>
         </div>
+
+        {/* Keyboard Help Floating Modal */}
+        {showKeyboardHelp && (
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="absolute top-16 right-4 z-40 bg-zinc-950/95 backdrop-blur-md border border-zinc-800 p-3.5 rounded-xl shadow-2xl font-mono text-[11px] text-zinc-300 w-64 space-y-2"
+          >
+            <div className="flex items-center justify-between border-b border-zinc-800 pb-1.5">
+              <span className="font-bold text-zinc-100 uppercase tracking-wider text-[10px]">
+                Atajos de Teclado
+              </span>
+              <button
+                onClick={() => setShowKeyboardHelp(false)}
+                className="text-zinc-500 hover:text-zinc-300"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+            <div className="space-y-1.5 text-zinc-400 text-[10px]">
+              <div className="flex justify-between">
+                <span>Navegar nodos:</span>
+                <span className="text-zinc-200 font-bold">Flechas ↑ ↓ ← →</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Expandir / Colapsar:</span>
+                <span className="text-zinc-200 font-bold">Espacio / Enter</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Buscar en el grafo:</span>
+                <span className="text-zinc-200 font-bold">Ctrl + K</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Auto-Centrar vista:</span>
+                <span className="text-zinc-200 font-bold">0 / Home</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Zoom in / out:</span>
+                <span className="text-zinc-200 font-bold">+ / -</span>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* GPU-Accelerated Dynamic Motion Canvas */}
         <div
@@ -1007,6 +1162,9 @@ export function InteractiveKnowledgeGraph() {
             return (
               <div
                 key={node.id}
+                role="treeitem"
+                aria-selected={isActive}
+                aria-expanded={hasChildren ? isExpanded : undefined}
                 onPointerDown={(e) => handleNodePointerDown(e, node.id)}
                 onClick={(e) => handleNodeClick(e, node.id)}
                 onDoubleClick={() => router.push(`/p/${node.slug}`)}
@@ -1016,7 +1174,9 @@ export function InteractiveKnowledgeGraph() {
                 }}
                 className={cn(
                   "absolute top-0 left-0 p-3 rounded-xl border select-none backdrop-blur-md pointer-events-auto transition-[border-color,background-color,box-shadow]",
-                  isDragging ? "cursor-grabbing z-50 shadow-2xl scale-[1.03] ring-2 ring-cyan-400 border-cyan-400" : "cursor-grab z-10 shadow-xl",
+                  isDragging
+                    ? "cursor-grabbing z-50 shadow-2xl scale-[1.03] ring-2 ring-cyan-400 border-cyan-400"
+                    : "cursor-grab z-10 shadow-xl",
                   isRoot ? "min-w-[195px] sm:min-w-[215px]" : "min-w-[170px] sm:min-w-[185px]",
                   isActive && !isDragging
                     ? "bg-zinc-900 border-zinc-200 ring-2 ring-cyan-500/40 shadow-cyan-500/10"
@@ -1045,7 +1205,7 @@ export function InteractiveKnowledgeGraph() {
                         {node.title}
                       </h4>
                       <span className="text-[9px] font-mono text-zinc-500 uppercase tracking-tighter block mt-0.5">
-                        {isRoot ? "Disciplina Raíz" : `Nivel ${node.depth}`}
+                        {isRoot ? "Disciplina Raiz" : `Nivel ${node.depth}`}
                       </span>
                     </div>
                   </div>
@@ -1091,7 +1251,7 @@ export function InteractiveKnowledgeGraph() {
                       {isRoot ? (
                         <ArrowUpRight className="w-3.5 h-3.5" />
                       ) : (
-                        <ExternalLink className="w-3 h-3" />
+                        <ExternalLink className="w-3.5 h-3.5" />
                       )}
                     </Link>
                   </div>
