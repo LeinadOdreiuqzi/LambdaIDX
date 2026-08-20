@@ -2,9 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { PageService } from "@/services/page-service";
 import { revalidatePath } from "next/cache";
 import { createPageSchema, validateBody } from "@/lib/validation";
+import { requireAdminSession, AuthError } from "@/lib/auth";
 
 /**
- * GET /api/pages - List pages (admin only, optionally filtered)
+ * GET /api/pages - List pages (optionally filtered)
  */
 export async function GET(request: NextRequest) {
   try {
@@ -27,13 +28,16 @@ export async function GET(request: NextRequest) {
 }
 
 /**
- * POST /api/pages - Create a new page
+ * POST /api/pages - Create a new page (Admin Protected)
  */
 export async function POST(request: NextRequest) {
   try {
+    // 1. Validar sesion de administrador
+    await requireAdminSession();
+
     const body = await request.json();
 
-    // Validate request body
+    // 2. Validate request body
     const validation = validateBody(createPageSchema, body);
     if (!validation.success) {
       return NextResponse.json(
@@ -62,6 +66,12 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json(
+        { success: false, error: error.message },
+        { status: error.statusCode }
+      );
+    }
     console.error("POST /api/pages error:", error);
     return NextResponse.json(
       { success: false, error: "Failed to create page" },

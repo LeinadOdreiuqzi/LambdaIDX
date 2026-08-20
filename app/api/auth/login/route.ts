@@ -6,9 +6,29 @@ import {
   AUTH_COOKIE_NAME,
   SESSION_MAX_AGE_SECONDS,
 } from "@/lib/auth";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
   try {
+    // 1. Rate limiting: Max 5 intentos por minuto por direccion IP
+    const clientIp = getClientIp(request);
+    const rateLimit = await checkRateLimit(`login:${clientIp}`, 5, 60);
+
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Demasiados intentos de inicio de sesión. Por favor espera ${rateLimit.resetSeconds} segundos.`,
+        },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(rateLimit.resetSeconds),
+          },
+        }
+      );
+    }
+
     const body = await request.json();
     const { email, password } = body;
 
@@ -19,7 +39,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // 1. Buscar usuario por email
+    // 2. Buscar usuario por email
     const user = await prisma.user.findUnique({
       where: { email: String(email).toLowerCase().trim() },
     });
@@ -31,7 +51,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // 2. Verificar contraseña con hash criptográfico
+    // 3. Verificar contraseña con hash criptográfico
     const isValid = verifyPassword(String(password), user.passwordHash);
     if (!isValid) {
       return NextResponse.json(
@@ -40,7 +60,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // 3. Crear token de sesión seguro firmado
+    // 4. Crear token de sesión seguro firmado
     const token = createSessionToken({
       userId: user.id,
       email: user.email,
@@ -48,7 +68,7 @@ export async function POST(request: Request) {
       fullName: user.fullName,
     });
 
-    // 4. Crear respuesta con Cookie HttpOnly Segura
+    // 5. Crear respuesta con Cookie HttpOnly Segura
     const response = NextResponse.json({
       success: true,
       user: {

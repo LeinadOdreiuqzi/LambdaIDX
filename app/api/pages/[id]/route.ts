@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PageService } from "@/services/page-service";
 import { revalidatePath } from "next/cache";
-import { idSchema, updatePageContentSchema, updatePageMetadataSchema, validateBody } from "@/lib/validation";
+import {
+  idSchema,
+  updatePageContentSchema,
+  updatePageMetadataSchema,
+  validateBody,
+} from "@/lib/validation";
+import { requireAdminSession, AuthError } from "@/lib/auth";
 
 /**
  * GET /api/pages/[id] - Get a single page by ID
@@ -45,13 +51,16 @@ export async function GET(
 }
 
 /**
- * PUT /api/pages/[id] - Update page content (from editor)
+ * PUT /api/pages/[id] - Update page content (Admin Protected)
  */
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // 1. Validar sesion de administrador
+    await requireAdminSession();
+
     const { id } = await params;
 
     // Validate ID format
@@ -75,7 +84,11 @@ export async function PUT(
         );
       }
 
-      const updated = await PageService.updatePageContent(idValidation.data, validation.data.contentJson || { type: "doc", content: [] }, validation.data.excerpt);
+      const updated = await PageService.updatePageContent(
+        idValidation.data,
+        validation.data.contentJson || { type: "doc", content: [] },
+        validation.data.excerpt
+      );
 
       if (!updated) {
         return NextResponse.json(
@@ -93,7 +106,13 @@ export async function PUT(
     }
 
     // Update metadata
-    if (body.title || body.metaTitle || body.metaDescription || body.canonicalUrl !== undefined || body.isFeatured !== undefined) {
+    if (
+      body.title ||
+      body.metaTitle ||
+      body.metaDescription ||
+      body.canonicalUrl !== undefined ||
+      body.isFeatured !== undefined
+    ) {
       const validation = validateBody(updatePageMetadataSchema, body);
       if (!validation.success) {
         return NextResponse.json(
@@ -102,7 +121,10 @@ export async function PUT(
         );
       }
 
-      const updated = await PageService.updatePageMetadata(idValidation.data, validation.data);
+      const updated = await PageService.updatePageMetadata(
+        idValidation.data,
+        validation.data
+      );
 
       if (!updated) {
         return NextResponse.json(
@@ -124,6 +146,12 @@ export async function PUT(
       { status: 400 }
     );
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json(
+        { success: false, error: error.message },
+        { status: error.statusCode }
+      );
+    }
     console.error("PUT /api/pages/[id] error:", error);
     return NextResponse.json(
       { success: false, error: "Failed to update page" },
@@ -133,13 +161,16 @@ export async function PUT(
 }
 
 /**
- * DELETE /api/pages/[id] - Delete a page
+ * DELETE /api/pages/[id] - Delete a page (Admin Protected)
  */
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // 1. Validar sesion de administrador
+    await requireAdminSession();
+
     const { id } = await params;
 
     // Validate ID format
@@ -168,6 +199,12 @@ export async function DELETE(
       message: "Page deleted successfully",
     });
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json(
+        { success: false, error: error.message },
+        { status: error.statusCode }
+      );
+    }
     console.error("DELETE /api/pages/[id] error:", error);
     return NextResponse.json(
       { success: false, error: "Failed to delete page" },

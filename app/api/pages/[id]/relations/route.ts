@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { PageService } from "@/services/page-service";
 import { idSchema } from "@/lib/validation";
 import { RelationType, ResourceType } from "@prisma/client";
+import { requireAdminSession, AuthError } from "@/lib/auth";
 
 /**
  * GET /api/pages/[id]/relations - Fetch relations, tags, and resources for a page
@@ -37,13 +38,16 @@ export async function GET(
 }
 
 /**
- * POST /api/pages/[id]/relations - Mutate relations, tags, or resources for a page
+ * POST /api/pages/[id]/relations - Mutate relations, tags, or resources for a page (Admin Protected)
  */
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // 1. Validar sesion de administrador
+    await requireAdminSession();
+
     const { id } = await params;
 
     const idValidation = idSchema.safeParse(id);
@@ -123,6 +127,12 @@ export async function POST(
         return NextResponse.json({ success: false, error: "Invalid action" }, { status: 400 });
     }
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json(
+        { success: false, error: error.message },
+        { status: error.statusCode }
+      );
+    }
     console.error("POST /api/pages/[id]/relations error:", error);
     return NextResponse.json(
       { success: false, error: "Failed to process relation mutation" },

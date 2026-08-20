@@ -8,6 +8,26 @@ const SESSION_SECRET =
   process.env.NEXTAUTH_SECRET ||
   "lambdaidx-secure-secret-key-must-be-changed-in-production-32chars";
 
+if (
+  process.env.NODE_ENV === "production" &&
+  !process.env.AUTH_SECRET &&
+  !process.env.NEXTAUTH_SECRET
+) {
+  console.error(
+    "[SECURITY WARNING] AUTH_SECRET no esta definida en las variables de entorno de produccion."
+  );
+}
+
+export class AuthError extends Error {
+  statusCode: number;
+
+  constructor(message: string, statusCode = 401) {
+    super(message);
+    this.name = "AuthError";
+    this.statusCode = statusCode;
+  }
+}
+
 export interface SessionPayload {
   userId: string;
   email: string;
@@ -17,7 +37,7 @@ export interface SessionPayload {
 }
 
 /**
- * Cifra una contraseña usando Scrypt con salt aleatorio seguro
+ * Cifra una contrasena usando Scrypt con salt aleatorio seguro
  */
 export function hashPassword(password: string): string {
   const salt = crypto.randomBytes(16).toString("hex");
@@ -26,7 +46,7 @@ export function hashPassword(password: string): string {
 }
 
 /**
- * Verifica una contraseña en texto plano contra su hash almacenado
+ * Verifica una contrasena en texto plano contra su hash almacenado
  */
 export function verifyPassword(password: string, storedHash: string): boolean {
   try {
@@ -37,7 +57,7 @@ export function verifyPassword(password: string, storedHash: string): boolean {
     const derivedKey = crypto.scryptSync(password, salt, 64);
     return crypto.timingSafeEqual(keyBuffer, derivedKey);
   } catch (error) {
-    console.error("Error al verificar contraseña:", error);
+    console.error("Error al verificar contrasena:", error);
     return false;
   }
 }
@@ -45,7 +65,7 @@ export function verifyPassword(password: string, storedHash: string): boolean {
 export const SESSION_MAX_AGE_SECONDS = 60 * 60; // 1 hora (3600 segundos)
 
 /**
- * Genera un token de sesión firmado con HMAC SHA-256
+ * Genera un token de sesion firmado con HMAC SHA-256
  */
 export function createSessionToken(payload: Omit<SessionPayload, "exp">): string {
   const exp = Math.floor(Date.now() / 1000) + SESSION_MAX_AGE_SECONDS;
@@ -61,7 +81,7 @@ export function createSessionToken(payload: Omit<SessionPayload, "exp">): string
 }
 
 /**
- * Valida y decodifica un token de sesión
+ * Valida y decodifica un token de sesion
  */
 export function verifySessionToken(token: string): SessionPayload | null {
   try {
@@ -80,7 +100,7 @@ export function verifySessionToken(token: string): SessionPayload | null {
     );
 
     if (payload.exp < Math.floor(Date.now() / 1000)) {
-      return null; // Sesión expirada
+      return null; // Sesion expirada
     }
 
     return payload;
@@ -90,13 +110,29 @@ export function verifySessionToken(token: string): SessionPayload | null {
 }
 
 /**
- * Obtiene la sesión actual desde las cookies en Server Components / Route Handlers
+ * Obtiene la sesion actual desde las cookies en Server Components / Route Handlers
  */
 export async function getCurrentSession(): Promise<SessionPayload | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
   if (!token) return null;
   return verifySessionToken(token);
+}
+
+/**
+ * Requiere una sesion administrativa activa. Lanza AuthError si no es valida.
+ */
+export async function requireAdminSession(): Promise<SessionPayload> {
+  const session = await getCurrentSession();
+  if (!session) {
+    throw new AuthError("Sesion no autorizada o expirada", 401);
+  }
+
+  if (session.role !== UserRole.ADMIN && session.role !== UserRole.SUPERADMIN) {
+    throw new AuthError("Permisos insuficientes para realizar esta operacion", 403);
+  }
+
+  return session;
 }
 
 export { AUTH_COOKIE_NAME };
