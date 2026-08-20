@@ -33,6 +33,12 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
   const publishedTime = page.createdAt ? new Date(page.createdAt).toISOString() : undefined;
   const modifiedTime = page.updatedAt ? new Date(page.updatedAt).toISOString() : undefined;
 
+  const ogImageUrl = `${BASE_URL}/api/og?title=${encodeURIComponent(
+    page.title
+  )}&excerpt=${encodeURIComponent(page.excerpt || "")}&path=${encodeURIComponent(
+    page.path
+  )}`;
+
   return {
     title: `${page.title}${titleSuffix} | LambdaIDX`,
     description: page.excerpt || `Read about ${page.title} on LambdaIDX knowledge platform.`,
@@ -47,11 +53,20 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
       type: "article",
       publishedTime,
       modifiedTime,
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: page.title,
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
       title: page.title,
       description: page.excerpt || "",
+      images: [ogImageUrl],
     },
   };
 }
