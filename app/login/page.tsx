@@ -73,10 +73,7 @@ export default function LoginPage() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="flex flex-col items-center mb-8"
           >
-            <Logo size={64} showText={true} className="text-zinc-900 dark:text-zinc-100 mb-4" />
-            <p className="text-sm text-zinc-500 dark:text-zinc-400 font-mono tracking-wider">
-              GESTIÓN CENTRAL
-            </p>
+            <Logo size={64} showText={true} className="text-zinc-900 dark:text-zinc-100" />
           </motion.div>
 
           {/* Login Card */}
