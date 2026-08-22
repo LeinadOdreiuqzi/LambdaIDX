@@ -3,6 +3,35 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import pg from "pg";
 import readline from "readline";
 import crypto from "crypto";
+import fs from "fs";
+import path from "path";
+
+// Cargar variables de entorno desde .env si no estan presentes
+if (!process.env.DATABASE_URL) {
+  try {
+    if (typeof (process as unknown as { loadEnvFile?: (path?: string) => void }).loadEnvFile === "function") {
+      (process as unknown as { loadEnvFile: (path?: string) => void }).loadEnvFile();
+    } else {
+      const envPath = path.resolve(process.cwd(), ".env");
+      if (fs.existsSync(envPath)) {
+        const envContent = fs.readFileSync(envPath, "utf-8");
+        for (const line of envContent.split(/\r?\n/)) {
+          const trimmed = line.trim();
+          if (trimmed && !trimmed.startsWith("#") && trimmed.includes("=")) {
+            const separatorIdx = trimmed.indexOf("=");
+            const key = trimmed.slice(0, separatorIdx).trim();
+            const val = trimmed.slice(separatorIdx + 1).trim().replace(/^["']|["']$/g, "");
+            if (!process.env[key]) {
+              process.env[key] = val;
+            }
+          }
+        }
+      }
+    }
+  } catch {
+    // Si falla, el chequeo posterior de DATABASE_URL informará al usuario
+  }
+}
 
 function hashPassword(password: string): string {
   const salt = crypto.randomBytes(16).toString("hex");
