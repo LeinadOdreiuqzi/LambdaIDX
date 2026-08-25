@@ -55,56 +55,69 @@ export default function Home() {
         {/* FEATURES - THE CORE PROMISE */}
         <section className="px-6 py-32 border-t border-zinc-900 bg-zinc-950/20">
           <div className="max-w-7xl mx-auto">
+
+            {/* Section Header */}
             <div className="flex flex-col md:flex-row justify-between items-end gap-10 mb-20">
-              <div className="max-w-xl text-left">
-                <span className="text-zinc-600 font-mono text-[10px] uppercase tracking-widest mb-4 block underline underline-offset-8">Sección: Ecosistema_Del_Conocimiento</span>
-                <h2 className="text-4xl md:text-5xl font-black uppercase tracking-tight leading-tight mt-4">
-                  Más Allá de la <br /> <span className="text-zinc-600">Clasificación.</span>
+              <div className="max-w-2xl text-left">
+                <span className="text-zinc-600 font-mono text-[10px] uppercase tracking-widest mb-4 block underline underline-offset-8">
+                  Sección: Ecosistema_Del_Conocimiento
+                </span>
+                <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tight leading-none mt-4">
+                  La Infraestructura <br />
+                  <span className="text-zinc-600">del Saber.</span>
                 </h2>
+                <p className="mt-6 text-zinc-500 text-sm leading-relaxed max-w-lg">
+                  LambdaIDX no es una enciclopedia ni un buscador. Es un sistema de navegación
+                  jerárquica para investigadores, estudiantes y profesionales que necesitan
+                  orientarse dentro de la complejidad del conocimiento científico.
+                </p>
               </div>
-              <div className="flex flex-col gap-2 font-mono text-[10px] text-zinc-700 uppercase tracking-widest border-l border-zinc-800 pl-6">
-                <span>Jerarquía: Multinivel</span>
-                <span>Curaduría: Humana</span>
-                <span>Objetivo: Descubrimiento</span>
+              <div className="flex flex-col gap-2.5 font-mono text-[10px] text-zinc-600 uppercase tracking-widest border-l border-zinc-800 pl-6 shrink-0">
+                <span className="text-zinc-400">// core_properties</span>
+                <span>Arquitectura: Árbol Jerárquico</span>
+                <span>Curaduría: Editorial Humana</span>
+                <span>Objetivo: Orientación Científica</span>
+                <span>Alcance: 5 Ciencias Fundamentales</span>
               </div>
             </div>
 
+            {/* Feature Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-0 border border-zinc-900">
               <FeatureBlock
                 id="01"
                 icon={<Layers className="w-5 h-5 text-white" />}
-                title="Repositorio Universal"
-                description="Un archivo centralizado para las 5 Ciencias Fundamentales, organizando cada concepto conocido en una jerarquía clara y navegable."
+                title="Archivo Unificado"
+                description="Todas las ciencias en una sola estructura. Física, Química, Biología, Matemáticas y Ciencias Sociales organizadas en un árbol jerárquico único, coherente y navegable desde cualquier profundidad."
               />
               <FeatureBlock
                 id="02"
                 icon={<Target className="w-5 h-5 text-white" />}
-                title="Eficiencia de Investigación"
-                description="Optimizado para el estudio y la investigación profunda. Encuentra el nodo exacto de información sin el ruido de las búsquedas genéricas."
+                title="Navegación de Precisión"
+                description="Cada concepto tiene una coordenada exacta dentro del sistema. No buscas: navegas. De lo general a lo específico, con contexto completo en cada nodo del árbol."
               />
               <FeatureBlock
                 id="03"
                 icon={<Globe className="w-5 h-5 text-white" />}
-                title="Mapeo Científico"
-                description="Visualiza las conexiones entre las ciencias formales, naturales y sociales en un mapa vivo de relaciones."
+                title="Mapa Interdisciplinario"
+                description="Visualiza cómo se conectan las ciencias entre sí. Descubre que la física cuántica alimenta la química computacional, y que la bioquímica ancla a la biología molecular."
               />
               <FeatureBlock
                 id="04"
                 icon={<Cpu className="w-5 h-5 text-white" />}
-                title="Escudo Anti-Infoxicación"
-                description="Reduce la sobrecarga cognitiva proporcionando estructura y dirección. Conoce qué, con qué y dónde estudiar."
+                title="Anti-Infoxicación"
+                description="Diseñado contra el ruido informativo. Cada página entrega contexto jerarquizado: qué es el concepto, de dónde viene en el árbol y qué profundidad sigue a continuación."
               />
               <FeatureBlock
                 id="05"
                 icon={<Activity className="w-5 h-5 text-white" />}
                 title="Motor de Descubrimiento"
-                description="Transforma la búsqueda en lógica. Cada nodo es un paso en un viaje estructurado de aprendizaje e investigación."
+                description="Transforma la curiosidad en recorrido estructurado. Cada nodo es un paso trazable en una ruta de aprendizaje que va desde los fundamentos hasta el límite del conocimiento actual."
               />
               <FeatureBlock
                 id="06"
                 icon={<Code className="w-5 h-5 text-white" />}
-                title="Densidad Técnica"
-                description="Diseñado para el análisis profesional y la recopilación de datos, garantizando transiciones de menos de 200 ms entre nodos."
+                title="Rendimiento de Investigación"
+                description="Construido para sesiones largas de estudio y análisis profesional. Lectura limpia, acceso instantáneo a cualquier nodo y estructura que elimina la fricción cognitiva."
               />
             </div>
           </div>
