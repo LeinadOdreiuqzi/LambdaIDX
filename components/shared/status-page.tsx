@@ -143,7 +143,7 @@ export function StatusPage({
 
       {/* Decorative Footer Overlays */}
       <div className="absolute bottom-8 left-8 text-[10px] font-mono text-zinc-500 dark:text-zinc-700 uppercase tracking-widest">
-        <span>Status: {variant === "loading" ? "Processing" : variant === "error" ? "Error" : variant === "not-found" ? "Disconnected" : "Empty"}</span>
+        <span>Estado: {variant === "loading" ? "Procesando" : variant === "error" ? "Error" : variant === "not-found" ? "Desconectado" : "Vacío"}</span>
       </div>
       <div className="absolute bottom-8 right-8 text-[10px] font-mono text-zinc-500 dark:text-zinc-700 uppercase tracking-widest">
         <span>Lambda_OS_v1.0.0</span>

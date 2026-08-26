@@ -7,16 +7,16 @@ export default function NotFound() {
     <StatusPage
       variant="not-found"
       icon={<Terminal className="w-12 h-12 text-zinc-500 dark:text-zinc-600" />}
-      badge="ERROR::NODE_NOT_FOUND_404"
+      badge="ERROR::NODO_NO_ENCONTRADO_404"
       heading={
         <>
-          The Void <br />
-          <span className="text-zinc-500 dark:text-zinc-700">Awaits.</span>
+          404<br />
+          <span className="text-zinc-500 dark:text-zinc-700">The Void</span>
         </>
       }
-      description="The knowledge node you are looking for has been moved, deleted, or never existed in this hierarchy."
+      description="El nodo de conocimiento que estás buscando ha sido movido, eliminado o nunca ha existido en esta jerarquía."
       action={{
-        label: "Return to Origin",
+        label: "Volver al Origen",
         href: "/",
         icon: <ArrowLeft className="w-4 h-4" />,
       }}
