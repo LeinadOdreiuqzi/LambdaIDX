@@ -419,6 +419,38 @@ body {
   animation: spin-slow 60s linear infinite;
 }
 
+@keyframes console-spinner {
+  0%,
+  24.99% {
+    content: "|";
+  }
+  25%,
+  49.99% {
+    content: "/";
+  }
+  50%,
+  74.99% {
+    content: "-";
+  }
+  75%,
+  100% {
+    content: "\\";
+  }
+}
+
+.console-spinner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1ch;
+  font-family: var(--font-geist-mono), monospace;
+}
+
+.console-spinner::before {
+  content: "|";
+  animation: console-spinner 0.8s steps(1, end) infinite;
+}
+
 .outline-text {
   -webkit-text-stroke: 1px rgba(51, 65, 85, 0.5);
   color: transparent;

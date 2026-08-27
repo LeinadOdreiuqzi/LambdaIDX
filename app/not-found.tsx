@@ -10,7 +10,14 @@ export default function NotFound() {
       badge="ERROR::NODO_NO_ENCONTRADO_404"
       heading={
         <>
-          404<br />
+          <span className="inline-flex items-center gap-4 font-mono">
+            <span
+              aria-hidden="true"
+              className="console-spinner text-zinc-500 dark:text-zinc-600"
+            />
+            <span></span>
+          </span>
+          <br />
           <span className="text-zinc-500 dark:text-zinc-700">The Void</span>
         </>
       }
