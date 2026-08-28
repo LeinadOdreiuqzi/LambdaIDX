@@ -25,7 +25,7 @@ export interface PageContent {
   status?: string;
   createdAt?: Date | string | null;
   updatedAt?: Date | string | null;
-  relations?: { id: string; title: string; slug: string; type: string }[];
+  relations?: { id: string; title: string; slug: string; href?: string; type: string; relationId?: string }[];
   tags?: string[];
   resources?: { title: string; url: string; type: string; description?: string | null }[];
 }
@@ -350,20 +350,31 @@ export class PageService {
             return pageResult;
           }
         }
-        return null;
+        return this.getMockPage(targetSlug) || this.getMockPage(normalizedTargetSlug);
       }
 
       for (let i = 0; i < normalizedSlugs.length; i++) {
         if (normalizedBreadcrumbs[i].slug !== normalizedSlugs[i]) {
-          return null;
+          return this.getMockPage(targetSlug) || this.getMockPage(normalizedTargetSlug);
         }
       }
 
       await CacheService.set(cacheKey, pageResult);
       return pageResult;
     } catch (error) {
-      console.error(`Failed to fetch page by nested slugs [${slugs.join("/")}]:`, error);
-      return null;
+      console.warn(`Database query failed for [${slugs.join("/")}], falling back to mock data:`, error);
+      const targetSlug = slugs[slugs.length - 1];
+      const normalizeSlug = (slug: string): string => {
+        return decodeURIComponent(slug)
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^a-z0-9\s-]/g, "")
+          .replace(/\s+/g, "-")
+          .trim();
+      };
+      const normalizedTargetSlug = normalizeSlug(targetSlug);
+      return this.getMockPage(targetSlug) || this.getMockPage(normalizedTargetSlug);
     }
   }
 
@@ -524,8 +535,8 @@ export class PageService {
         parentId: null,
         status: "PUBLISHED",
         relations: [
-          { id: "intro-2", title: "2. Relaciones entre Temas y Grafos", slug: "relaciones-y-grafos", type: "NEXT_STEP" },
-          { id: "science-root", title: "Las Ciencias Conocidas", slug: "las-ciencias-conocidas", type: "RELATED" },
+          { id: "intro-2", title: "2. Relaciones entre Temas y Grafos", slug: "relaciones-y-grafos", href: "/index/introduccion/relaciones-y-grafos", type: "NEXT_STEP" },
+          { id: "mock-2", title: "Metodología de Estudio", slug: "metodologia-de-estudio", href: "/index/metodologia-de-estudio", type: "RELATED" },
         ],
         tags: ["Cartografia", "Guia", "Introduccion"],
         resources: [
@@ -606,8 +617,8 @@ export class PageService {
         parentId: "intro-1",
         status: "PUBLISHED",
         relations: [
-          { id: "intro-1", title: "1. Bienvenido a la Cartografía del Conocimiento", slug: "introduccion", type: "PREREQUISITE" },
-          { id: "intro-3", title: "3. Búsqueda Instantánea y Herramientas", slug: "busqueda-y-herramientas", type: "NEXT_STEP" },
+          { id: "intro-1", title: "1. Bienvenido a la Cartografía del Conocimiento", slug: "introduccion", href: "/index/introduccion", type: "PREREQUISITE" },
+          { id: "intro-3", title: "3. Búsqueda Instantánea y Herramientas", slug: "busqueda-y-herramientas", href: "/index/introduccion/busqueda-y-herramientas", type: "NEXT_STEP" },
         ],
         tags: ["Relaciones", "Grafos", "Conexiones"],
         resources: [
@@ -676,8 +687,10 @@ export class PageService {
         parentId: "intro-1",
         status: "PUBLISHED",
         relations: [
-          { id: "intro-2", title: "2. Relaciones entre Temas y Grafos", slug: "relaciones-y-grafos", type: "PREREQUISITE" },
-          { id: "science-root", title: "Las Ciencias Conocidas", slug: "las-ciencias-conocidas", type: "NEXT_STEP" },
+          { id: "intro-2", title: "2. Relaciones entre Temas y Grafos", slug: "relaciones-y-grafos", href: "/index/introduccion/relaciones-y-grafos", type: "PREREQUISITE" },
+          { id: "mock-2", title: "Metodología de Estudio", slug: "metodologia-de-estudio", href: "/index/metodologia-de-estudio", type: "NEXT_STEP" },
+          { id: "mock-2-1", title: "Recursos Complementarios", slug: "recursos-complementarios", href: "/index/metodologia-de-estudio/recursos-complementarios", type: "RELATED" },
+          { id: "mock-1-1", title: "Introducción al Archivo", slug: "introduccion-al-archivo", href: "/index/introduccion/introduccion-al-archivo", type: "REFERENCE" },
         ],
         tags: ["Busqueda", "Atajos", "Productividad"],
         resources: [],
@@ -751,6 +764,12 @@ export class PageService {
         path: "intro-1/introduccion-al-archivo",
         parentId: "intro-1",
         status: "PUBLISHED",
+        relations: [
+          { id: "intro-1", title: "1. Bienvenido a la Cartografía del Conocimiento", slug: "introduccion", href: "/index/introduccion", type: "PREREQUISITE" },
+          { id: "mock-2", title: "Metodología de Estudio", slug: "metodologia-de-estudio", href: "/index/metodologia-de-estudio", type: "NEXT_STEP" },
+        ],
+        tags: ["Archivo", "Estructura", "Jerarquia"],
+        resources: [],
       },
       "metodologia-de-estudio": {
         id: "mock-2",
@@ -767,6 +786,14 @@ export class PageService {
         path: "metodologia-de-estudio",
         parentId: null,
         status: "PUBLISHED",
+        relations: [
+          { id: "intro-3", title: "3. Búsqueda Instantánea y Herramientas", slug: "busqueda-y-herramientas", href: "/index/introduccion/busqueda-y-herramientas", type: "PREREQUISITE" },
+          { id: "mock-2-1", title: "Recursos Complementarios", slug: "recursos-complementarios", href: "/index/metodologia-de-estudio/recursos-complementarios", type: "NEXT_STEP" },
+        ],
+        tags: ["Metodologia", "Estudio", "Optimizacion"],
+        resources: [
+          { title: "Técnicas de Aprendizaje Estructurado", url: "https://es.wikipedia.org/wiki/Metodolog%C3%ADa_de_estudio", type: "ARTICLE", description: "Guía de referencia" },
+        ],
       },
       "recursos-complementarios": {
         id: "mock-2-1",
@@ -781,17 +808,44 @@ export class PageService {
         path: "metodologia-de-estudio/recursos-complementarios",
         parentId: "mock-2",
         status: "PUBLISHED",
+        relations: [
+          { id: "mock-2", title: "Metodología de Estudio", slug: "metodologia-de-estudio", href: "/index/metodologia-de-estudio", type: "PREREQUISITE" },
+          { id: "intro-1", title: "1. Bienvenido a la Cartografía del Conocimiento", slug: "introduccion", href: "/index/introduccion", type: "RELATED" },
+        ],
+        tags: ["Recursos", "Referencias", "Documentacion"],
+        resources: [
+          { title: "Archivo Abierto de Conocimiento", url: "https://archive.org", type: "TOOL", description: "Repositorio universal" },
+        ],
       },
     };
     return mockData[slug] || null;
   }
 
   private static getMockBreadcrumbs(path: string): BreadcrumbItem[] {
+    if (!path) return [];
+    const mapIdToBreadcrumb: Record<string, { title: string; slug: string }> = {
+      "intro-1": { title: "1. Bienvenido a la Cartografía", slug: "introduccion" },
+      "intro-2": { title: "2. Relaciones entre Temas y Grafos", slug: "relaciones-y-grafos" },
+      "intro-3": { title: "3. Búsqueda Instantánea y Herramientas", slug: "busqueda-y-herramientas" },
+      "introduccion-al-archivo": { title: "Introducción al Archivo", slug: "introduccion-al-archivo" },
+      "mock-1": { title: "Introduction", slug: "introduction" },
+      "mock-1-1": { title: "What is LambdaIDX?", slug: "what-is-lambdaidx" },
+      "mock-2": { title: "Metodología de Estudio", slug: "metodologia-de-estudio" },
+      "metodologia-de-estudio": { title: "Metodología de Estudio", slug: "metodologia-de-estudio" },
+      "recursos-complementarios": { title: "Recursos Complementarios", slug: "recursos-complementarios" },
+      "mock-2-1": { title: "Recursos Complementarios", slug: "recursos-complementarios" },
+    };
+
     const segments = path.split('/');
-    const breadcrumbs = segments.map((seg) => ({
-      title: seg.charAt(0).toUpperCase() + seg.slice(1).replace(/-/g, ' '),
-      slug: seg === "mock-1" ? "introduction" : seg === "mock-2" ? "setup-guide" : seg,
-    }));
+    const breadcrumbs = segments.map((seg) => {
+      if (mapIdToBreadcrumb[seg]) {
+        return mapIdToBreadcrumb[seg];
+      }
+      return {
+        title: seg.charAt(0).toUpperCase() + seg.slice(1).replace(/-/g, ' '),
+        slug: seg,
+      };
+    });
 
     return breadcrumbs.map((breadcrumb, index) => ({
       ...breadcrumb,
@@ -1569,7 +1623,7 @@ export class PageService {
         parentId: null,
         path: "intro-1",
         depth: 0,
-        sortOrder: -1,
+        sortOrder: 0,
         status: "PUBLISHED",
         children: [
           {
@@ -1594,38 +1648,15 @@ export class PageService {
             status: "PUBLISHED",
             children: [],
           },
-        ],
-      },
-      {
-        id: "science-root",
-        title: "Las Ciencias Conocidas",
-        slug: "las-ciencias-conocidas",
-        parentId: null,
-        path: "science-root",
-        depth: 0,
-        sortOrder: 0,
-        status: "PUBLISHED",
-        children: [],
-      },
-      {
-        id: "mock-1",
-        title: "Introduction",
-        slug: "introduction",
-        parentId: null,
-        path: "mock-1",
-        depth: 0,
-        sortOrder: 1,
-        status: 'PUBLISHED',
-        children: [
           {
             id: "mock-1-1",
-            title: "What is LambdaIDX?",
-            slug: "what-is-lambdaidx",
-            parentId: "mock-1",
-            path: "mock-1/mock-1-1",
+            title: "Introducción al Archivo",
+            slug: "introduccion-al-archivo",
+            parentId: "intro-1",
+            path: "intro-1/introduccion-al-archivo",
             depth: 1,
-            sortOrder: 0,
-            status: 'PUBLISHED',
+            sortOrder: 2,
+            status: "PUBLISHED",
             children: [],
           },
         ],
@@ -1638,7 +1669,7 @@ export class PageService {
         path: "metodologia-de-estudio",
         depth: 0,
         sortOrder: 1,
-        status: 'PUBLISHED',
+        status: "PUBLISHED",
         children: [
           {
             id: "mock-2-1",
@@ -1648,7 +1679,7 @@ export class PageService {
             path: "metodologia-de-estudio/recursos-complementarios",
             depth: 1,
             sortOrder: 0,
-            status: 'PUBLISHED',
+            status: "PUBLISHED",
             children: [],
           },
         ],

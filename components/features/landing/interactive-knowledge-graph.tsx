@@ -404,6 +404,9 @@ export function InteractiveKnowledgeGraph() {
     async function syncHierarchy() {
       try {
         const res = await fetch("/api/hierarchy/tree");
+        if (!res.ok) {
+          return;
+        }
         const data = await res.json();
 
         if (!isMounted) return;

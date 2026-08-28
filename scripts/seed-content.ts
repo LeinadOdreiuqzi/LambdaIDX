@@ -825,11 +825,9 @@ export async function seedHierarchicalContent() {
     await prisma.pageRelation.createMany({
       data: [
         { sourceId: "intro-1", targetId: "intro-2", type: "NEXT_STEP" },
-        { sourceId: "intro-1", targetId: "science-root", type: "RELATED" },
         { sourceId: "intro-2", targetId: "intro-1", type: "PREREQUISITE" },
         { sourceId: "intro-2", targetId: "intro-3", type: "NEXT_STEP" },
         { sourceId: "intro-3", targetId: "intro-2", type: "PREREQUISITE" },
-        { sourceId: "intro-3", targetId: "science-root", type: "NEXT_STEP" },
       ],
       skipDuplicates: true,
     });
