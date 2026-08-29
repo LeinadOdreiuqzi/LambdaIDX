@@ -7,6 +7,10 @@ const nextConfig: NextConfig = {
       bodySizeLimit: '100mb',
     },
   },
+  images: {
+    // Keep AVIF optimization disabled until the upstream libheif/sharp stack is confirmed safe.
+    formats: ['image/webp'],
+  },
   async headers() {
     return [
       {
