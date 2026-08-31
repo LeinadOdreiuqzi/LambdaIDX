@@ -132,6 +132,9 @@ pnpm install
 Crea un archivo `.env` en la raíz del proyecto:
 
 ```env
+# Autenticación (obligatorio en producción; genera uno con: openssl rand -base64 32)
+AUTH_SECRET=
+
 # Base de datos
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/lambdaidx
 

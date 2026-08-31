@@ -3,20 +3,34 @@ import { cookies } from "next/headers";
 import { UserRole } from "@prisma/client";
 
 const AUTH_COOKIE_NAME = "lambdaidx_session";
-const SESSION_SECRET =
-  process.env.AUTH_SECRET ||
-  process.env.NEXTAUTH_SECRET ||
-  "lambdaidx-secure-secret-key-must-be-changed-in-production-32chars";
+const MIN_SESSION_SECRET_BYTES = 32;
 
-if (
-  process.env.NODE_ENV === "production" &&
-  !process.env.AUTH_SECRET &&
-  !process.env.NEXTAUTH_SECRET
-) {
-  console.error(
-    "[SECURITY WARNING] AUTH_SECRET no esta definida en las variables de entorno de produccion."
+function getSessionSecret(): string | Buffer {
+  const configuredSecret = process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET;
+
+  if (configuredSecret) {
+    if (Buffer.byteLength(configuredSecret, "utf8") < MIN_SESSION_SECRET_BYTES) {
+      throw new Error(
+        `AUTH_SECRET debe contener al menos ${MIN_SESSION_SECRET_BYTES} bytes.`
+      );
+    }
+
+    return configuredSecret;
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(
+      "AUTH_SECRET es obligatoria en producción. La aplicación no puede iniciar sin un secreto de sesión seguro."
+    );
+  }
+
+  console.warn(
+    "[AUTH] AUTH_SECRET no está definida. Se usará un secreto aleatorio efímero para desarrollo; las sesiones se invalidarán al reiniciar."
   );
+  return crypto.randomBytes(MIN_SESSION_SECRET_BYTES);
 }
+
+const SESSION_SECRET = getSessionSecret();
 
 export class AuthError extends Error {
   statusCode: number;
@@ -93,7 +107,15 @@ export function verifySessionToken(token: string): SessionPayload | null {
       .update(encodedPayload)
       .digest("base64url");
 
-    if (signature !== expectedSignature) return null;
+    const signatureBuffer = Buffer.from(signature, "base64url");
+    const expectedSignatureBuffer = Buffer.from(expectedSignature, "base64url");
+
+    if (
+      signatureBuffer.length !== expectedSignatureBuffer.length ||
+      !crypto.timingSafeEqual(signatureBuffer, expectedSignatureBuffer)
+    ) {
+      return null;
+    }
 
     const payload: SessionPayload = JSON.parse(
       Buffer.from(encodedPayload, "base64url").toString("utf-8")

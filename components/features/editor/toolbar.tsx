@@ -263,7 +263,7 @@ export function Toolbar({ editor, isFullscreen, onToggleFullscreen }: ToolbarPro
         <div className="flex items-center gap-1 pl-2 ml-2 border-l border-zinc-200 dark:border-zinc-800">
           <input 
             type="file" 
-            accept="image/*" 
+            accept="image/jpeg,image/png,image/gif,image/webp" 
             className="hidden" 
             ref={imageInputRef}
             onChange={(e) => {
@@ -289,7 +289,7 @@ export function Toolbar({ editor, isFullscreen, onToggleFullscreen }: ToolbarPro
 
           <input 
             type="file" 
-            accept="video/*" 
+            accept="video/mp4,video/webm,video/ogg,video/quicktime" 
             className="hidden" 
             ref={videoInputRef}
             onChange={(e) => {
