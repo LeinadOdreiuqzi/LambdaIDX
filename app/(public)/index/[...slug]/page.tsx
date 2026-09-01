@@ -10,7 +10,11 @@ interface PageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://lambdaidx.com";
+const BASE_URL =
+  process.env.NEXT_PUBLIC_APP_URL ||
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : "https://lambdaidx.dpdns.org");
 
 /**
  * Generate dynamic SEO metadata for each knowledge page.

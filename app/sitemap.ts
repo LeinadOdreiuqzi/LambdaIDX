@@ -2,7 +2,11 @@ import type { MetadataRoute } from "next";
 import prisma from "@/lib/prisma";
 import { PageStatus } from "@prisma/client";
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://lambdaidx.com";
+const BASE_URL =
+  process.env.NEXT_PUBLIC_APP_URL ||
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : "https://lambdaidx.dpdns.org");
 
 export const revalidate = 3600; // Revalidar el sitemap cada hora
 

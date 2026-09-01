@@ -56,31 +56,49 @@ export const viewport: Viewport = {
   ],
 };
 
+const siteUrl =
+  process.env.NEXT_PUBLIC_APP_URL ||
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : "https://lambdaidx.dpdns.org");
+
 export const metadata: Metadata = {
   title: {
-    default: "LambdaIDX — Knowledge Infrastructure",
+    default: "LambdaIDX — Infraestructura de Conocimiento",
     template: "%s | LambdaIDX",
   },
-  description: "High-performance knowledge engine for deep hierarchies and premium reading experiences.",
-  metadataBase: new URL("https://lambdaidx.com"),
+  description:
+    "Repositorio unificado de investigación y lectura de alta eficiencia para las Ciencias Fundamentales.",
+  metadataBase: new URL(siteUrl),
   icons: {
     icon: "/icon.svg",
     apple: "/apple-touch-icon.png",
   },
   openGraph: {
-    title: "LambdaIDX",
-    description: "Engineering-first wisdom management for the modern era.",
-    url: "https://lambdaidx.com",
+    title: "LambdaIDX — Infraestructura de Conocimiento",
+    description:
+      "Repositorio unificado de investigación y lectura de alta eficiencia para las Ciencias Fundamentales.",
+    url: siteUrl,
     siteName: "LambdaIDX",
     images: [
       {
-        url: "/og-image.png",
+        url: "/api/og?title=LambdaIDX&excerpt=Repositorio%20unificado%20de%20investigacion%20jerarquica",
         width: 1200,
         height: 630,
+        alt: "LambdaIDX Knowledge Base",
       },
     ],
-    locale: "en_US",
+    locale: "es_ES",
     type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "LambdaIDX — Infraestructura de Conocimiento",
+    description:
+      "Repositorio unificado de investigación y lectura de alta eficiencia para las Ciencias Fundamentales.",
+    images: [
+      "/api/og?title=LambdaIDX&excerpt=Repositorio%20unificado%20de%20investigacion%20jerarquica",
+    ],
   },
 };
 
