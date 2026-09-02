@@ -9,7 +9,7 @@ export class CacheService {
    */
   static keys = {
     page: (slugPath: string) => `page:slug:${slugPath.toLowerCase()}`,
-    relations: (pageId: string) => `relations:page:${pageId}`,
+    relations: (pageId: string) => `relations:page:${pageId}:published`,
     breadcrumbs: (path: string) => `breadcrumbs:path:${path}`,
     hierarchy: () => `hierarchy:tree`,
   };
@@ -127,7 +127,7 @@ export class CacheService {
   static async invalidatePageCaches(pageId: string, slug?: string, path?: string): Promise<void> {
     try {
       await Promise.all([
-        this.del(this.keys.relations(pageId)),
+        this.delPattern(`relations:page:${pageId}:*`),
         slug ? this.del(this.keys.page(slug)) : Promise.resolve(),
         path ? this.del(this.keys.breadcrumbs(path)) : Promise.resolve(),
         this.del(this.keys.hierarchy()),

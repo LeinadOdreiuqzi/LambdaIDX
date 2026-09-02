@@ -12,6 +12,8 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    await requireAdminSession();
+
     const { id } = await params;
 
     const idValidation = idSchema.safeParse(id);
@@ -22,13 +24,19 @@ export async function GET(
       );
     }
 
-    const data = await PageService.getRelationsAndResources(idValidation.data);
+    const data = await PageService.getRelationsAndResources(idValidation.data, true);
 
     return NextResponse.json({
       success: true,
       data,
     });
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json(
+        { success: false, error: error.message },
+        { status: error.statusCode }
+      );
+    }
     console.error("GET /api/pages/[id]/relations error:", error);
     return NextResponse.json(
       { success: false, error: "Failed to fetch relations" },

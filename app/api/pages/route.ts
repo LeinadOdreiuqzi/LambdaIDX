@@ -12,6 +12,10 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const includeAll = searchParams.get("all") === "true";
 
+    if (includeAll) {
+      await requireAdminSession();
+    }
+
     const hierarchy = await PageService.getHierarchyTree(includeAll);
 
     return NextResponse.json({
@@ -19,6 +23,12 @@ export async function GET(request: NextRequest) {
       data: hierarchy,
     });
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json(
+        { success: false, error: error.message },
+        { status: error.statusCode }
+      );
+    }
     console.error("GET /api/pages error:", error);
     return NextResponse.json(
       { success: false, error: "Failed to fetch pages" },

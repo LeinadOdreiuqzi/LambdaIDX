@@ -17,6 +17,8 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    await requireAdminSession();
+
     const { id } = await params;
 
     // Validate ID format
@@ -42,6 +44,12 @@ export async function GET(
       data: page,
     });
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json(
+        { success: false, error: error.message },
+        { status: error.statusCode }
+      );
+    }
     console.error("GET /api/pages/[id] error:", error);
     return NextResponse.json(
       { success: false, error: "Failed to fetch page" },

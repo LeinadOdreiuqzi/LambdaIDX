@@ -10,7 +10,7 @@ export const createPageSchema = z.object({
   contentJson: z.object({ type: z.string(), content: z.array(z.any()) }).passthrough().optional(),
   metaTitle: z.string().max(60, "Meta title must be less than 60 characters").optional(),
   metaDescription: z.string().max(160, "Meta description must be less than 160 characters").optional(),
-  status: z.enum(["DRAFT", "REVIEW", "PUBLISHED", "ARCHIVED"]).optional(),
+  status: z.literal("DRAFT").optional(),
 });
 
 export const updatePageContentSchema = z.object({

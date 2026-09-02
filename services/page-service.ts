@@ -899,7 +899,6 @@ export class PageService {
     contentJson?: Record<string, unknown>;
     metaTitle?: string;
     metaDescription?: string;
-    status?: string;
   }): Promise<PageContent | null> {
     try {
       if (!process.env.DATABASE_URL) {
@@ -948,7 +947,7 @@ export class PageService {
           contentJson: toInputJsonValue(data.contentJson || { type: "doc", content: [] }),
           metaTitle: data.metaTitle || data.title,
           metaDescription: data.metaDescription || data.excerpt,
-          status: (data.status as "DRAFT" | "REVIEW" | "PUBLISHED" | "ARCHIVED") || "PUBLISHED",
+          status: "DRAFT",
         },
       });
 
@@ -1289,23 +1288,37 @@ export class PageService {
   /**
    * Fetches all relations, tags, and resources for a given page ID
    */
-  static async getRelationsAndResources(pageId: string) {
+  static async getRelationsAndResources(pageId: string, includeUnpublished = false) {
     try {
       const cacheKey = CacheService.keys.relations(pageId);
-      const cached = await CacheService.get<{
-        relations: { id: string; title: string; slug: string; type: string; relationId: string }[];
-        tags: string[];
-        resources: { id: string; title: string; url: string; type: ResourceType; description: string | null }[];
-      }>(cacheKey);
-      if (cached) return cached;
+      if (!includeUnpublished) {
+        const cached = await CacheService.get<{
+          relations: { id: string; title: string; slug: string; type: string; relationId: string }[];
+          tags: string[];
+          resources: { id: string; title: string; url: string; type: ResourceType; description: string | null }[];
+        }>(cacheKey);
+        if (cached) return cached;
+      }
 
       if (!process.env.DATABASE_URL) {
         return { relations: [], tags: [], resources: [] };
       }
 
+      const publishedPageFilter = includeUnpublished
+        ? {}
+        : { page: { status: "PUBLISHED" as const } };
+
       const [relations, pageTags, resources] = await Promise.all([
         prisma.pageRelation.findMany({
-          where: { sourceId: pageId },
+          where: {
+            sourceId: pageId,
+            ...(includeUnpublished
+              ? {}
+              : {
+                  source: { status: "PUBLISHED" },
+                  target: { status: "PUBLISHED" },
+                }),
+          },
           include: {
             target: {
               select: {
@@ -1317,7 +1330,7 @@ export class PageService {
           },
         }),
         prisma.pageTag.findMany({
-          where: { pageId },
+          where: { pageId, ...publishedPageFilter },
           include: {
             tag: {
               select: {
@@ -1329,7 +1342,7 @@ export class PageService {
           },
         }),
         prisma.pageResource.findMany({
-          where: { pageId },
+          where: { pageId, ...publishedPageFilter },
           select: {
             id: true,
             title: true,
@@ -1352,7 +1365,9 @@ export class PageService {
         resources,
       };
 
-      await CacheService.set(cacheKey, result, RELATIONS_TTL);
+      if (!includeUnpublished) {
+        await CacheService.set(cacheKey, result, RELATIONS_TTL);
+      }
       return result;
     } catch (error) {
       console.error(`Failed to fetch relations & resources for page ${pageId}:`, error);
