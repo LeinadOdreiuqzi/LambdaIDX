@@ -219,7 +219,8 @@ lambdaidx/
 | `pnpm infra:up` | Inicia servicios Docker |
 | `pnpm infra:down` | Detiene servicios Docker |
 | `pnpm infra:logs` | Logs de los servicios |
-| `pnpm db:push` | Sincroniza esquema Prisma |
+| `pnpm db:push` | Sincroniza el esquema en desarrollo únicamente |
+| `pnpm db:migrate:deploy` | Aplica migraciones versionadas en producción |
 | `pnpm db:seed` | Carga datos de ejemplo |
 | `pnpm backend:bootstrap` | Setup completo de backend |
 | `pnpm admin:create` | Crea o actualiza usuario administrador |
