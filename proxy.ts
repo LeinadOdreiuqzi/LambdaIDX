@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 
 const AUTH_COOKIE_NAME = "lambdaidx_session";
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // 1. Proteger rutas administrativas /admin/*
