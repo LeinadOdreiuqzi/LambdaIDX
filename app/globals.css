@@ -125,10 +125,12 @@ body {
 
 /* ============================================================
    CONTENT GRID SYSTEM — Breakout Layout
-   Text stays at 85ch, breakout elements go full width.
+   Text column stays at 51rem (anchored to root rem so scaling
+   text font-size never affects layout grid alignment),
+   breakout elements go full width.
    ============================================================ */
 .content-grid {
-  --content-max: 85ch;
+  --content-max: 51rem;
   --content-padding: 1.5rem;
   display: grid;
   grid-template-columns:
@@ -147,7 +149,7 @@ body {
 }
 
 .editor-prose {
-  --content-max: 85ch;
+  --content-max: 51rem;
   --content-padding: 1.5rem;
   --editor-text-width: min(var(--content-max), calc(100% - var(--content-padding) * 2));
   /*
