@@ -141,6 +141,8 @@ DATABASE_URL=postgresql://postgres:postgres@localhost:5432/lambdaidx
 # Búsqueda
 MEILISEARCH_HOST=http://127.0.0.1:7700
 MEILISEARCH_API_KEY=masterKey
+# Obligatoria para scripts y automatizaciones de reindexado
+INTERNAL_API_KEY=
 
 # Caché
 REDIS_URL=redis://127.0.0.1:6379

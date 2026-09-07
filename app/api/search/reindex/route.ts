@@ -1,21 +1,29 @@
+import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { SearchService } from "@/services/search-service";
+import { AuthError, requireAdminSession } from "@/lib/auth";
 
-function isAuthorized(request: NextRequest) {
-  const apiKey = process.env.INTERNAL_API_KEY;
+function hasValidInternalKey(request: NextRequest): boolean {
+  const configuredKey = process.env.INTERNAL_API_KEY;
+  const providedKey = request.headers.get("x-internal-key");
 
-  if (!apiKey) {
-    return true;
+  if (!configuredKey || !providedKey) {
+    return false;
   }
 
-  const headerValue = request.headers.get("x-internal-key");
-  return headerValue === apiKey;
+  const configuredBuffer = Buffer.from(configuredKey);
+  const providedBuffer = Buffer.from(providedKey);
+
+  return (
+    configuredBuffer.length === providedBuffer.length &&
+    crypto.timingSafeEqual(configuredBuffer, providedBuffer)
+  );
 }
 
 export async function POST(request: NextRequest) {
   try {
-    if (!isAuthorized(request)) {
-      return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+    if (!hasValidInternalKey(request)) {
+      await requireAdminSession();
     }
 
     const result = await SearchService.reindexPublishedPages();
@@ -24,10 +32,14 @@ export async function POST(request: NextRequest) {
       ...result,
     });
   } catch (error) {
+    if (error instanceof AuthError) {
+      return NextResponse.json(
+        { error: "Unauthorized." },
+        { status: error.statusCode }
+      );
+    }
+
     console.error("Reindex API error:", error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Reindex failed." },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Reindex failed." }, { status: 500 });
   }
 }

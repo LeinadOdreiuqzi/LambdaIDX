@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-
-const AUTH_COOKIE_NAME = "lambdaidx_session";
+import { AUTH_COOKIE_NAME, verifySessionToken } from "@/lib/auth";
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -11,21 +10,32 @@ export function proxy(request: NextRequest) {
   const isLoginPage = pathname === "/login";
 
   const sessionToken = request.cookies.get(AUTH_COOKIE_NAME)?.value;
+  const session = sessionToken ? verifySessionToken(sessionToken) : null;
+  const hasAdminRole =
+    session?.role === "ADMIN" || session?.role === "SUPERADMIN";
 
-  if (isAdminPath) {
-    if (!sessionToken) {
-      const loginUrl = new URL("/login", request.url);
-      loginUrl.searchParams.set("redirect", pathname);
-      return NextResponse.redirect(loginUrl);
+  if (isAdminPath && !hasAdminRole) {
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("redirect", pathname);
+    const response = NextResponse.redirect(loginUrl);
+
+    if (sessionToken && !session) {
+      response.cookies.delete(AUTH_COOKIE_NAME);
     }
+
+    return response;
   }
 
-  // 2. Si el usuario ya está autenticado e intenta ir a /login, enviarlo al dashboard
-  if (isLoginPage && sessionToken) {
+  // Si el administrador ya está autenticado, no necesita volver al login.
+  if (isLoginPage && hasAdminRole) {
     return NextResponse.redirect(new URL("/admin/dashboard", request.url));
   }
 
-  return NextResponse.next();
+  const response = NextResponse.next();
+  if (isLoginPage && sessionToken && !session) {
+    response.cookies.delete(AUTH_COOKIE_NAME);
+  }
+  return response;
 }
 
 export const config = {
