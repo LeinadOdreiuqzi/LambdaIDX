@@ -222,6 +222,16 @@ export class PageService {
         }
       });
 
+      // Asegura que los hijos estén ordenados por sortOrder en cada nivel
+      const sortChildren = (nodes: NavPage[]): NavPage[] => {
+        nodes.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+        nodes.forEach((n) => {
+          if (n.children && n.children.length > 0) sortChildren(n.children);
+        });
+        return nodes;
+      };
+
+      sortChildren(rootNodes);
       return rootNodes;
     } catch (error) {
       console.warn("Prisma fetch failed, using mock data:", error);
@@ -935,6 +945,13 @@ export class PageService {
       // Generate a subtle custom ID
       const customId = generateSubtleId();
 
+      // Calcula SortOrder para que las páginas aparezcan al final
+      const siblingMax = await prisma.page.aggregate({
+        where: { parentId: data.parentId || null },
+        _max: { sortOrder: true },
+      });
+      const nextSortOrder = (siblingMax._max.sortOrder ?? -1) + 1;
+
       const page = await prisma.page.create({
         data: {
           id: customId,
@@ -943,6 +960,7 @@ export class PageService {
           parentId: data.parentId || null,
           path,
           depth,
+          sortOrder: nextSortOrder,
           excerpt: data.excerpt,
           contentJson: toInputJsonValue(data.contentJson || { type: "doc", content: [] }),
           metaTitle: data.metaTitle || data.title,
@@ -1315,9 +1333,9 @@ export class PageService {
             ...(includeUnpublished
               ? {}
               : {
-                  source: { status: "PUBLISHED" },
-                  target: { status: "PUBLISHED" },
-                }),
+                source: { status: "PUBLISHED" },
+                target: { status: "PUBLISHED" },
+              }),
           },
           include: {
             target: {
