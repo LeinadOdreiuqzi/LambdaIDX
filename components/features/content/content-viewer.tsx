@@ -91,6 +91,12 @@ export function ContentViewer({ contentJson }: ContentViewerProps) {
     },
   });
 
+  React.useEffect(() => {
+    if (editor && contentJson) {
+      editor.commands.setContent(contentJson);
+    }
+  }, [contentJson, editor]);
+
   if (!editor) {
     return null;
   }
