@@ -110,15 +110,15 @@ export function NavSidebar({
     <motion.aside
       initial={false}
       animate={{ 
-        width: isSidebarOpen ? 280 : 0, 
+        width: isSidebarOpen ? 320 : 0, 
         opacity: isSidebarOpen ? 1 : 0
       }}
       transition={{ duration: 0.3, ease: "easeInOut" }}
       className={cn(
-        "hidden md:flex flex-col sticky top-0 h-screen bg-white border-r border-zinc-200 dark:bg-black dark:border-zinc-800 overflow-hidden"
+        "hidden md:flex flex-col sticky top-0 h-screen bg-white border-r border-zinc-200 dark:bg-black dark:border-zinc-800 overflow-hidden shrink-0"
       )}
     >
-      <div className="flex flex-col h-full w-70">
+      <div className="flex flex-col h-full w-full">
         {/* Header */}
         <div className="h-16 flex items-center justify-between px-6 border-b border-transparent">
           <Link href="/" className="hover:opacity-80 transition-opacity">

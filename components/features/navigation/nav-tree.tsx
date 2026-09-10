@@ -91,29 +91,29 @@ function NavTreeItem({
     <li>
       <div
         className={cn(
-          "group flex items-center px-2 py-1 select-none rounded-md text-sm transition-colors cursor-pointer",
+          "group flex items-center w-full px-2.5 py-1.5 select-none rounded-lg text-sm transition-colors cursor-pointer",
           isActive 
-            ? "bg-zinc-100 text-black dark:bg-zinc-800 dark:text-white" 
+            ? "bg-zinc-100 text-black dark:bg-zinc-800 dark:text-white font-medium" 
             : "text-zinc-600 hover:text-black hover:bg-zinc-50 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-zinc-900"
         )}
         onClick={() => hasChildren && toggleNode(item.id)}
       >
-        <span className="flex items-center justify-center w-5 h-5 mr-1">
+        <span className="flex items-center justify-center w-5 h-5 mr-1 shrink-0">
           {hasChildren ? (
             <ChevronRight 
               className={cn(
-                "w-3 h-3 transition-transform duration-200",
+                "w-3.5 h-3.5 transition-transform duration-200",
                 isOpen && "rotate-90"
               )} 
             />
           ) : (
-            <FileText className="w-3 h-3 opacity-40" />
+            <FileText className="w-3.5 h-3.5 opacity-40" />
           )}
         </span>
 
         <Link 
           href={itemLink} 
-          className="flex-1 truncate py-1 flex items-center gap-2"
+          className="flex-1 min-w-0 truncate py-0.5 flex items-center gap-2"
           onClick={(e) => e.stopPropagation()} // Prevent toggle when clicking the link directly
         >
           {isAdmin && (
