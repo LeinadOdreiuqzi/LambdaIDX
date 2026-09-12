@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
+import React, { createContext, useContext, useEffect, useState, useCallback, useMemo } from "react";
 import { FavoriteFolder, FavoriteItem, SortCriterion } from "@/types/favorites";
 
 const STORAGE_KEY = "lambdaidx-study-workspace-v1";
@@ -261,30 +261,52 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
     [items, activeFolderId, addFavorite, removeFavorite]
   );
 
+  const contextValue = useMemo(
+    () => ({
+      folders,
+      items,
+      isLoaded,
+      activeFolderId,
+      setActiveFolderId,
+      sortCriterion,
+      setSortCriterion,
+      addFolder,
+      updateFolder,
+      deleteFolder,
+      reorderFolders,
+      addFavorite,
+      updateFavorite,
+      removeFavorite,
+      moveFavorite,
+      reorderItems,
+      isFavorite,
+      getFavoriteByPath,
+      toggleFavorite,
+    }),
+    [
+      folders,
+      items,
+      isLoaded,
+      activeFolderId,
+      sortCriterion,
+      setSortCriterion,
+      addFolder,
+      updateFolder,
+      deleteFolder,
+      reorderFolders,
+      addFavorite,
+      updateFavorite,
+      removeFavorite,
+      moveFavorite,
+      reorderItems,
+      isFavorite,
+      getFavoriteByPath,
+      toggleFavorite,
+    ]
+  );
+
   return (
-    <FavoritesContext.Provider
-      value={{
-        folders,
-        items,
-        isLoaded,
-        activeFolderId,
-        setActiveFolderId,
-        sortCriterion,
-        setSortCriterion,
-        addFolder,
-        updateFolder,
-        deleteFolder,
-        reorderFolders,
-        addFavorite,
-        updateFavorite,
-        removeFavorite,
-        moveFavorite,
-        reorderItems,
-        isFavorite,
-        getFavoriteByPath,
-        toggleFavorite,
-      }}
-    >
+    <FavoritesContext.Provider value={contextValue}>
       {children}
     </FavoritesContext.Provider>
   );
