@@ -184,6 +184,12 @@ export class PageService {
         return this.getMockHierarchy();
       }
 
+      const cacheKey = includeAll ? "hierarchy:tree:full" : CacheService.keys.hierarchy();
+      const cached = await CacheService.get<NavPage[]>(cacheKey);
+      if (cached && Array.isArray(cached) && cached.length > 0) {
+        return cached;
+      }
+
       const whereClause = includeAll ? {} : { status: "PUBLISHED" as const };
 
       const pages = await prisma.page.findMany({
@@ -232,6 +238,10 @@ export class PageService {
       };
 
       sortChildren(rootNodes);
+
+      // Save built tree to Redis cache for 1 hour
+      await CacheService.set(cacheKey, rootNodes, 3600);
+
       return rootNodes;
     } catch (error) {
       console.warn("Prisma fetch failed, using mock data:", error);
