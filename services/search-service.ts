@@ -190,7 +190,7 @@ export class SearchService {
       const prefixQuery = `${cleanQuery}%`;
       const containsQuery = `%${cleanQuery}%`;
 
-      // Optimized PostgreSQL query: ranks exact title prefix matches first, then partial matches, sorted by hierarchy depth
+      // High-performance PostgreSQL Full-Text Search using tsvector + websearch_to_tsquery + ts_rank_cd ranking
       const rawPages = await prisma.$queryRaw<
         Array<{
           id: string;
@@ -204,13 +204,17 @@ export class SearchService {
           publishedAt: Date | null;
         }>
       >`
-        SELECT id, title, slug, path, excerpt, "contentJson", depth, "updatedAt", "publishedAt"
+        SELECT id, title, slug, path, excerpt, "contentJson", depth, "updatedAt", "publishedAt",
+               ts_rank_cd(
+                 to_tsvector('spanish', coalesce(title, '') || ' ' || coalesce(excerpt, '') || ' ' || coalesce("searchVector", '')),
+                 websearch_to_tsquery('spanish', ${cleanQuery})
+               ) AS rank
         FROM "Page"
         WHERE status = 'PUBLISHED'
           AND (
-            title ILIKE ${containsQuery}
+            to_tsvector('spanish', coalesce(title, '') || ' ' || coalesce(excerpt, '') || ' ' || coalesce("searchVector", '')) @@ websearch_to_tsquery('spanish', ${cleanQuery})
+            OR title ILIKE ${containsQuery}
             OR excerpt ILIKE ${containsQuery}
-            OR ("searchVector" IS NOT NULL AND "searchVector" ILIKE ${containsQuery})
           )
         ORDER BY
           CASE 
@@ -218,6 +222,7 @@ export class SearchService {
             WHEN title ILIKE ${containsQuery} THEN 1
             ELSE 2
           END,
+          rank DESC,
           depth ASC,
           "updatedAt" DESC
         LIMIT ${limit}

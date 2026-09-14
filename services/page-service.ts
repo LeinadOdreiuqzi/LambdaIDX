@@ -65,6 +65,22 @@ export function renderTipTapToHtml(contentJson: unknown | null): string {
   return doc.content.map(renderNode).join("");
 }
 
+export function extractPlainTextFromTipTap(contentJson: unknown): string {
+  if (!contentJson || typeof contentJson !== "object") {
+    return "";
+  }
+
+  function walk(node: Record<string, unknown>): string {
+    const ownText = (node.text as string) || "";
+    const children = (node.content as Record<string, unknown>[]) || [];
+    const childrenText = children.map(walk).join(" ");
+    return `${ownText} ${childrenText}`.trim();
+  }
+
+  const text = walk(contentJson as Record<string, unknown>).trim();
+  return text.replace(/\s+/g, " ");
+}
+
 function normalizeImageLayout(layout?: unknown, align?: unknown): ImageLayout {
   if (layout === "wrap-left" || layout === "wrap-right" || layout === "block-center") {
     return layout;
@@ -962,6 +978,8 @@ export class PageService {
       });
       const nextSortOrder = (siblingMax._max.sortOrder ?? -1) + 1;
 
+      const plainTextContent = extractPlainTextFromTipTap(data.contentJson);
+
       const page = await prisma.page.create({
         data: {
           id: customId,
@@ -973,6 +991,7 @@ export class PageService {
           sortOrder: nextSortOrder,
           excerpt: data.excerpt,
           contentJson: toInputJsonValue(data.contentJson || { type: "doc", content: [] }),
+          searchVector: plainTextContent,
           metaTitle: data.metaTitle || data.title,
           metaDescription: data.metaDescription || data.excerpt,
           status: "DRAFT",
@@ -1034,10 +1053,13 @@ export class PageService {
         throw new Error("Database not configured");
       }
 
+      const plainTextContent = extractPlainTextFromTipTap(contentJson);
+
       const page = await prisma.page.update({
         where: { id },
         data: {
           contentJson: toInputJsonValue(contentJson),
+          searchVector: plainTextContent,
           excerpt: excerpt || undefined,
           updatedAt: new Date(),
         },
