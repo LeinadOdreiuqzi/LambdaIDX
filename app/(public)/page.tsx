@@ -6,6 +6,7 @@ import { ArrowRight, Layers, Cpu, Globe, Activity, Code, Target } from "lucide-r
 import { motion } from "framer-motion";
 import { PublicFooter } from "@/components/shared/public-footer";
 import { InteractiveKnowledgeGraph } from "@/components/features/landing/interactive-knowledge-graph";
+import { IndustrialBrutalistMission } from "@/components/features/landing/industrial-brutalist-mission";
 
 export default function Home() {
   return (
@@ -123,26 +124,8 @@ export default function Home() {
           </div>
         </section>
 
-        {/* MOCK TERMINAL - CORE MISSION */}
-        <section className="px-6 py-40 max-w-5xl mx-auto">
-          <div className="w-full bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden shadow-2xl">
-            <div className="h-10 bg-zinc-800/50 flex items-center px-4 gap-2 border-b border-zinc-800">
-              <div className="w-2.5 h-2.5 rounded-full bg-red-500/30" />
-              <div className="w-2.5 h-2.5 rounded-full bg-amber-500/30" />
-              <div className="w-2.5 h-2.5 rounded-full bg-green-500/30" />
-              <span className="ml-auto text-[10px] font-mono text-zinc-500 uppercase tracking-widest">bitacora_mision_lambdaidx --read</span>
-            </div>
-            <div className="p-8 font-mono text-sm leading-relaxed text-zinc-400">
-              <p className="text-white">$ cat mision.txt</p>
-              <p className="mt-4 text-zinc-300">&quot;LambdaIDX sirve como un repositorio vivo para la investigación y el estudio de todas las ciencias conocidas.&quot;</p>
-              <p className="mt-2">Mapeando eficientemente la complejidad del conocimiento científico a través de 5 ramas fundamentales centrales.</p>
-              <p className="mt-4 text-green-500">✓ Archivo Científico Unificado en Línea</p>
-              <p className="mt-1 text-green-500">✓ Entorno de Investigación de Alta Eficiencia</p>
-              <p className="mt-1 text-green-500">✓ Mapeando la complejidad de las 5 Ciencias</p>
-              <p className="mt-8 text-white">Estado: ARCHIVE_READY. Proceder con la Investigación.</p>
-            </div>
-          </div>
-        </section>
+        {/* INDUSTRIAL BRUTALIST MISSION STREAM */}
+        <IndustrialBrutalistMission />
       </main>
 
       {/* Footer Design */}
