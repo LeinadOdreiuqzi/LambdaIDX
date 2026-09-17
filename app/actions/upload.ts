@@ -2,6 +2,8 @@
 
 import { put } from "@vercel/blob";
 import { v4 as uuidv4 } from "uuid";
+import { promises as fs } from "fs";
+import path from "path";
 import { requireAdminSession } from "@/lib/auth";
 import { checkRateLimit } from "@/lib/rate-limit";
 
@@ -64,14 +66,29 @@ export async function uploadFile(formData: FormData) {
   }
 
   const filename = `${uuidv4()}.${mediaConfig.extension}`;
-  const blob = await put(filename, file, {
-    access: "public",
-    contentType: detectedType,
-    addRandomSuffix: false,
-  });
+  let fileUrl: string;
+
+  if (process.env.BLOB_READ_WRITE_TOKEN) {
+    const blob = await put(filename, file, {
+      access: "public",
+      contentType: detectedType,
+      addRandomSuffix: false,
+    });
+    fileUrl = blob.url;
+  } else {
+    // Respaldo local para entorno de desarrollo (guardar en /public/uploads)
+    const uploadsDir = path.join(process.cwd(), "public", "uploads");
+    await fs.mkdir(uploadsDir, { recursive: true });
+
+    const filePath = path.join(uploadsDir, filename);
+    const arrayBuffer = await file.arrayBuffer();
+    await fs.writeFile(filePath, Buffer.from(arrayBuffer));
+
+    fileUrl = `/uploads/${filename}`;
+  }
 
   return {
-    url: blob.url,
+    url: fileUrl,
     filename: file.name,
     size: file.size,
     type: detectedType,
