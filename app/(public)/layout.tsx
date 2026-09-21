@@ -3,9 +3,8 @@ import { PageService } from "@/services/page-service";
 import { NavigationProvider } from "@/hooks/use-navigation";
 import { PublicClientLayout } from "@/components/features/navigation/public-client-layout";
 
-// Forzar renderizado dinamico en Vercel para reflejar arbol de paginas en tiempo real
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+// Cache en Edge CDN de Vercel con revalidación periódica (1 hora) y bajo demanda (revalidatePath)
+export const revalidate = 3600;
 
 export default async function PublicLayout({
   children,

@@ -100,16 +100,53 @@ function renderNode(node: TipTapNode): string {
   switch (node.type) {
     case "paragraph":
       return `<p>${renderContent(node.content)}</p>`;
-    case "heading":
+    case "heading": {
       const level = (node.attrs?.level as number) || 1;
       return `<h${level} id="${slugify(renderPlainText(node.content))}">${renderContent(node.content)}</h${level}>`;
+    }
     case "bulletList":
       return `<ul>${node.content?.map(renderNode).join("") || ""}</ul>`;
+    case "orderedList":
+      return `<ol>${node.content?.map(renderNode).join("") || ""}</ol>`;
     case "listItem":
       return `<li>${renderContent(node.content)}</li>`;
+    case "taskList":
+      return `<ul class="task-list">${node.content?.map(renderNode).join("") || ""}</ul>`;
+    case "taskItem":
+      return `<li class="task-item">${renderContent(node.content)}</li>`;
+    case "blockquote":
+      return `<blockquote>${renderContent(node.content)}</blockquote>`;
+    case "horizontalRule":
+      return `<hr />`;
     case "codeBlock":
       return `<pre><code>${escapeHtml(renderPlainText(node.content))}</code></pre>`;
-    case "image":
+    case "table":
+      return `<table><tbody>${node.content?.map(renderNode).join("") || ""}</tbody></table>`;
+    case "tableRow":
+      return `<tr>${node.content?.map(renderNode).join("") || ""}</tr>`;
+    case "tableHeader":
+      return `<th>${renderContent(node.content)}</th>`;
+    case "tableCell":
+      return `<td>${renderContent(node.content)}</td>`;
+    case "callout": {
+      const type = (node.attrs?.type as string) || "info";
+      return `<div class="callout callout-${escapeHtml(type)}">${renderContent(node.content)}</div>`;
+    }
+    case "math":
+    case "mathNode": {
+      const latex = (node.attrs?.latex as string) || (node.attrs?.content as string) || "";
+      return `<span class="katex-math" data-latex="${escapeHtml(latex)}">${escapeHtml(latex)}</span>`;
+    }
+    case "columnGroup":
+      return `<div class="column-group" data-type="column-group">${node.content?.map(renderNode).join("") || ""}</div>`;
+    case "column":
+      return `<div class="column" data-type="column">${renderContent(node.content)}</div>`;
+    case "customVideo":
+    case "video": {
+      const src = (node.attrs?.src as string) || "";
+      return `<div class="video-wrapper"><video src="${escapeHtml(src)}" controls></video></div>`;
+    }
+    case "image": {
       const src = (node.attrs?.src as string) || "";
       const alt = (node.attrs?.alt as string) || "";
       const title = (node.attrs?.title as string) || "";
@@ -122,6 +159,7 @@ function renderNode(node: TipTapNode): string {
       const caption = alt ? `<figcaption>${escapeHtml(alt)}</figcaption>` : "";
 
       return `<figure data-image-layout="${layout}" data-align="${escapeHtml(align)}"${figureStyle}><img src="${escapeHtml(src)}" alt="${escapeHtml(alt)}"${titleAttr}${imageStyle} />${caption}</figure>`;
+    }
     default:
       return renderContent(node.content);
   }
@@ -189,6 +227,9 @@ function escapeHtml(text: string): string {
 }
 
 export class PageService {
+  static renderTipTapToHtml = renderTipTapToHtml;
+  static extractPlainTextFromTipTap = extractPlainTextFromTipTap;
+
   /**
    * Fetches the page hierarchy.
    * @param includeAll If true, fetches all pages regardless of status (for admin)

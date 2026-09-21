@@ -56,13 +56,27 @@ body {
   line-height: 1.6;
 }
 
-/* Ensure text elements inherit the scaled font size */
+/* Ensure text elements inherit the scaled font size, while headings scale proportionally */
 .prose-custom h1,
+.editor-prose h1 {
+  font-size: calc(2.25rem * var(--content-scale, 1));
+}
+
 .prose-custom h2,
+.editor-prose h2 {
+  font-size: calc(1.5rem * var(--content-scale, 1));
+}
+
 .prose-custom h3,
+.editor-prose h3 {
+  font-size: calc(1.25rem * var(--content-scale, 1));
+}
+
 .prose-custom h4,
-.prose-custom h5,
-.prose-custom h6,
+.editor-prose h4 {
+  font-size: calc(1.125rem * var(--content-scale, 1));
+}
+
 .prose-custom p,
 .prose-custom li,
 .prose-custom a,
@@ -76,12 +90,6 @@ body {
 .prose-custom em,
 .prose-custom ul,
 .prose-custom ol,
-.editor-prose h1,
-.editor-prose h2,
-.editor-prose h3,
-.editor-prose h4,
-.editor-prose h5,
-.editor-prose h6,
 .editor-prose p,
 .editor-prose li,
 .editor-prose a,
@@ -95,7 +103,7 @@ body {
 .editor-prose em,
 .editor-prose ul,
 .editor-prose ol {
-  font-size: inherit !important;
+  font-size: inherit;
 }
 
 .custom-scrollbar::-webkit-scrollbar {

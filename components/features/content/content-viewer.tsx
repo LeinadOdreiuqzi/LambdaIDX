@@ -22,9 +22,10 @@ import 'katex/dist/katex.min.css';
 
 interface ContentViewerProps {
   contentJson: Record<string, unknown>;
+  initialHtml?: string;
 }
 
-export function ContentViewer({ contentJson }: ContentViewerProps) {
+export function ContentViewer({ contentJson, initialHtml }: ContentViewerProps) {
   const editor = useEditor({
     immediatelyRender: false,
     editable: false,
@@ -98,6 +99,15 @@ export function ContentViewer({ contentJson }: ContentViewerProps) {
   }, [contentJson, editor]);
 
   if (!editor) {
+    if (initialHtml) {
+      return (
+        <div
+          className="prose-custom w-full text-lg leading-[1.8] text-zinc-700 dark:text-zinc-300"
+          dangerouslySetInnerHTML={{ __html: initialHtml }}
+          suppressHydrationWarning
+        />
+      );
+    }
     return null;
   }
 

@@ -1,6 +1,6 @@
 import React, { Suspense } from "react";
 import { notFound } from "next/navigation";
-import { PageService } from "@/services/page-service";
+import { PageService, renderTipTapToHtml } from "@/services/page-service";
 import { ArticleView } from "@/components/features/content/article-view";
 import { generateArticleJsonLd, generateBreadcrumbJsonLd } from "@/lib/json-ld";
 import { Metadata } from "next";
@@ -117,7 +117,7 @@ export default async function KnowledgePage({ params }: PageProps) {
       <Suspense fallback={<div className="min-h-screen animate-pulse bg-zinc-50/50 dark:bg-zinc-950/20" />}>
         <ArticleView
           title={page.title}
-          content=""
+          content={renderTipTapToHtml(page.contentJson)}
           contentJson={page.contentJson as Record<string, unknown>}
           breadcrumbs={breadcrumbs}
           relations={page.relations}

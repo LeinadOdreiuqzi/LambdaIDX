@@ -151,7 +151,11 @@ export function ArticleView({
            .prose-custom handles only typographic styling of child elements. */}
       <div className="content-grid prose-custom" onClick={handleContentClick}>
         {contentJson ? (
-          <ContentViewer key={currentPage} contentJson={pages[currentPage - 1]} />
+          <ContentViewer
+            key={currentPage}
+            contentJson={pages[currentPage - 1]}
+            initialHtml={currentPage === 1 ? content : undefined}
+          />
         ) : (
           <div
             className="text-lg leading-[1.8] text-zinc-700 dark:text-zinc-300 pb-24"
