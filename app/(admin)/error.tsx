@@ -25,7 +25,7 @@ export default function AdminError({
       description="The admin panel encountered an unexpected error. Please try again or return to the dashboard."
       action={{
         label: "Return to Dashboard",
-        href: "/dashboard",
+        href: "/admin/dashboard",
         icon: <ArrowLeft className="w-4 h-4" />,
       }}
     />

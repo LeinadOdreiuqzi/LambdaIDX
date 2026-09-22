@@ -1416,6 +1416,7 @@ export class PageService {
                 id: true,
                 title: true,
                 slug: true,
+                path: true,
               },
             },
           },
@@ -1444,14 +1445,27 @@ export class PageService {
         }),
       ]);
 
+      const mappedRelations = await Promise.all(
+        relations.map(async (r) => {
+          const crumbs = await this.getBreadcrumbs({ path: r.target.path, id: r.target.id });
+          const fullHref =
+            crumbs.length > 0
+              ? crumbs[crumbs.length - 1].href
+              : buildPublicPageHref([r.target.slug]);
+
+          return {
+            id: r.target.id,
+            title: r.target.title,
+            slug: r.target.slug,
+            type: r.type,
+            relationId: r.id,
+            href: fullHref,
+          };
+        })
+      );
+
       const result = {
-        relations: relations.map((r) => ({
-          id: r.target.id,
-          title: r.target.title,
-          slug: r.target.slug,
-          type: r.type,
-          relationId: r.id,
-        })),
+        relations: mappedRelations,
         tags: pageTags.map((pt) => pt.tag.name),
         resources,
       };

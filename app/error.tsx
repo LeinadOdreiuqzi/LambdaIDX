@@ -25,7 +25,7 @@ export default function Error({
       description="An unexpected error occurred while processing this node. The engineering team has been notified."
       action={{
         label: "Retry Operation",
-        href: "#",
+        onClick: reset,
         icon: <ArrowLeft className="w-4 h-4" />,
       }}
     />

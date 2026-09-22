@@ -22,10 +22,11 @@ interface StatusPageProps {
   heading: React.ReactNode;
   /** Supporting description */
   description: string;
-  /** Optional CTA link */
+  /** Optional CTA link or button action */
   action?: {
     label: string;
-    href: string;
+    href?: string;
+    onClick?: () => void;
     icon?: React.ReactNode;
   };
   /** Additional class for the outer container */
@@ -78,13 +79,24 @@ export function StatusPage({
         </div>
         <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-1">{description}</p>
         {action && (
-          <Link
-            href={action.href}
-            className="mt-4 text-xs font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 hover:text-black dark:hover:text-white transition-colors flex items-center gap-2"
-          >
-            {action.icon}
-            {action.label}
-          </Link>
+          action.onClick ? (
+            <button
+              type="button"
+              onClick={action.onClick}
+              className="mt-4 text-xs font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 hover:text-black dark:hover:text-white transition-colors flex items-center gap-2 cursor-pointer"
+            >
+              {action.icon}
+              {action.label}
+            </button>
+          ) : action.href ? (
+            <Link
+              href={action.href}
+              className="mt-4 text-xs font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 hover:text-black dark:hover:text-white transition-colors flex items-center gap-2"
+            >
+              {action.icon}
+              {action.label}
+            </Link>
+          ) : null
         )}
       </div>
     );
@@ -127,17 +139,32 @@ export function StatusPage({
 
         {/* Action */}
         {action && (
-          <Link
-            href={action.href}
-            className="group flex items-center gap-3 px-8 py-4 bg-zinc-900 text-zinc-100 dark:bg-white dark:text-black font-black uppercase tracking-widest text-xs transition-all hover:pr-10"
-          >
-            {action.icon && (
-              <span className="transition-transform group-hover:-translate-x-1">
-                {action.icon}
-              </span>
-            )}
-            <span>{action.label}</span>
-          </Link>
+          action.onClick ? (
+            <button
+              type="button"
+              onClick={action.onClick}
+              className="group flex items-center gap-3 px-8 py-4 bg-zinc-900 text-zinc-100 dark:bg-white dark:text-black font-black uppercase tracking-widest text-xs transition-all hover:pr-10 cursor-pointer"
+            >
+              {action.icon && (
+                <span className="transition-transform group-hover:-translate-x-1">
+                  {action.icon}
+                </span>
+              )}
+              <span>{action.label}</span>
+            </button>
+          ) : action.href ? (
+            <Link
+              href={action.href}
+              className="group flex items-center gap-3 px-8 py-4 bg-zinc-900 text-zinc-100 dark:bg-white dark:text-black font-black uppercase tracking-widest text-xs transition-all hover:pr-10"
+            >
+              {action.icon && (
+                <span className="transition-transform group-hover:-translate-x-1">
+                  {action.icon}
+                </span>
+              )}
+              <span>{action.label}</span>
+            </Link>
+          ) : null
         )}
       </div>
 

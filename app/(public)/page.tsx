@@ -4,9 +4,27 @@ import React from "react";
 import Link from "next/link";
 import { ArrowRight, Layers, Cpu, Globe, Activity, Code, Target } from "lucide-react";
 import { motion } from "framer-motion";
+import dynamic from "next/dynamic";
 import { PublicFooter } from "@/components/shared/public-footer";
-import { InteractiveKnowledgeGraph } from "@/components/features/landing/interactive-knowledge-graph";
 import { IndustrialBrutalistMission } from "@/components/features/landing/industrial-brutalist-mission";
+
+const InteractiveKnowledgeGraph = dynamic(
+  () =>
+    import("@/components/features/landing/interactive-knowledge-graph").then(
+      (mod) => mod.InteractiveKnowledgeGraph
+    ),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="w-full max-w-5xl h-[450px] md:h-[550px] my-12 rounded-2xl border border-zinc-800/60 bg-zinc-950/30 flex items-center justify-center animate-pulse">
+        <div className="flex flex-col items-center gap-3 text-zinc-500 font-mono text-xs uppercase tracking-widest">
+          <div className="w-6 h-6 rounded-full border-2 border-zinc-400 border-t-transparent animate-spin" />
+          <span>Cargando Cartografía Interactiva...</span>
+        </div>
+      </div>
+    ),
+  }
+);
 
 export default function Home() {
   return (

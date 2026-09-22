@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, FileText, CornerDownLeft, X } from "lucide-react";
+import { Search, FileText, CornerDownLeft, X, Loader2 } from "lucide-react";
 import { useNavigation } from "@/hooks/use-navigation";
 import { useFocusTrap } from "@/hooks/use-focus-trap";
 import { StatusPage } from "@/components/shared/status-page";
@@ -15,16 +15,26 @@ interface CommandPaletteProps {
   tree: NavPage[];
 }
 
+interface SearchPaletteItem {
+  id: string;
+  title: string;
+  href: string;
+  excerpt?: string | null;
+  source?: "database" | "meilisearch" | "tree";
+}
+
 export function CommandPalette({ tree }: CommandPaletteProps) {
   const router = useRouter();
   const { isCommandPaletteOpen, setIsCommandPaletteOpen, toggleCommandPalette } = useNavigation();
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [theme, setTheme] = useState<"light" | "dark">("dark");
+  const [searchResults, setSearchResults] = useState<SearchPaletteItem[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const focusTrapRef = useFocusTrap<HTMLDivElement>(isCommandPaletteOpen);
 
-  // Flatten the tree for searching
+  // Flatten the tree for default quick links and fallback
   const flatPages = useMemo(() => {
     const flatten = (
       items: NavPage[],
@@ -47,20 +57,94 @@ export function CommandPalette({ tree }: CommandPaletteProps) {
     return flatten(tree);
   }, [tree]);
 
-  // Filter based on query
-  const filteredPages = useMemo(() => {
-    if (!query) return flatPages.slice(0, 5); // Show first 5 by default
-    return flatPages.filter((page) =>
-      page.title.toLowerCase().includes(query.toLowerCase())
-    ).slice(0, 8);
-  }, [flatPages, query]);
+  // Debounced API search query against /api/search (PostgreSQL FTS + Meilisearch)
+  useEffect(() => {
+    const trimmed = query.trim();
+    if (!trimmed) {
+      setSearchResults([]);
+      setIsSearching(false);
+      return;
+    }
 
-  // Reset selected index when query changes
+    let isMounted = true;
+    setIsSearching(true);
+
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(trimmed)}&limit=8`);
+        if (res.ok && isMounted) {
+          const data: {
+            hits: Array<{ id: string; title: string; slug: string; path: string; excerpt?: string | null }>;
+            source?: "meilisearch" | "database";
+          } = await res.json();
+
+          if (data && Array.isArray(data.hits)) {
+            const hits: SearchPaletteItem[] = data.hits.map((hit) => {
+              const fullHref = hit.path?.startsWith("/index/")
+                ? hit.path
+                : `/index/${hit.slug}`;
+
+              return {
+                id: hit.id,
+                title: hit.title,
+                href: fullHref,
+                excerpt: hit.excerpt,
+                source: data.source || "database",
+              };
+            });
+
+            setSearchResults(hits);
+            setIsSearching(false);
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn("API search failed, falling back to in-memory tree filter:", err);
+      }
+
+      // Graceful local fallback to tree nodes if API fails
+      if (isMounted) {
+        const localMatches: SearchPaletteItem[] = flatPages
+          .filter((page) => page.title.toLowerCase().includes(trimmed.toLowerCase()))
+          .slice(0, 8)
+          .map((page) => ({
+            id: page.id,
+            title: page.title,
+            href: page.href,
+            source: "tree",
+          }));
+
+        setSearchResults(localMatches);
+        setIsSearching(false);
+      }
+    }, 200);
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+    };
+  }, [query, flatPages]);
+
+  // Displayed items: quick nodes when query is empty, otherwise full-text search results
+  const displayedItems: SearchPaletteItem[] = useMemo(() => {
+    if (!query.trim()) {
+      return flatPages.slice(0, 5).map((page) => ({
+        id: page.id,
+        title: page.title,
+        href: page.href,
+        excerpt: null,
+        source: "tree" as const,
+      }));
+    }
+    return searchResults;
+  }, [query, flatPages, searchResults]);
+
+  // Reset selected index when results change
   useEffect(() => {
     setSelectedIndex(0);
-  }, [query]);
+  }, [displayedItems]);
 
-  // Handle shortcuts
+  // Handle keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
@@ -100,23 +184,23 @@ export function CommandPalette({ tree }: CommandPaletteProps) {
     return () => observer.disconnect();
   }, []);
 
-  const handleSelect = (page: Omit<NavPage, "children"> & { href: string }) => {
-    router.push(page.href);
+  const handleSelect = (item: SearchPaletteItem) => {
+    router.push(item.href);
     setIsCommandPaletteOpen(false);
   };
 
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "ArrowDown") {
       e.preventDefault();
-      if (filteredPages.length === 0) return;
-      setSelectedIndex((prev) => (prev + 1) % filteredPages.length);
+      if (displayedItems.length === 0) return;
+      setSelectedIndex((prev) => (prev + 1) % displayedItems.length);
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
-      if (filteredPages.length === 0) return;
-      setSelectedIndex((prev) => (prev - 1 + filteredPages.length) % filteredPages.length);
+      if (displayedItems.length === 0) return;
+      setSelectedIndex((prev) => (prev - 1 + displayedItems.length) % displayedItems.length);
     } else if (e.key === "Enter") {
-      if (filteredPages[selectedIndex]) {
-        handleSelect(filteredPages[selectedIndex]);
+      if (displayedItems[selectedIndex]) {
+        handleSelect(displayedItems[selectedIndex]);
       }
     }
   };
@@ -161,7 +245,7 @@ export function CommandPalette({ tree }: CommandPaletteProps) {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={onKeyDown}
-                placeholder="Search knowledge tree..."
+                placeholder="Buscar por título, contenido o conceptos..."
                 className={cn(
                   "flex-1 bg-transparent border-none outline-none font-mono text-sm",
                   theme === "light"
@@ -169,6 +253,9 @@ export function CommandPalette({ tree }: CommandPaletteProps) {
                     : "text-zinc-100 placeholder:text-zinc-600"
                 )}
               />
+              {isSearching && (
+                <Loader2 className={cn("w-4 h-4 animate-spin", theme === "light" ? "text-slate-400" : "text-zinc-500")} />
+              )}
               <div
                 className={cn(
                   "flex items-center gap-1.5 px-1.5 py-1 border rounded text-[10px] font-mono",
@@ -183,49 +270,82 @@ export function CommandPalette({ tree }: CommandPaletteProps) {
 
             {/* Results */}
             <div className="max-h-[60vh] overflow-y-auto no-scrollbar py-2">
-              {filteredPages.length > 0 ? (
+              {displayedItems.length > 0 ? (
                 <div className="px-2 space-y-1">
                   <div
                     className={cn(
-                      "px-3 py-2 text-[10px] font-bold uppercase tracking-widest",
+                      "px-3 py-2 text-[10px] font-bold uppercase tracking-widest flex items-center justify-between",
                       theme === "light" ? "text-slate-500" : "text-zinc-600"
                     )}
                   >
-                    {query ? "Search Results" : "Recent Knowledge Nodes"}
+                    <span>
+                      {query.trim()
+                        ? isSearching
+                          ? "Buscando en archivo..."
+                          : `Resultados (${displayedItems.length})`
+                        : "Nodos Recientes"}
+                    </span>
+                    {query.trim() && !isSearching && (
+                      <span className="font-mono text-[9px] lowercase opacity-60">full-text index</span>
+                    )}
                   </div>
-                  {filteredPages.map((page, index) => (
+                  {displayedItems.map((item, index) => (
                     <div
-                      key={page.id}
-                      onClick={() => handleSelect(page)}
+                      key={item.id}
+                      onClick={() => handleSelect(item)}
                       onMouseEnter={() => setSelectedIndex(index)}
                       className={cn(
-                        "flex items-center gap-3 px-3 py-3 rounded-lg cursor-pointer transition-all",
-                        index === selectedIndex 
+                        "flex items-start gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all",
+                        index === selectedIndex
                           ? theme === "light"
                             ? "bg-slate-200 text-slate-800"
                             : "bg-zinc-900 text-white"
                           : theme === "light"
-                            ? "text-slate-500 hover:text-slate-700"
-                            : "text-zinc-400 hover:text-zinc-200"
+                            ? "text-slate-500 hover:text-slate-700 hover:bg-slate-100"
+                            : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/40"
                       )}
                     >
-                      <FileText className={cn(
-                        "w-4 h-4",
-                        index === selectedIndex
-                          ? theme === "light"
-                            ? "text-slate-800"
-                            : "text-white"
-                          : theme === "light"
-                            ? "text-slate-400"
-                            : "text-zinc-600"
-                      )} />
-                      <div className="flex-1 truncate text-sm font-medium">
-                        {page.title}
+                      <FileText
+                        className={cn(
+                          "w-4 h-4 shrink-0 mt-0.5",
+                          index === selectedIndex
+                            ? theme === "light"
+                              ? "text-slate-800"
+                              : "text-white"
+                            : theme === "light"
+                              ? "text-slate-400"
+                              : "text-zinc-600"
+                        )}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="truncate text-sm font-medium">{item.title}</div>
+                        {item.excerpt && (
+                          <div
+                            className={cn(
+                              "text-xs truncate mt-0.5 line-clamp-1 opacity-70",
+                              theme === "light" ? "text-slate-600" : "text-zinc-400"
+                            )}
+                          >
+                            {item.excerpt}
+                          </div>
+                        )}
                       </div>
+                      {item.source && item.source !== "tree" && (
+                        <span
+                          className={cn(
+                            "text-[9px] font-mono uppercase px-1.5 py-0.5 rounded border shrink-0 mt-0.5",
+                            theme === "light"
+                              ? "bg-slate-100 border-slate-300 text-slate-600"
+                              : "bg-zinc-900 border-zinc-800 text-zinc-500"
+                          )}
+                        >
+                          {item.source}
+                        </span>
+                      )}
                       {index === selectedIndex && (
                         <div
                           className={cn(
-                            "flex items-center gap-1 text-[10px] font-mono",
+                            "flex items-center gap-1 text-[10px] font-mono shrink-0 mt-0.5",
                             theme === "light" ? "text-slate-500" : "text-zinc-500"
                           )}
                         >
@@ -236,15 +356,20 @@ export function CommandPalette({ tree }: CommandPaletteProps) {
                     </div>
                   ))}
                 </div>
-              ) : (
+              ) : !isSearching ? (
                 <StatusPage
                   variant="empty"
                   compact
                   icon={<X className={cn("w-6 h-6", theme === "light" ? "text-slate-400" : "text-zinc-700")} />}
                   badge="EMPTY"
                   heading={null}
-                  description={`No nodes found matching "${query}"`}
+                  description={`No se encontraron nodos coincidentes para "${query}"`}
                 />
+              ) : (
+                <div className="flex items-center justify-center py-12 gap-3 text-zinc-500 font-mono text-xs">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Explorando archivo de conocimiento...</span>
+                </div>
               )}
             </div>
 
@@ -262,9 +387,9 @@ export function CommandPalette({ tree }: CommandPaletteProps) {
                 )}
               >
                 <span className={cn("p-1 border rounded", theme === "light" ? "bg-slate-50 border-slate-200" : "bg-zinc-950 border-zinc-800")}>
-                   ↑↓
+                  ↑↓
                 </span>
-                <span>Navigate</span>
+                <span>Navegar</span>
               </div>
               <div
                 className={cn(
@@ -273,9 +398,9 @@ export function CommandPalette({ tree }: CommandPaletteProps) {
                 )}
               >
                 <span className={cn("p-1 border rounded", theme === "light" ? "bg-slate-50 border-slate-200" : "bg-zinc-950 border-zinc-800")}>
-                   Enter
+                  Enter
                 </span>
-                <span>Open</span>
+                <span>Abrir</span>
               </div>
             </div>
           </motion.div>
