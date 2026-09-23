@@ -46,6 +46,7 @@ next-env.d.ts
 /docs/
 *.db
 *.sqlite
+lint-report.json
 
 # media uploads
 /public/uploads/*

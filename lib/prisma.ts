@@ -24,13 +24,16 @@ const prismaClientSingleton = () => {
     }) as unknown as PrismaClient;
   }
 
-  // Normalizar sslmode para evitar el warning de pg/pg-connection-string v3 en producción
-  const connectionString = rawConnectionString
-    .replace("sslmode=require", "sslmode=verify-full")
-    .replace("sslmode=prefer", "sslmode=verify-full")
-    .replace("sslmode=verify-ca", "sslmode=verify-full");
+  const isProduction = process.env.NODE_ENV === "production";
 
-  const pool = new pg.Pool({ connectionString });
+  // Configurar pool de conexiones adaptado a serverless y prevenir agotamiento de sockets
+  const pool = new pg.Pool({
+    connectionString: rawConnectionString,
+    max: isProduction ? 10 : 5,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 5000,
+  });
+
   const adapter = new PrismaPg(pool);
   return new PrismaClient({ adapter });
 };
