@@ -7,11 +7,12 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
 
-    const title = searchParams.get("title") || "LambdaIDX Knowledge Base";
-    const excerpt =
+    const title = (searchParams.get("title") || "LambdaIDX Knowledge Base").slice(0, 150);
+    const excerpt = (
       searchParams.get("excerpt") ||
-      "Infraestructura de conocimiento jerarquico y lectura academica.";
-    const path = searchParams.get("path") || "/index";
+      "Infraestructura de conocimiento jerarquico y lectura academica."
+    ).slice(0, 300);
+    const path = (searchParams.get("path") || "/index").slice(0, 100);
 
     return new ImageResponse(
       (

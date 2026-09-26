@@ -40,6 +40,36 @@ export const searchSchema = z.object({
 // ID validation schema - accepts UUIDs and CUIDs (Prisma default)
 export const idSchema = z.string().min(1, "ID is required").max(50, "ID must be less than 50 characters");
 
+// Auth validation schema with length bounding to prevent algorithmic DoS
+export const loginSchema = z.object({
+  email: z
+    .string()
+    .trim()
+    .min(1, "El correo electrónico es requerido")
+    .max(255, "El correo no puede exceder 255 caracteres")
+    .email("Formato de correo electrónico inválido"),
+  password: z
+    .string()
+    .min(1, "La contraseña es requerida")
+    .max(128, "La contraseña no puede exceder 128 caracteres"),
+});
+
+// Safe web URL schema preventing javascript: or data: XSS schemes
+export const safeUrlSchema = z
+  .string()
+  .trim()
+  .max(2048, "La URL no puede exceder 2048 caracteres")
+  .refine((val) => /^https?:\/\//i.test(val), {
+    message: "La URL debe comenzar con http:// o https://",
+  });
+
+export const addResourceSchema = z.object({
+  title: z.string().trim().min(1, "El título es requerido").max(200, "El título no puede exceder 200 caracteres"),
+  url: safeUrlSchema,
+  type: z.enum(["WEBSITE", "PDF", "VIDEO", "BOOK", "TOOL", "ARTICLE"]).default("WEBSITE"),
+  description: z.string().trim().max(500, "La descripción no puede exceder 500 caracteres").optional(),
+});
+
 // Helper function to validate request body
 export function validateBody<T>(schema: z.ZodSchema<T>, body: unknown): { success: true; data: T } | { success: false; error: string } {
   const result = schema.safeParse(body);

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PageService } from "@/services/page-service";
-import { idSchema } from "@/lib/validation";
+import { idSchema, addResourceSchema } from "@/lib/validation";
 import { RelationType, ResourceType } from "@prisma/client";
 import { requireAdminSession, AuthError } from "@/lib/auth";
 
@@ -109,16 +109,14 @@ export async function POST(
       }
 
       case "add_resource": {
-        const { title, url, type, description } = payload || {};
-        if (!title || !url) {
-          return NextResponse.json({ success: false, error: "Missing title or url" }, { status: 400 });
+        const validation = addResourceSchema.safeParse(payload);
+        if (!validation.success) {
+          return NextResponse.json(
+            { success: false, error: validation.error.issues.map((e) => e.message).join(", ") },
+            { status: 400 }
+          );
         }
-        const res = await PageService.addPageResource(pageId, {
-          title,
-          url,
-          type: (type as ResourceType) || "WEBSITE",
-          description,
-        });
+        const res = await PageService.addPageResource(pageId, validation.data);
         return NextResponse.json({ success: true, data: res });
       }
 

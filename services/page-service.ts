@@ -123,11 +123,11 @@ function renderNode(node: TipTapNode): string {
       return `<div class="column" data-type="column">${renderContent(node.content)}</div>`;
     case "customVideo":
     case "video": {
-      const src = (node.attrs?.src as string) || "";
+      const src = sanitizeUrl(node.attrs?.src);
       return `<div class="video-wrapper"><video src="${escapeHtml(src)}" controls></video></div>`;
     }
     case "image": {
-      const src = (node.attrs?.src as string) || "";
+      const src = sanitizeUrl(node.attrs?.src);
       const alt = (node.attrs?.alt as string) || "";
       const title = (node.attrs?.title as string) || "";
       const width = (node.attrs?.width as string) || "100%";
@@ -172,8 +172,8 @@ function renderText(node: TipTapNode): string {
         text = `<code>${text}</code>`;
         break;
       case "link":
-        const href = (mark.attrs?.href as string) || "#";
-        text = `<a href="${escapeHtml(href)}">${text}</a>`;
+        const href = sanitizeUrl(mark.attrs?.href);
+        text = `<a href="${escapeHtml(href)}" rel="noopener noreferrer">${text}</a>`;
         break;
     }
   });
@@ -204,6 +204,18 @@ function escapeHtml(text: string): string {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
+}
+
+/**
+ * Sanitizes URLs to prevent Stored XSS via javascript: or data: URIs
+ */
+function sanitizeUrl(url?: unknown): string {
+  if (typeof url !== "string") return "#";
+  const trimmed = url.trim();
+  if (/^(?:https?:\/\/|mailto:|\/|#)/i.test(trimmed)) {
+    return trimmed;
+  }
+  return "#";
 }
 
 export class PageService {
@@ -787,19 +799,17 @@ export class PageService {
         }
 
         const descendantPathPrefix = `${page.path}/`;
+        const depthReduction = page.depth + 1;
+        const pattern = `${descendantPathPrefix}%`;
 
-        // Promote direct children to root level and repair the whole descendant subtree
-        // by removing the deleted node's path prefix.
-        await tx.$executeRawUnsafe(
-          `UPDATE "Page"
-           SET
-             path = REPLACE(path, $1, ''),
-             depth = depth - $2
-           WHERE path LIKE $3`,
-          descendantPathPrefix,
-          page.depth + 1,
-          `${descendantPathPrefix}%`
-        );
+        // Promote direct children to root level and repair descendant subtree using safe parameterized execution
+        await tx.$executeRaw`
+          UPDATE "Page"
+          SET
+            path = REPLACE(path, ${descendantPathPrefix}, ''),
+            depth = depth - ${depthReduction}
+          WHERE path LIKE ${pattern}
+        `;
 
         await tx.page.updateMany({
           where: { parentId: id },
@@ -878,17 +888,14 @@ export class PageService {
           const depthDiff = newDepth - page.depth;
 
           // Perform a fast batch update on all descendants using safe parameterized raw SQL execution
-          await tx.$executeRawUnsafe(
-            `UPDATE "Page"
-             SET 
-               path = REPLACE(path, $1, $2),
-               depth = depth + $3
-             WHERE path LIKE $4`,
-            oldPathPrefix,
-            newPathPrefix,
-            depthDiff,
-            `${oldPathPrefix}%`
-          );
+          const oldPattern = `${oldPathPrefix}%`;
+          await tx.$executeRaw`
+            UPDATE "Page"
+            SET 
+              path = REPLACE(path, ${oldPathPrefix}, ${newPathPrefix}),
+              depth = depth + ${depthDiff}
+            WHERE path LIKE ${oldPattern}
+          `;
         }
 
         // Update the target page itself

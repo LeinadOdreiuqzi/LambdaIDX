@@ -7,41 +7,71 @@ import {
   SESSION_MAX_AGE_SECONDS,
 } from "@/lib/auth";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { loginSchema, validateBody } from "@/lib/validation";
 
 export async function POST(request: Request) {
   try {
-    // 1. Rate limiting: Max 5 intentos por minuto por direccion IP
+    // 1. Rate limiting por dirección IP: Max 5 intentos por minuto
     const clientIp = getClientIp(request);
-    const rateLimit = await checkRateLimit(`login:${clientIp}`, 5, 60);
+    const ipRateLimit = await checkRateLimit(`login:ip:${clientIp}`, 5, 60);
 
-    if (!rateLimit.success) {
+    if (!ipRateLimit.success) {
       return NextResponse.json(
         {
           success: false,
-          error: `Demasiados intentos de inicio de sesión. Por favor espera ${rateLimit.resetSeconds} segundos.`,
+          error: `Demasiados intentos de inicio de sesión desde esta IP. Por favor espera ${ipRateLimit.resetSeconds} segundos.`,
         },
         {
           status: 429,
           headers: {
-            "Retry-After": String(rateLimit.resetSeconds),
+            "Retry-After": String(ipRateLimit.resetSeconds),
           },
         }
       );
     }
 
-    const body = await request.json();
-    const { email, password } = body;
-
-    if (!email || !password) {
+    // 2. Parseo seguro de JSON y validación estricta de esquema (protección DoS en scrypt y payload bounds)
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
       return NextResponse.json(
-        { success: false, error: "Correo electrónico y contraseña requeridos" },
+        { success: false, error: "Cuerpo de solicitud JSON inválido" },
         { status: 400 }
       );
     }
 
-    // 2. Buscar usuario por email
+    const validation = validateBody(loginSchema, body);
+    if (!validation.success) {
+      return NextResponse.json(
+        { success: false, error: validation.error },
+        { status: 400 }
+      );
+    }
+
+    const { email, password } = validation.data;
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // 3. Rate limiting por cuenta objetivo: Max 5 intentos por minuto para prevenir credential stuffing distribuido
+    const accountRateLimit = await checkRateLimit(`login:account:${normalizedEmail}`, 5, 60);
+    if (!accountRateLimit.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Demasiados intentos fallidos para esta cuenta. Por favor espera ${accountRateLimit.resetSeconds} segundos.`,
+        },
+        {
+          status: 429,
+          headers: {
+            "Retry-After": String(accountRateLimit.resetSeconds),
+          },
+        }
+      );
+    }
+
+    // 4. Buscar usuario por email (consulta parametrizada)
     const user = await prisma.user.findUnique({
-      where: { email: String(email).toLowerCase().trim() },
+      where: { email: normalizedEmail },
     });
 
     if (!user || !user.passwordHash) {
@@ -51,8 +81,8 @@ export async function POST(request: Request) {
       );
     }
 
-    // 3. Verificar contraseña con hash criptográfico
-    const isValid = verifyPassword(String(password), user.passwordHash);
+    // 5. Verificar contraseña con hash criptográfico timing-safe
+    const isValid = verifyPassword(password, user.passwordHash);
     if (!isValid) {
       return NextResponse.json(
         { success: false, error: "Credenciales incorrectas" },

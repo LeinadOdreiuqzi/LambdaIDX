@@ -46,9 +46,10 @@ async function checkDatabaseHealth(): Promise<ServiceHealth> {
     await prisma.$queryRaw`SELECT 1`;
     return { status: "ok" };
   } catch (error) {
+    console.error("Health check failure (database):", error);
     return {
       status: "error",
-      details: error instanceof Error ? error.message : "Database connection failed.",
+      details: "Database service unavailable",
     };
   }
 }
@@ -68,9 +69,10 @@ async function checkMeilisearchHealth(): Promise<ServiceHealth> {
       details: health.status,
     };
   } catch (error) {
+    console.error("Health check failure (meilisearch):", error);
     return {
       status: "error",
-      details: error instanceof Error ? error.message : "Meilisearch connection failed.",
+      details: "Search service unavailable",
     };
   }
 }
@@ -99,9 +101,10 @@ async function checkRedisHealth(): Promise<ServiceHealth> {
       details: pong,
     };
   } catch (error) {
+    console.error("Health check failure (redis):", error);
     return {
       status: "error",
-      details: error instanceof Error ? error.message : "Redis connection failed.",
+      details: "Cache service unavailable",
     };
   }
 }

@@ -2,6 +2,7 @@ import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { SearchService } from "@/services/search-service";
 import { AuthError, requireAdminSession } from "@/lib/auth";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 function hasValidInternalKey(request: NextRequest): boolean {
   const configuredKey = process.env.INTERNAL_API_KEY;
@@ -22,6 +23,15 @@ function hasValidInternalKey(request: NextRequest): boolean {
 
 export async function POST(request: NextRequest) {
   try {
+    const clientIp = getClientIp(request);
+    const rateLimit = await checkRateLimit(`reindex:${clientIp}`, 5, 300);
+    if (!rateLimit.success) {
+      return NextResponse.json(
+        { error: `Límite de reindexación excedido. Espera ${rateLimit.resetSeconds} segundos.` },
+        { status: 429, headers: { "Retry-After": String(rateLimit.resetSeconds) } }
+      );
+    }
+
     if (!hasValidInternalKey(request)) {
       await requireAdminSession();
     }

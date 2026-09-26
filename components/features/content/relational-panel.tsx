@@ -137,19 +137,22 @@ export function RelationalPanel({
             Resources
           </h4>
           <ul className="space-y-3">
-            {resources.map((res) => (
-              <li key={res.url}>
-                <a 
-                  href={res.url} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-xs text-zinc-500 hover:text-black dark:hover:text-white transition-colors flex items-center justify-between gap-2 group"
-                >
-                  <span className="truncate group-hover:underline underline-offset-4">{res.title}</span>
-                  <span className="text-[9px] font-mono uppercase font-bold tracking-tighter text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 px-1.5 py-0.5 rounded shrink-0">{res.type}</span>
-                </a>
-              </li>
-            ))}
+            {resources.map((res) => {
+              const isSafe = /^https?:\/\//i.test(res.url);
+              return (
+                <li key={res.url}>
+                  <a 
+                    href={isSafe ? res.url : "#"} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-xs text-zinc-500 hover:text-black dark:hover:text-white transition-colors flex items-center justify-between gap-2 group"
+                  >
+                    <span className="truncate group-hover:underline underline-offset-4">{res.title}</span>
+                    <span className="text-[9px] font-mono uppercase font-bold tracking-tighter text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 px-1.5 py-0.5 rounded shrink-0">{res.type}</span>
+                  </a>
+                </li>
+              );
+            })}
           </ul>
         </div>
       )}
