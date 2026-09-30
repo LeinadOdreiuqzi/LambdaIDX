@@ -9,6 +9,7 @@ import {
   Link as LinkIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 
 interface BubbleMenuProps {
   editor: Editor | null;
@@ -16,6 +17,24 @@ interface BubbleMenuProps {
 
 export function BubbleMenu({ editor }: BubbleMenuProps) {
   if (!editor) return null;
+
+  const sanitizeUrl = (rawUrl: string): string | null => {
+    const trimmed = rawUrl.trim();
+    if (!trimmed) return null;
+    if (/^(javascript|vbscript|data):/i.test(trimmed)) {
+      return null;
+    }
+    if (trimmed.startsWith('/') || trimmed.startsWith('#')) {
+      return trimmed;
+    }
+    if (!/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(trimmed)) {
+      return `https://${trimmed}`;
+    }
+    if (/^(https?|mailto|tel):/i.test(trimmed)) {
+      return trimmed;
+    }
+    return null;
+  };
 
   const setLink = () => {
     const previousUrl = editor.getAttributes('link').href;
@@ -25,7 +44,12 @@ export function BubbleMenu({ editor }: BubbleMenuProps) {
       editor.chain().focus().extendMarkRange('link').unsetLink().run();
       return;
     }
-    editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+    const safe = sanitizeUrl(url);
+    if (!safe) {
+      toast.error('URL no permitida o insegura');
+      return;
+    }
+    editor.chain().focus().extendMarkRange('link').setLink({ href: safe }).run();
   };
 
   const Btn = ({ onClick, isActive, children }: any) => (

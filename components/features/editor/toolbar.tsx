@@ -99,10 +99,33 @@ export function Toolbar({ editor, isFullscreen, onToggleFullscreen }: ToolbarPro
     </button>
   );
 
+  const sanitizeUrl = (rawUrl: string): string | null => {
+    const trimmed = rawUrl.trim();
+    if (!trimmed) return null;
+    if (/^(javascript|vbscript|data):/i.test(trimmed)) {
+      return null;
+    }
+    if (trimmed.startsWith('/') || trimmed.startsWith('#')) {
+      return trimmed;
+    }
+    if (!/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(trimmed)) {
+      return `https://${trimmed}`;
+    }
+    if (/^(https?|mailto|tel):/i.test(trimmed)) {
+      return trimmed;
+    }
+    return null;
+  };
+
   const addImage = () => {
     const url = window.prompt('URL de la imagen (ej. Unsplash):');
     if (url) {
-      editor.chain().focus().setImage({ src: url }).run();
+      const safe = sanitizeUrl(url);
+      if (!safe) {
+        toast.error('URL de imagen no permitida o insegura');
+        return;
+      }
+      editor.chain().focus().setImage({ src: safe }).run();
     }
   };
 
@@ -119,8 +142,14 @@ export function Toolbar({ editor, isFullscreen, onToggleFullscreen }: ToolbarPro
       return;
     }
 
+    const safe = sanitizeUrl(url);
+    if (!safe) {
+      toast.error('URL no permitida o insegura');
+      return;
+    }
+
     // update link
-    editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
+    editor.chain().focus().extendMarkRange('link').setLink({ href: safe }).run();
   };
 
   return (

@@ -41,9 +41,11 @@ export function EditorPage({ pageId, onPublish, className }: EditorPageProps) {
     },
   });
 
+  const [newTitle, setNewTitle] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [isCreatingChild, setIsCreatingChild] = useState(false);
   const [childTitle, setChildTitle] = useState("");
+  const [isDirty, setIsDirty] = useState(false);
   const [showMetadata, setShowMetadata] = useState(false);
   const [showRelations, setShowRelations] = useState(false);
   const [metaTitle, setMetaTitle] = useState("");
@@ -51,24 +53,44 @@ export function EditorPage({ pageId, onPublish, className }: EditorPageProps) {
   const [loadError, setLoadError] = useState<string | null>(null);
   const editorRef = useRef<RichTextEditorHandle | null>(null);
 
+  // Warn on accidental exit if there are unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [isDirty]);
+
   // Load page if ID is provided
   useEffect(() => {
     if (!pageId) return;
     let isSubscribed = true;
-    loadPage(pageId).catch(() => {
-      if (isSubscribed) {
-        setLoadError("Page not found or could not be loaded.");
-      }
-    });
+    loadPage(pageId)
+      .then(() => {
+        if (isSubscribed) {
+          setIsDirty(false);
+        }
+      })
+      .catch(() => {
+        if (isSubscribed) {
+          setLoadError("Page not found or could not be loaded.");
+        }
+      });
     return () => {
       isSubscribed = false;
     };
   }, [pageId, loadPage]);
 
   const handleCreatePage = async () => {
+    const title = newTitle.trim();
+    if (!title) return;
     setIsCreating(true);
     try {
-      const slug = state.title
+      const slug = title
         .toLowerCase()
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "")
@@ -76,11 +98,14 @@ export function EditorPage({ pageId, onPublish, className }: EditorPageProps) {
         .replace(/\s+/g, "-")
         .replace(/-+/g, "-")
         .trim();
-      await createPage({
-        title: state.title,
+      const newPage = await createPage({
+        title,
         slug,
         contentJson: state.contentJson || { type: "doc", content: [] },
       });
+      if (newPage?.id) {
+        router.push(`/admin/editor/${newPage.id}`);
+      }
     } finally {
       setIsCreating(false);
     }
@@ -101,14 +126,16 @@ export function EditorPage({ pageId, onPublish, className }: EditorPageProps) {
         .replace(/\s+/g, "-")
         .replace(/-+/g, "-")
         .trim();
-      await createPage({
+      const childPage = await createPage({
         title: childTitle,
         slug,
         parentId: state.id || undefined,
         contentJson: { type: "doc", content: [] },
       });
       setChildTitle("");
-      router.push(`/admin/editor/${state.id}`);
+      if (childPage?.id) {
+        router.push(`/admin/editor/${childPage.id}`);
+      }
     } finally {
       setIsCreatingChild(false);
     }
@@ -124,6 +151,7 @@ export function EditorPage({ pageId, onPublish, className }: EditorPageProps) {
       .trim();
 
     await savePage(contentJson, plainText);
+    setIsDirty(false);
   };
 
   const handlePublish = async () => {
@@ -140,9 +168,10 @@ export function EditorPage({ pageId, onPublish, className }: EditorPageProps) {
       }
     }
     await publishPage();
+    setIsDirty(false);
   };
 
-  const handleManualSave = async () => {
+  const handleManualSave = React.useCallback(async () => {
     if (editorRef.current) {
       const editor = editorRef.current.getEditor();
       if (editor) {
@@ -153,9 +182,24 @@ export function EditorPage({ pageId, onPublish, className }: EditorPageProps) {
           .substring(0, 160)
           .trim();
         await savePage(contentJson, plainText);
+        setIsDirty(false);
       }
     }
-  };
+  }, [savePage]);
+
+  // Keyboard shortcut: Ctrl+S / Cmd+S for instant manual saving
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
+        e.preventDefault();
+        if (!state.isSaving && state.id) {
+          handleManualSave();
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [state.isSaving, state.id, handleManualSave]);
 
   const handleUpdateMetadata = async () => {
     await updateMetadata({
@@ -193,19 +237,22 @@ export function EditorPage({ pageId, onPublish, className }: EditorPageProps) {
           </div>
 
           <div className="flex items-center gap-2">
-            {state.isSaving && (
-              <div className="flex items-center gap-2 text-sm text-amber-600 dark:text-amber-500">
+            {state.isSaving ? (
+              <div className="flex items-center gap-2 text-sm text-amber-600 dark:text-amber-500 font-mono">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 Saving...
               </div>
-            )}
-
-            {!state.isSaving && state.id && (
-              <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-500">
+            ) : isDirty ? (
+              <div className="flex items-center gap-2 text-sm text-amber-600 dark:text-amber-400 font-mono">
+                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                Unsaved
+              </div>
+            ) : state.id ? (
+              <div className="flex items-center gap-2 text-sm text-emerald-600 dark:text-emerald-500 font-mono">
                 <CheckCircle2 className="h-4 w-4" />
                 Saved
               </div>
-            )}
+            ) : null}
 
             <button
               onClick={handleManualSave}
@@ -213,7 +260,7 @@ export function EditorPage({ pageId, onPublish, className }: EditorPageProps) {
               className="inline-flex items-center justify-center gap-2 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-2 text-sm font-medium text-zinc-900 dark:text-white hover:bg-zinc-50 dark:hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               <Save className="h-4 w-4" />
-              Save
+              Save <span className="text-[10px] text-zinc-400 dark:text-zinc-500 font-mono hidden sm:inline">(Ctrl+S)</span>
             </button>
 
             {state.status === "DRAFT" && (
@@ -269,6 +316,13 @@ export function EditorPage({ pageId, onPublish, className }: EditorPageProps) {
               </label>
               <input
                 type="text"
+                value={newTitle}
+                onChange={(e) => setNewTitle(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && newTitle.trim() && !isCreating) {
+                    handleCreatePage();
+                  }
+                }}
                 placeholder="Enter page title..."
                 className="w-full rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2 text-base text-zinc-900 dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-zinc-500"
               />
@@ -276,7 +330,7 @@ export function EditorPage({ pageId, onPublish, className }: EditorPageProps) {
 
             <button
               onClick={handleCreatePage}
-              disabled={!state.title || isCreating}
+              disabled={!newTitle.trim() || isCreating}
               className="w-full rounded-md bg-zinc-900 dark:bg-white px-4 py-3 text-base font-medium text-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors inline-flex items-center justify-center gap-2"
             >
               {isCreating ? (
@@ -399,22 +453,28 @@ export function EditorPage({ pageId, onPublish, className }: EditorPageProps) {
               ref={editorRef}
               content={state.contentJson ? JSON.stringify(state.contentJson) : ""}
               onChange={handleSave}
-              documentId={state.id}
+              onDirty={() => setIsDirty(true)}
+              documentId={state.id || undefined}
               contentJson={state.contentJson as Record<string, unknown> | undefined}
               disableAutoSave={true}
               className="min-h-[calc(100vh-16rem)] rounded-2xl border border-zinc-200/70 shadow-sm dark:border-zinc-800/80"
             />
 
             {/* Status */}
-            <div className="mt-6 flex items-center gap-4 px-6 text-sm text-zinc-600 dark:text-zinc-400">
+            <div className="mt-6 flex items-center gap-4 px-6 text-xs text-zinc-600 dark:text-zinc-400 font-mono">
               {state.isSaving ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Auto-saving...</span>
+                  <Loader2 className="h-4 w-4 animate-spin text-amber-500" />
+                  <span>Saving changes...</span>
+                </>
+              ) : isDirty ? (
+                <>
+                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                  <span>Unsaved changes (Save or Ctrl+S)</span>
                 </>
               ) : (
                 <>
-                  <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-500" />
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-500" />
                   <span>All changes saved</span>
                 </>
               )}

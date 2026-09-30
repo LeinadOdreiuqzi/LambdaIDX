@@ -4,7 +4,7 @@ import mermaid from 'mermaid';
 import { cn } from '@/lib/utils';
 import { Code2, Play, AlertCircle } from 'lucide-react';
 
-// Initialize mermaid with refined industrial base theme
+// Initialize mermaid with refined industrial base theme and strict security
 mermaid.initialize({
   startOnLoad: false,
   theme: 'base',
@@ -20,7 +20,7 @@ mermaid.initialize({
     edgeLabelBackground: 'transparent', // Fix for Yes/No labels
     nodeBorder: '#71717a',
   },
-  securityLevel: 'loose',
+  securityLevel: 'strict',
 });
 
 const MermaidComponent = ({ node, updateAttributes, selected, editor }: NodeViewProps) => {
@@ -28,15 +28,16 @@ const MermaidComponent = ({ node, updateAttributes, selected, editor }: NodeView
   const [svg, setSvg] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const id = `mermaid-${Math.random().toString(36).substr(2, 9)}`;
+  const uniqueIdRef = useRef(`mermaid_${Math.random().toString(36).substring(2, 9)}`);
 
   // Check if editor is in read-only mode
   const isReadOnly = !editor.isEditable;
 
   const renderDiagram = async () => {
     try {
-      const code = node.attrs.code || 'graph TD\n  A[Start] --> B(Process)';
-      const { svg: renderedSvg } = await mermaid.render(id, code);
+      const code = (node.attrs.code || 'graph TD\n  A[Start] --> B(Process)').trim();
+      const renderId = `${uniqueIdRef.current}_${Date.now()}`;
+      const { svg: renderedSvg } = await mermaid.render(renderId, code);
       setSvg(renderedSvg);
       setError(null);
     } catch (err) {
@@ -46,7 +47,17 @@ const MermaidComponent = ({ node, updateAttributes, selected, editor }: NodeView
   };
 
   useEffect(() => {
-    renderDiagram();
+    let isCancelled = false;
+    const timer = setTimeout(() => {
+      if (!isCancelled) {
+        renderDiagram();
+      }
+    }, 250);
+
+    return () => {
+      isCancelled = true;
+      clearTimeout(timer);
+    };
   }, [node.attrs.code]);
 
   return (

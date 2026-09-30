@@ -34,6 +34,7 @@ import { ListTree } from 'lucide-react';
 interface RichTextEditorProps {
   content: string;
   onChange: (html: string, json: Record<string, unknown>) => void;
+  onDirty?: () => void;
   className?: string;
   scienceCode?: string;
   documentId?: string;
@@ -54,6 +55,7 @@ type DraggingEditorView = {
 export const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(({
   content,
   onChange,
+  onDirty,
   className,
   scienceCode = 'DOC',
   documentId = '0000',
@@ -84,6 +86,9 @@ export const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorPro
       }),
       Link.configure({
         openOnClick: false,
+        isAllowedUri: (url, ctx) => {
+          return url.startsWith('/') || url.startsWith('#') || ctx.defaultValidate(url);
+        },
         HTMLAttributes: {
           class: 'underline underline-offset-4 cursor-pointer decoration-zinc-400 dark:decoration-zinc-600 hover:decoration-black dark:hover:decoration-white transition-colors',
         },
@@ -188,13 +193,14 @@ export const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorPro
       },
     },
     onUpdate: ({ editor }) => {
+      onDirty?.();
       if (!disableAutoSave) {
         if (debounceTimerRef.current) {
           clearTimeout(debounceTimerRef.current);
         }
         debounceTimerRef.current = setTimeout(() => {
           onChange(editor.getHTML(), editor.getJSON());
-        }, 2000); // 2 second debounce for smooth typing experience
+        }, 1500); // 1.5 second debounce for responsive auto-save
       }
     },
   });
